@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Header from "@/components/Header";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
@@ -39,21 +38,17 @@ function ViewFormButton() {
 
 export default function ApplicationsPage() {
   const [search, setSearch] = useState("");
-  const [positions, setPositions] = useState<string[]>([]);
-  const [expRanges, setExpRanges] = useState<string[]>([]);
-  const [dateApplied, setDateApplied] = useState<string[]>([]);
-  const [statuses, setStatuses] = useState<string[]>([]);
-  const [recruiters, setRecruiters] = useState<string[]>([]);
+  const [position, setPosition] = useState("");
+  const [expMin, setExpMin] = useState("");
+  const [expMax, setExpMax] = useState("");
+  const [dateRange, setDateRange] = useState("all");
+  const [status, setStatus] = useState("");
+  const [recruiter, setRecruiter] = useState("");
   const [pageSize, setPageSize] = useState(25);
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const allPositions = Array.from(new Set(candidatesWithLogs.map((c) => c.position)));
-  const allDateApplied = Array.from(new Set(candidatesWithLogs.map((c) => c.dateApplied))).slice(0, 60);
-  const expRangeOptions = ["0-1 Year", "2-4 Years", "5-8 Years", "9+ Years"];
-
-  const toggleArray = (arr: string[], setArr: (v: string[]) => void, val: string) =>
-    arr.includes(val) ? setArr(arr.filter((v) => v !== val)) : setArr([...arr, val]);
 
   const filtered = useMemo(() => {
     let data = [...candidatesWithLogs];
@@ -68,15 +63,20 @@ export default function ApplicationsPage() {
           c.email.toLowerCase().includes(q)
       );
     }
-    if (positions.length) data = data.filter((c) => positions.includes(c.position));
-    if (expRanges.length)
-      data = data.filter((c) => expRanges.includes(getExperienceLabel(c.experience)));
-    if (dateApplied.length) data = data.filter((c) => dateApplied.includes(c.dateApplied));
-    if (statuses.length) data = data.filter((c) => statuses.includes(c.status));
-    if (recruiters.length) data = data.filter((c) => recruiters.includes(c.recruiter));
+    if (position) data = data.filter((c) => c.position === position);
+    if (expMin) data = data.filter((c) => c.experience >= Number(expMin));
+    if (expMax) data = data.filter((c) => c.experience <= Number(expMax));
+    if (dateRange !== "all") {
+      const days = Number(dateRange);
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+      data = data.filter((c) => c.dateApplied >= cutoff.toISOString().split("T")[0]);
+    }
+    if (status) data = data.filter((c) => c.status === status);
+    if (recruiter) data = data.filter((c) => c.recruiter === recruiter);
 
     return data;
-  }, [search, positions, expRanges, dateApplied, statuses, recruiters]);
+  }, [search, position, expMin, expMax, dateRange, status, recruiter]);
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -87,7 +87,6 @@ export default function ApplicationsPage() {
 
   return (
     <>
-      <Header />
       <main className="max-w-7xl mx-auto px-6 py-8">
         <h1 className="text-2xl font-bold text-[var(--foreground)] mb-6">Application List</h1>
 
@@ -98,100 +97,71 @@ export default function ApplicationsPage() {
               <Input label="Search" placeholder="Name, Phone, NID, Email..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Position</label>
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {allPositions.map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => toggleArray(positions, setPositions, p)}
-                      className={`px-2.5 py-1.5 text-xs font-medium rounded-lg cursor-pointer border ${
-                        positions.includes(p)
-                          ? "bg-[var(--primary)] text-white border-[var(--primary)]"
-                          : "bg-white border-[var(--border)] text-[var(--text-secondary)]"
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                </div>
+                <Dropdown
+                  placeholder="All Positions"
+                  options={[{ label: "All Positions", value: "" }, ...allPositions.map((p) => ({ label: p, value: p }))]}
+                  value={position}
+                  onChange={setPosition}
+                />
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Experience</label>
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {expRangeOptions.map((o) => (
-                    <button
-                      key={o}
-                      onClick={() => toggleArray(expRanges, setExpRanges, o)}
-                      className={`px-2.5 py-1.5 text-xs font-medium rounded-lg cursor-pointer border ${
-                        expRanges.includes(o)
-                          ? "bg-[var(--primary)] text-white border-[var(--primary)]"
-                          : "bg-white border-[var(--border)] text-[var(--text-secondary)]"
-                      }`}
-                    >
-                      {o}
-                    </button>
-                  ))}
+                <div className="flex gap-2">
+                  <Input
+                    label="Min"
+                    type="number"
+                    placeholder="Min"
+                    value={expMin}
+                    onChange={(e) => { setExpMin(e.target.value); setPage(1); }}
+                  />
+                  <Input
+                    label="Max"
+                    type="number"
+                    placeholder="Max"
+                    value={expMax}
+                    onChange={(e) => { setExpMax(e.target.value); setPage(1); }}
+                  />
                 </div>
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Date Applied</label>
-                <div className="flex flex-wrap gap-1.5 mt-1 max-h-[120px] overflow-y-auto">
-                  {allDateApplied.map((d) => (
-                    <button
-                      key={d}
-                      onClick={() => toggleArray(dateApplied, setDateApplied, d)}
-                      className={`px-2 py-1 text-xs font-medium rounded-lg cursor-pointer border whitespace-nowrap ${
-                        dateApplied.includes(d)
-                          ? "bg-[var(--primary)] text-white border-[var(--primary)]"
-                          : "bg-white border-[var(--border)] text-[var(--text-secondary)]"
-                      }`}
-                    >
-                      {d}
-                    </button>
-                  ))}
-                </div>
+                <Dropdown
+                  placeholder="All Time"
+                  options={[
+                    { label: "All Time", value: "all" },
+                    { label: "Last 7 days", value: "7" },
+                    { label: "Last 14 days", value: "14" },
+                    { label: "Last 30 days", value: "30" },
+                    { label: "Last 90 days", value: "90" },
+                  ]}
+                  value={dateRange}
+                  onChange={setDateRange}
+                />
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Status</label>
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {STATUSES.map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => toggleArray(statuses, setStatuses, s)}
-                      className={`px-2.5 py-1.5 text-xs font-medium rounded-lg cursor-pointer ${
-                        statuses.includes(s)
-                          ? "bg-[var(--primary)] text-white"
-                          : "bg-white border border-[var(--border)] text-[var(--text-secondary)]"
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
+                <Dropdown
+                  placeholder="All Statuses"
+                  options={[{ label: "All Statuses", value: "" }, ...STATUSES.map((s) => ({ label: s, value: s }))]}
+                  value={status}
+                  onChange={setStatus}
+                />
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Recruiter</label>
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {OWNERS.map((r) => (
-                    <button
-                      key={r}
-                      onClick={() => toggleArray(recruiters, setRecruiters, r)}
-                      className={`px-2.5 py-1.5 text-xs font-medium rounded-lg cursor-pointer ${
-                        recruiters.includes(r)
-                          ? "bg-[var(--primary)] text-white"
-                          : "bg-white border border-[var(--border)]  text-[var(--text-secondary)]"
-                      }`}
-                    >
-                      {r}
-                    </button>
-                  ))}
-                </div>
+                <Dropdown
+                  placeholder="All Recruiters"
+                  options={[{ label: "All Recruiters", value: "" }, ...OWNERS.map((r) => ({ label: r, value: r }))]}
+                  value={recruiter}
+                  onChange={setRecruiter}
+                />
               </div>
             </div>
-            {(search || positions.length || statuses.length || recruiters.length) && (
+            {(search || position || status || recruiter || dateRange !== "all") && (
               <div className="mt-4 pt-4 border-t border-[var(--border)]">
                 <button
                   onClick={() => {
-                    setSearch(""); setPositions([]); setExpRanges([]); setDateApplied([]); setStatuses([]); setRecruiters([]); setPage(1);
+                    setSearch(""); setPosition(""); setExpMin(""); setExpMax(""); setDateRange("all"); setStatus(""); setRecruiter(""); setPage(1);
                   }}
                   className="text-xs font-semibold text-[var(--accent-red)] hover:underline cursor-pointer bg-transparent border-none"
                 >

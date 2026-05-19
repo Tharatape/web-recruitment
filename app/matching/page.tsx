@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Header from "@/components/Header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -114,9 +113,7 @@ export default function MatchingPage() {
   }, [results, sortBy, statusFilter]);
 
   return (
-    <>
-      <Header />
-      <main className="max-w-7xl mx-auto px-6 py-8">
+    <main className="max-w-7xl mx-auto px-6 py-8">
         <h1 className="text-2xl font-bold text-[var(--foreground)] mb-6">Candidate Matching</h1>
 
         {/* Upload */}
@@ -281,7 +278,6 @@ export default function MatchingPage() {
             </CardContent>
           </Card>
         )}
-      </main>
-    </>
+    </main>
   );
 }

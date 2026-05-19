@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Header from "@/components/Header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { DonutChart } from "@/components/charts/DonutChart";
 import { BarChart } from "@/components/charts/BarChart";
+import { StackedBarChart } from "@/components/charts/StackedBarChart";
 import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
-import { STATUSES, type Status } from "@/data/types";
+import { STATUSES } from "@/data/types";
 import { candidatesWithLogs } from "@/data/mockData";
 
 export default function DashboardPage() {
@@ -58,16 +58,84 @@ export default function DashboardPage() {
     [fullStatusCounts, total]
   );
 
-  const stages = useMemo(() => {
-    const getCounts = (statuses: Status[]) =>
-      statuses.map((s) => ({ name: s, value: fullStatusCounts[s] || 0, color: "#2563eb" }));
-    return {
-      application: getCounts(["Applied", "Not Suitable", "Shortlisted"]),
-      interview: getCounts(["Not Selected", "Selected"]),
-      offer: getCounts(["Offer Declined", "Offer Accepted"]),
-      hired: getCounts(["Not Hired", "Hired"]),
-    };
-  }, [fullStatusCounts]);
+  // ── Stage Performance data ─────────────────────────────────────────────
+  // Funnel: each stage only counts candidates who passed the prior stage.
+  // Interview bar total = Shortlisted, Offer bar = Selected, Hired bar = Offer Accepted.
+  const stageData = useMemo(() => {
+    const candidateStages = candidatesWithLogs.map((c) => {
+      const s = new Set<string>();
+      c.logs.forEach((l) => s.add(l.status));
+      return s;
+    });
+
+    const count = (statuses: string[]) =>
+      candidateStages.filter((stages) => statuses.some((sg) => stages.has(sg))).length;
+
+    // Application: everyone (no gate)
+    const shortlistedCount = candidateStages.filter((stages) => stages.has("Shortlisted")).length;
+
+    // Interview: only Shortlisted candidates
+    const selectedCount = candidateStages.filter(
+      (stages) => stages.has("Selected")
+    ).length;
+    // Not Selected = shortlisted - selected
+    const notSelectedCount =
+      candidateStages.filter(
+        (stages) => stages.has("Shortlisted") && !stages.has("Selected")
+      ).length;
+
+    // Offer: only Selected candidates
+    const offerAcceptedCount = candidateStages.filter(
+      (stages) => stages.has("Offer Accepted")
+    ).length;
+    // Offer Declined = selected - offer accepted
+    const offerDeclinedCount =
+      candidateStages.filter(
+        (stages) => stages.has("Selected") && !stages.has("Offer Accepted")
+      ).length;
+
+    // Hired: only Offer Accepted candidates
+    const hiredHiredCount = candidateStages.filter(
+      (stages) => stages.has("Hired")
+    ).length;
+    // Not Hired = offer accepted - hired
+    const notHiredCount =
+      candidateStages.filter(
+        (stages) => stages.has("Offer Accepted") && !stages.has("Hired")
+      ).length;
+
+    return [
+      {
+        name: "Application Stage",
+        segments: [
+          { name: "Shortlisted",  value: shortlistedCount,          color: "#22c55e" },
+          { name: "Not Suitable", value: count(["Not Suitable"]),   color: "#ef4444" },
+          { name: "Applied",      value: count(["Applied"]),        color: "#9ca3af" },
+        ],
+      },
+      {
+        name: "Interview Stage",
+        segments: [
+          { name: "Selected",     value: selectedCount,             color: "#22c55e" },
+          { name: "Not Selected", value: notSelectedCount,          color: "#ef4444" },
+        ],
+      },
+      {
+        name: "Offer Stage",
+        segments: [
+          { name: "Accepted", value: offerAcceptedCount,  color: "#22c55e" },
+          { name: "Decline",  value: offerDeclinedCount,  color: "#ef4444" },
+        ],
+      },
+      {
+        name: "Hired Stage",
+        segments: [
+          { name: "Hires",     value: hiredHiredCount,  color: "#22c55e" },
+          { name: "Not Hired", value: notHiredCount,     color: "#ef4444" },
+        ],
+      },
+    ];
+  }, []);
 
   const positionDist = useMemo(() => {
     const map: Record<string, number> = {};
@@ -79,9 +147,7 @@ export default function DashboardPage() {
   }, [filtered]);
 
   return (
-    <>
-      <Header />
-      <main className="max-w-7xl mx-auto px-6 py-8">
+    <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Filters */}
         <div className="flex flex-wrap gap-4 mb-6">
           <Input label="Start Date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
@@ -169,21 +235,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Stage Performance */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-          {[
-            { cardTitle: "Application Stage", data: stages.application },
-            { cardTitle: "Interview Stage", data: stages.interview },
-            { cardTitle: "Offer Stage", data: stages.offer },
-            { cardTitle: "Hired Stage", data: stages.hired },
-          ].map((ch) => (
-            <Card key={ch.cardTitle}>
-              <CardHeader><CardTitle>{ch.cardTitle}</CardTitle></CardHeader>
-              <CardContent>
-                <BarChart data={ch.data} height={220} />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <Card className="mb-8">
+          <CardHeader><CardTitle>Stage Performance</CardTitle></CardHeader>
+          <CardContent>
+            <StackedBarChart data={stageData} height={260} />
+          </CardContent>
+        </Card>
 
         {/* Average Durations */}
         <Card>
@@ -207,7 +264,6 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-      </main>
-    </>
+    </main>
   );
 }

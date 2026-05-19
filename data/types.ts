@@ -25,7 +25,7 @@ export const STATUSES: Status[] = [
   "Not Hired",
 ];
 
-export const OWNERS = ["Kiew", "P'Ning", "P'Goong", "P'Blue"] as const;
+export const OWNERS = ["Sarah Mitchell", "James Carter", "Emily Davis", "Michael Brooks"] as const;
 
 export type Owner = (typeof OWNERS)[number];
 
