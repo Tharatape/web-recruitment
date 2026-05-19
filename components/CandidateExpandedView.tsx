@@ -123,15 +123,23 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
   return (
     <div className="px-5 py-4 border-t-2 border-[var(--primary)] bg-[#f8fafc]">
 
-      {/* ── Basic Info ── */}
+{/* ── Basic Info ── */}
       <SectionCard title="Basic Information">
-        <div className="grid grid-cols-1 gap-4">
-          {/* Badge bar */}
-          {extraTopRight && (
-            <div className="flex items-center justify-end gap-2">
-              {extraTopRight}
-            </div>
-          )}
+        <div className="relative pt-8">
+          <button
+            type="button"
+            onClick={() => alert("View Full Screen clicked")}
+            className="absolute -top-3 -right-3 px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer"
+          >
+            View Full Screen
+          </button>
+          <div className="grid grid-cols-1 gap-4">
+           {/* Badge bar */}
+           {extraTopRight && (
+             <div className="flex items-center justify-end gap-2">
+               {extraTopRight}
+             </div>
+           )}
 
           {/* Photo + bio + basic info + buttons */}
           <div className="flex flex-col gap-3">
@@ -157,61 +165,38 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
             </div>
           </div>
 
-          {/* Matching page extras */}
-          {matchingScore !== undefined && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Score card */}
-              <div>
-                <ScoreCircle score={matchingScore} />
-              </div>
+{/* Matching page extras */}
+           {matchingScore !== undefined && (
+             <div className="space-y-4">
+               {/* Score circle + score bars */}
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 {/* Score circle */}
+                 <div className="sm:col-span-1">
+                   <ScoreCircle score={matchingScore} />
+                 </div>
 
-              {/* Score bars */}
-              {barScores && (
-                <div className="space-y-3">
-                  {([
-                    ["Experience", barScores.experience],
-                    ["Education", barScores.education],
-                    ["Language", barScores.language],
-                    ["Technical", barScores.technical],
-                  ] as [string, number][]).map(([lbl, sc]) => (
-                    <ScoreBar key={lbl} label={lbl} score={sc} />
-                  ))}
-                </div>
-              )}
-
-              {/* Pros / Cons */}
-              <div className="space-y-3">
-                {pros && pros.length > 0 && (
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-green-600 mb-1">Pros</p>
-                    <ul className="space-y-1">
-                      {pros.map((p, i) => (
-                        <li key={i} className="text-sm text-[var(--text-secondary)] flex items-start gap-1.5">
-                          <span className="text-green-500 mt-0.5 shrink-0">&#x2713;</span>
-                          {p}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {cons && cons.length > 0 && (
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-red-500 mb-1">Cons</p>
-                    <ul className="space-y-1">
-                      {cons.map((c, i) => (
-                        <li key={i} className="text-sm text-[var(--text-secondary)] flex items-start gap-1.5">
-                          <span className="text-red-500 mt-0.5 shrink-0">&#x2717;</span>
-                          {c}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </SectionCard>
+                 {/* Score bars */}
+                 {barScores && (
+                   <div className="sm:col-span-1">
+                     <p className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Score Breakdown</p>
+                     <div className="space-y-3">
+                       {([
+                         ["Experience", barScores.experience],
+                         ["Education", barScores.education],
+                         ["Language", barScores.language],
+                         ["Technical", barScores.technical],
+                       ] as [string, number][]).map(([lbl, sc]) => (
+                         <ScoreBar key={lbl} label={lbl} score={sc} />
+                       ))}
+                     </div>
+                   </div>
+                 )}
+               </div>
+             </div>
+           )}
+         </div>
+         </div>
+       </SectionCard>
 
       {/* ── Contact & Background ── */}
       <div className="mt-4">
@@ -272,6 +257,43 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
       <div className="mt-4">
         <SectionCard title={`AI Analysis — ${candidate.name}`} variant="primary">
           <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{candidate.aiSummary}</p>
+
+          {/* Pros & Cons as two colored boxes */}
+          {(pros && pros.length > 0) || (cons && cons.length > 0) ? (
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {pros && pros.length > 0 && (
+                <div className="rounded-xl border border-green-200 bg-green-50 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-green-600 font-bold text-sm uppercase tracking-wider">Pros</span>
+                  </div>
+                  <ul className="space-y-1.5">
+                    {pros.map((p, i) => (
+                      <li key={i} className="text-sm text-green-800 flex items-start gap-1.5">
+                        <span className="text-green-500 mt-0.5 shrink-0">&#x2713;</span>
+                        {p}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {cons && cons.length > 0 && (
+                <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-red-600 font-bold text-sm uppercase tracking-wider">Cons</span>
+                  </div>
+                  <ul className="space-y-1.5">
+                    {cons.map((c, i) => (
+                      <li key={i} className="text-sm text-red-800 flex items-start gap-1.5">
+                        <span className="text-red-500 mt-0.5 shrink-0">&#x2717;</span>
+                        {c}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ) : null}
+
           <div className="mt-4 flex gap-2">
             <button onClick={() => alert("Download CV clicked")} className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-white rounded-lg hover:bg-[#f0f7ff] border border-[var(--primary)] transition-colors cursor-pointer">View Original CV</button>
             <a href="#" target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-white rounded-lg hover:bg-[#f0f7ff] border border-[var(--primary)] transition-colors inline-block">View Application Form</a>

@@ -268,28 +268,30 @@ export default function MatchingPage() {
               {
                 key: "expand",
                 header: "",
-                className: "w-12",
+                className: "w-[120px]",
                 render: (row: { id: string }) => (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setExpandedId(expandedId === row.id ? null : row.id);
-                    }}
-                    className="p-1.5 rounded-lg hover:bg-[#e2e8f0] transition-colors cursor-pointer"
-                    aria-label={expandedId === row.id ? "Collapse" : "Expand"}
-                  >
-                    <svg
-                      className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${
-                        expandedId === row.id ? "rotate-180" : ""
-                      }`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpandedId(expandedId === row.id ? null : row.id);
+                      }}
+                      className="p-1.5 rounded-lg hover:bg-[#e2e8f0] transition-colors cursor-pointer"
+                      aria-label={expandedId === row.id ? "Collapse" : "Expand"}
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
+                      <svg
+                        className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${
+                          expandedId === row.id ? "rotate-180" : ""
+                        }`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
                 ),
               },
             ]}
