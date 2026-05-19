@@ -14,7 +14,7 @@ function getExperienceLabel(exp: number): string {
   return exp < 2 ? "0-1 Year" : exp < 5 ? "2-4 Years" : exp < 9 ? "5-8 Years" : "9+ Years";
 }
 
-function getMatchingScore(position: string, experience: number): number {
+function getMatchingScore(jdTitle: string, experience: number): number {
   const levels: Record<string, number> = {
     "Sales Executive": 3,
     "Marketing Specialist": 3,
@@ -27,7 +27,7 @@ function getMatchingScore(position: string, experience: number): number {
     "Business Analyst": 3,
     "Operations Manager": 5,
   };
-  const expected = levels[position] ?? 3;
+  const expected = levels[jdTitle] ?? 3;
   return Math.min(100, Math.round((experience / expected) * 100));
 }
 
@@ -58,6 +58,19 @@ export default function MatchingPage() {
   const [pageSize, setPageSize] = useState(25);
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [includeScore, setIncludeScore] = useState(false);
+  const [selectedJd, setSelectedJd] = useState("");
+
+  const toggleId = (id: string) =>
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const isSelected = (id: string) => selectedIds.has(id);
 
   const allPositions = Array.from(new Set(candidatesWithLogs.map((c) => c.position)));
 
@@ -190,11 +203,14 @@ export default function MatchingPage() {
                 <Dropdown
                   placeholder="Select Position..."
                   options={[{ label: "All Positions", value: "" }, ...allPositions.map((p) => ({ label: p, value: p }))]}
-                  value=""
-                  onChange={() => {}}
+                  value={selectedJd}
+                  onChange={(v) => { setSelectedJd(v); setIncludeScore(false); }}
                 />
               </div>
-              <button className="px-5 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer">
+              <button
+                onClick={() => setIncludeScore(true)}
+                className="px-5 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer"
+              >
                 Matching
               </button>
             </div>
@@ -223,6 +239,33 @@ export default function MatchingPage() {
           <Table<CandidateWithLogs>
             columns={[
               {
+                key: "checkbox",
+                header: (
+                  <input
+                    type="checkbox"
+                    checked={paged.length > 0 && selectedIds.size === paged.length}
+                    ref={(el: HTMLInputElement | null) => {
+                      if (el) el.indeterminate = selectedIds.size > 0 && selectedIds.size < paged.length;
+                    }}
+                    onChange={() => {
+                      if (selectedIds.size === paged.length) setSelectedIds(new Set());
+                      else setSelectedIds(new Set(paged.map((r) => r.id)));
+                    }}
+                    className="w-4 h-4 accent-[var(--primary)] cursor-pointer"
+                   />
+                ),
+                render: (row) => (
+                  <input
+                    type="checkbox"
+                    checked={isSelected(row.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={() => toggleId(row.id)}
+                    className="w-4 h-4 accent-[var(--primary)] cursor-pointer"
+                  />
+                ),
+                className: "w-[50px]",
+              },
+              {
                 key: "name",
                 header: "Name",
                 render: (row) => {
@@ -241,8 +284,10 @@ export default function MatchingPage() {
                 key: "matchingScore",
                 header: "Matching Score",
                 render: (row) => {
-                  const score = getMatchingScore(row.position, row.experience);
-                  return <ScoringBadge score={score} />;
+                  const score = getMatchingScore(selectedJd || row.position, row.experience);
+                  return !includeScore || !isSelected(row.id)
+                    ? <span className="text-[var(--text-muted)] text-xs font-medium">—</span>
+                    : <ScoringBadge score={score} />;
                 },
               },
               { key: "position", header: "Position" },
@@ -319,18 +364,18 @@ export default function MatchingPage() {
                   aiSummary: row.aiSummary,
                   logs: row.logs,
                 }}
-                matchingScore={getMatchingScore(row.position, row.experience)}
+                matchingScore={includeScore && isSelected(row.id) ? getMatchingScore(selectedJd || row.position, row.experience) : undefined}
+                barScores={includeScore && isSelected(row.id) ? {
+                  experience: Math.min(100, Math.round(row.experience * 13)),
+                  education: row.education.includes("Bachelor") || row.education.includes("Master") ? 85 : row.education.includes("Degree") ? 70 : 55,
+                  language: row.language === "Fluent" ? 95 : row.language === "Conversational" ? 70 : 50,
+                  technical: Math.min(100, Math.round(row.experience * 12)),
+                } : undefined}
                 extraTopRight={
                   <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary-light)] text-[var(--primary)] text-xs font-bold">
                     Position: {row.position} · {getExperienceLabel(row.experience)}
                   </span>
                 }
-                barScores={{
-                  experience: Math.min(100, Math.round(row.experience * 13)),
-                  education: row.education.includes("Bachelor") || row.education.includes("Master") ? 85 : row.education.includes("Degree") ? 70 : 55,
-                  language: row.language === "Fluent" ? 95 : row.language === "Conversational" ? 70 : 50,
-                  technical: Math.min(100, Math.round(row.experience * 12)),
-                }}
                 pros={[
                   `${row.experience >= 5 ? "Extensive" : "Solid"} experience in ${row.position}`,
                   row.education.includes("Bachelor") || row.education.includes("Master") ? "Strong educational background" : "Relevant education",

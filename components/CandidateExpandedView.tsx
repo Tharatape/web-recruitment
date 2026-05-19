@@ -79,26 +79,6 @@ function SectionCard({ title, variant, children }: { title: string; variant?: "n
   );
 }
 
-function ScoreCircle({ score }: { score: number }) {
-  const color = score >= 80 ? "#22c55e" : score >= 50 ? "#f59e0b" : "#ef4444";
-  const dash = `${score * 2.51327} 252.65`;
-  return (
-    <div className="text-center">
-      <p className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Matching Score</p>
-      <div className="relative w-28 h-28 mx-auto">
-        <svg className="w-28 h-28 -rotate-90" viewBox="0 0 120 120" aria-hidden="true">
-          <circle cx="60" cy="60" r="50" fill="none" stroke="#e2e8f0" strokeWidth="10" />
-          <circle cx="60" cy="60" r="50" fill="none" stroke={color} strokeWidth="10" strokeLinecap="round" strokeDasharray={dash} />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-2xl font-bold text-[var(--foreground)]">{score}%</span>
-        </div>
-      </div>
-      <p className="text-xs font-semibold mt-1" style={{ color }}>{score >= 80 ? "Excellent Match" : score >= 50 ? "Partial Match" : "Low Match"}</p>
-    </div>
-  );
-}
-
 function ScoreBar({ label, score }: { label: string; score: number }) {
   const color = score >= 80 ? "#22c55e" : score >= 50 ? "#f59e0b" : "#ef4444";
   return (
@@ -124,79 +104,86 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
     <div className="px-5 py-4 border-t-2 border-[var(--primary)] bg-[#f8fafc]">
 
 {/* ── Basic Info ── */}
-      <SectionCard title="Basic Information">
-        <div className="relative pt-8">
-          <button
-            type="button"
-            onClick={() => alert("View Full Screen clicked")}
-            className="absolute -top-3 -right-3 px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer"
-          >
-            View Full Screen
-          </button>
-          <div className="grid grid-cols-1 gap-4">
-           {/* Badge bar */}
-           {extraTopRight && (
-             <div className="flex items-center justify-end gap-2">
-               {extraTopRight}
-             </div>
-           )}
+        <SectionCard title="Basic Information">
+         <div className="relative pt-8">
+            <button
+              type="button"
+              onClick={() => alert("View Full Screen clicked")}
+              className="absolute -top-3 -right-3 px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer"
+            >
+              View Full Screen
+            </button>
+            <div className="space-y-4">
+              {/* Badge bar */}
+              {extraTopRight && (
+                <div className="flex items-center justify-end gap-2">
+                  {extraTopRight}
+                </div>
+              )}
 
-          {/* Photo + bio + basic info + buttons */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xl shrink-0">
-                {candidate.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+              {/* Photo + bio + basic info + buttons | sc */}
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6">
+                {/* Left column */}
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xl shrink-0">
+                      {candidate.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                    </div>
+                    <div>
+                      <p className="text-xs text-[var(--text-muted)] font-medium">ID: {candidate.id}</p>
+                      <p className="font-bold text-base text-[var(--foreground)]">{candidate.name}</p>
+                      <p className="text-sm text-[var(--text-secondary)]">{candidate.position}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
+                    <InfoField label="Age" value={`${candidate.age} yrs`} />
+                    <InfoField label="Weight" value={`${candidate.weight} kg`} />
+                    <InfoField label="Height" value={`${candidate.height} cm`} />
+                    <InfoField label="BMI" value={candidate.bmi.toFixed(1)} />
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => alert("Download CV clicked")} className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer">View Original CV</button>
+                    <a href="#" target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors inline-block">View Form</a>
+                  </div>
+                </div>
+
+                {/* Right column — score circle + bars */}
+                {matchingScore !== undefined && (
+                  <div className="flex flex-col gap-4 min-w-[220px]">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Matching Score</p>
+                      <div className="relative w-28 h-28 mx-auto">
+                        <svg className="w-28 h-28 -rotate-90" viewBox="0 0 120 120" aria-hidden="true">
+                          <circle cx="60" cy="60" r="50" fill="none" stroke="#e2e8f0" strokeWidth="10" />
+                          <circle cx="60" cy="60" r="50" fill="none" stroke={matchingScore >= 80 ? "#22c55e" : matchingScore >= 50 ? "#f59e0b" : "#ef4444"} strokeWidth="10" strokeLinecap="round" strokeDasharray={`${matchingScore * 2.51327} 252.65`} />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-2xl font-bold text-[var(--foreground)]">{matchingScore}%</span>
+                        </div>
+                      </div>
+                      <p className="text-xs font-semibold mt-1 text-center" style={{ color: matchingScore >= 80 ? "#22c55e" : matchingScore >= 50 ? "#f59e0b" : "#ef4444" }}>
+                        {matchingScore >= 80 ? "Excellent Match" : matchingScore >= 50 ? "Partial Match" : "Low Match"}
+                      </p>
+                    </div>
+                    {barScores && (
+                      <div className="space-y-3">
+                        {([
+                          ["Experience", barScores.experience],
+                          ["Education", barScores.education],
+                          ["Language", barScores.language],
+                          ["Technical", barScores.technical],
+                        ] as [string, number][])
+                          .map(([lbl, sc]) => (
+                            <ScoreBar key={lbl} label={lbl} score={sc} />
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              <div>
-                <p className="text-xs text-[var(--text-muted)] font-medium">ID: {candidate.id}</p>
-                <p className="font-bold text-base text-[var(--foreground)]">{candidate.name}</p>
-                <p className="text-sm text-[var(--text-secondary)]">{candidate.position}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
-              <InfoField label="Age" value={`${candidate.age} yrs`} />
-              <InfoField label="Weight" value={`${candidate.weight} kg`} />
-              <InfoField label="Height" value={`${candidate.height} cm`} />
-              <InfoField label="BMI" value={candidate.bmi.toFixed(1)} />
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => alert("Download CV clicked")} className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer">View Original CV</button>
-              <a href="#" target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors inline-block">View Form</a>
             </div>
           </div>
-
-{/* Matching page extras */}
-           {matchingScore !== undefined && (
-             <div className="space-y-4">
-               {/* Score circle + score bars */}
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 {/* Score circle */}
-                 <div className="sm:col-span-1">
-                   <ScoreCircle score={matchingScore} />
-                 </div>
-
-                 {/* Score bars */}
-                 {barScores && (
-                   <div className="sm:col-span-1">
-                     <p className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">Score Breakdown</p>
-                     <div className="space-y-3">
-                       {([
-                         ["Experience", barScores.experience],
-                         ["Education", barScores.education],
-                         ["Language", barScores.language],
-                         ["Technical", barScores.technical],
-                       ] as [string, number][]).map(([lbl, sc]) => (
-                         <ScoreBar key={lbl} label={lbl} score={sc} />
-                       ))}
-                     </div>
-                   </div>
-                 )}
-               </div>
-             </div>
-           )}
-         </div>
-         </div>
-       </SectionCard>
+        </SectionCard>
 
       {/* ── Contact & Background ── */}
       <div className="mt-4">
