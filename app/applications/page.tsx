@@ -4,45 +4,23 @@ import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
+import { MultiSelect } from "@/components/ui/MultiSelect";
 import { Table } from "@/components/ui/Table";
-import { STATUSES, OWNERS, Status } from "@/data/types";
+import { STATUSES, OWNERS, CandidateWithLogs } from "@/data/types";
 import { candidatesWithLogs } from "@/data/mockData";
+import { CandidateExpandedView } from "@/components/CandidateExpandedView";
 
 function getExperienceLabel(exp: number): string {
   return exp < 2 ? "0-1 Year" : exp < 5 ? "2-4 Years" : exp < 9 ? "5-8 Years" : "9+ Years";
 }
 
-function DownloadCVButton() {
-  return (
-    <button
-      onClick={() => alert("Download CV clicked")}
-      className="px-3.5 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer"
-    >
-      View Original CV
-    </button>
-  );
-}
-
-function ViewFormButton() {
-  return (
-    <a
-      href="#"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="px-3.5 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors inline-block"
-    >
-      View Application Form
-    </a>
-  );
-}
-
 export default function ApplicationsPage() {
   const [search, setSearch] = useState("");
-  const [position, setPosition] = useState("");
+  const [position, setPosition] = useState<string[]>([]);
   const [expMin, setExpMin] = useState("");
   const [expMax, setExpMax] = useState("");
   const [dateRange, setDateRange] = useState("all");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState<string[]>([]);
   const [recruiter, setRecruiter] = useState("");
   const [pageSize, setPageSize] = useState(25);
   const [page, setPage] = useState(1);
@@ -63,7 +41,7 @@ export default function ApplicationsPage() {
           c.email.toLowerCase().includes(q)
       );
     }
-    if (position) data = data.filter((c) => c.position === position);
+    if (position.length > 0) data = data.filter((c) => position.includes(c.position));
     if (expMin) data = data.filter((c) => c.experience >= Number(expMin));
     if (expMax) data = data.filter((c) => c.experience <= Number(expMax));
     if (dateRange !== "all") {
@@ -72,7 +50,7 @@ export default function ApplicationsPage() {
       cutoff.setDate(cutoff.getDate() - days);
       data = data.filter((c) => c.dateApplied >= cutoff.toISOString().split("T")[0]);
     }
-    if (status) data = data.filter((c) => c.status === status);
+    if (status.length > 0) data = data.filter((c) => status.includes(c.status));
     if (recruiter) data = data.filter((c) => c.recruiter === recruiter);
 
     return data;
@@ -82,8 +60,6 @@ export default function ApplicationsPage() {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const safePage = Math.min(page, totalPages);
   const paged = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
-
-  const expanded = paged.find((c) => c.id === expandedId);
 
   return (
     <>
@@ -97,11 +73,11 @@ export default function ApplicationsPage() {
               <Input label="Search" placeholder="Name, Phone, NID, Email..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Position</label>
-                <Dropdown
+                <MultiSelect
                   placeholder="All Positions"
-                  options={[{ label: "All Positions", value: "" }, ...allPositions.map((p) => ({ label: p, value: p }))]}
+                  options={allPositions.map((p) => ({ label: p, value: p }))}
                   value={position}
-                  onChange={setPosition}
+                  onChange={(vals) => { setPosition(vals); setPage(1); }}
                 />
               </div>
               <div className="flex flex-col gap-1">
@@ -140,11 +116,11 @@ export default function ApplicationsPage() {
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Status</label>
-                <Dropdown
-                  placeholder="All Statuses"
-                  options={[{ label: "All Statuses", value: "" }, ...STATUSES.map((s) => ({ label: s, value: s }))]}
+                <MultiSelect
+                  placeholder="All Status"
+                  options={STATUSES.map((s) => ({ label: s, value: s }))}
                   value={status}
-                  onChange={setStatus}
+                  onChange={(vals) => { setStatus(vals); setPage(1); }}
                 />
               </div>
               <div className="flex flex-col gap-1">
@@ -157,11 +133,11 @@ export default function ApplicationsPage() {
                 />
               </div>
             </div>
-            {(search || position || status || recruiter || dateRange !== "all") && (
+            {(search || position.length > 0 || status.length > 0 || recruiter || dateRange !== "all") && (
               <div className="mt-4 pt-4 border-t border-[var(--border)]">
                 <button
                   onClick={() => {
-                    setSearch(""); setPosition(""); setExpMin(""); setExpMax(""); setDateRange("all"); setStatus(""); setRecruiter(""); setPage(1);
+                      setSearch(""); setPosition([]); setExpMin(""); setExpMax(""); setDateRange("all"); setStatus([]); setRecruiter(""); setPage(1);
                   }}
                   className="text-xs font-semibold text-[var(--accent-red)] hover:underline cursor-pointer bg-transparent border-none"
                 >
@@ -191,7 +167,7 @@ export default function ApplicationsPage() {
 
         {/* Table */}
         <Card>
-          <Table<{ id: string; name: string; position: string; experience: number; dateApplied: string; status: Status; recruiter: string }>
+          <Table<CandidateWithLogs>
             columns={[
               {
                 key: "name",
@@ -228,108 +204,62 @@ export default function ApplicationsPage() {
                 },
               },
               { key: "recruiter", header: "Recruiter" },
+              {
+                key: "expand",
+                header: "",
+                className: "w-12",
+                render: (row: { id: string }) => (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExpandedId(expandedId === row.id ? null : row.id);
+                    }}
+                    className="p-1.5 rounded-lg hover:bg-[#e2e8f0] transition-colors cursor-pointer"
+                    aria-label={expandedId === row.id ? "Collapse" : "Expand"}
+                  >
+                    <svg
+                      className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${
+                        expandedId === row.id ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                ),
+              },
             ]}
             data={paged}
+            keyExtractor={(row) => row.id}
+            expandedId={expandedId}
+            renderExpanded={(row) => (
+              <CandidateExpandedView
+                candidate={{
+                  id: row.id,
+                  name: row.name,
+                  position: row.position,
+                  age: row.age,
+                  weight: row.weight,
+                  height: row.height,
+                  bmi: row.bmi,
+                  phone: row.phone,
+                  email: row.email,
+                  expectedSalary: row.expectedSalary,
+                  education: row.education,
+                  address: row.address,
+                  language: row.language,
+                  license: row.license,
+                  previousEmployment: row.previousEmployment,
+                  aiSummary: row.aiSummary,
+                  logs: row.logs,
+                }}
+              />
+            )}
             onRowClick={(row) => setExpandedId(expandedId === row.id ? null : row.id)}
-            rowClassName={(row) => (expandedId === row.id ? "bg-[var(--primary-light)]" : "")}
           />
-
-          {/* Expanded Details */}
-          {expanded && (
-            <div className="px-5 py-4 border-t-2 border-[var(--primary)] bg-[#f8fafc] animate-in fade-in-50 duration-200">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                {/* Candidate Info */}
-                <section>
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-4">Candidate Information</h3>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-                    <div className="col-span-2 flex items-center gap-4 mb-2">
-                      <div className="w-16 h-16 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xl">
-                        {expanded.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
-                      </div>
-                      <div>
-                        <p className="text-xs text-[var(--text-muted)]">{expanded.id}</p>
-                        <p className="font-bold text-base">{expanded.name}</p>
-                      </div>
-                    </div>
-                    {[
-                      ["Position", expanded.position], ["Age", `${expanded.age}`], ["Weight", `${expanded.weight} kg`],
-                      ["Height", `${expanded.height} cm`], ["BMI", String(expanded.bmi)],
-                    ].map(([k, v]) => (
-                      <><div key={k} className="font-semibold text-[var(--text-secondary)]">{k}</div><div>{v}</div></>
-                    ))}
-                  </div>
-                  <div className="mt-4 flex gap-2">
-                    <DownloadCVButton /><ViewFormButton />
-                  </div>
-                </section>
-
-                {/* Contact & AI */}
-                <section>
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-4">Contact & Professional Info</h3>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
-                    {[
-                      ["Phone", expanded.phone], ["Email", expanded.email], ["Expected Salary", expanded.expectedSalary],
-                      ["Education", expanded.education], ["Address", expanded.address], ["Language", expanded.language],
-                      ["License", expanded.license], ["Previous Employment", expanded.previousEmployment],
-                    ].map(([k, v]) => (
-                      <><div key={k} className="font-semibold text-[var(--text-secondary)]">{k}</div><div>{v}</div></>
-                    ))}
-                  </div>
-                  <div className="mt-4 p-3 bg-[var(--primary-light)] rounded-lg">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--primary)] mb-1">AI Summary</h4>
-                    <p className="text-sm text-[var(--text-secondary)]">{expanded.aiSummary}</p>
-                  </div>
-                </section>
-              </div>
-
-              {/* Log Action */}
-              <section className="mt-5 pt-5 border-t border-[var(--border)]">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3">Log Action</h3>
-                <div className="flex flex-wrap gap-3 items-end">
-                  <input
-                    className="px-3.5 py-2.5 text-sm border border-[var(--border)] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-                    placeholder="Add a note..."
-                    id={`note-${expanded.id}`}
-                  />
-                  <Dropdown options={STATUSES.map(s => ({ label: s, value: s }))} placeholder="Select Status..." value="" onChange={() => {}} />
-                  <button className="px-5 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer">
-                    Save Log
-                  </button>
-                </div>
-
-                {/* Activity Log */}
-                <div className="mt-4">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">History Log</h4>
-                  <div className="overflow-y-auto max-h-48">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="text-xs font-semibold text-[var(--text-muted)] border-b border-[var(--border)]">
-                          <th className="text-left py-2 pr-4">Date / Time</th>
-                          <th className="text-left py-2 pr-4">Status</th>
-                          <th className="text-left py-2">Note</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {expanded.logs.map((l: { date: string; time: string; status: string; note: string }, i: number) => (
-                          <tr key={i} className="border-b border-[var(--border)] last:border-0">
-                            <td className="py-2 pr-4 text-[var(--text-secondary)] whitespace-nowrap">
-                              {l.date} {l.time}
-                            </td>
-                            <td className="py-2 pr-4">
-                              <span className={`status-badge status-${l.status.toLowerCase().replace(/\s+/g, "-")}`}>
-                                {l.status}
-                              </span>
-                            </td>
-                            <td className="py-2 text-[var(--text-secondary)]">{l.note}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </section>
-            </div>
-          )}
         </Card>
 
         {/* Pagination */}
