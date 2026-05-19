@@ -1,283 +1,380 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
-import { STATUSES } from "@/data/types";
+import { Table } from "@/components/ui/Table";
+import { STATUSES, OWNERS, Status } from "@/data/types";
 import { candidatesWithLogs } from "@/data/mockData";
 
-interface MatchResult {
-  candidate: (typeof candidatesWithLogs)[number];
-  score: number;
-  matchReasons: string[];
-  gaps: string[];
+function getExperienceLabel(exp: number): string {
+  return exp < 2 ? "0-1 Year" : exp < 5 ? "2-4 Years" : exp < 9 ? "5-8 Years" : "9+ Years";
 }
 
-interface JDParsed {
-  requiredSkills: string[];
-  preferredSkills: string[];
-  position: string;
-  seniority: string;
-}
-
-function parseSimpleJD(text: string): JDParsed {
-  const lower = text.toLowerCase();
-  const skillPatterns = [
-    "javascript", "typescript", "python", "java", "react", "node", "sql", "excel",
-    "marketing", "sales", "finance", "hr", "project management", "data analysis",
-    "communication", "leadership", "english", "accounting", "budgeting",
-  ];
-  const required = skillPatterns.filter((s) => lower.includes(s));
-  const positionKeywords = ["software", "marketing", "sales", "finance", "hr", "data", "operations", "project", "engineer"];
-  const foundPosition = positionKeywords.find(
-    (k) => lower.includes(k) || (k === "data" && lower.includes("analyst"))
+function DownloadCVButton() {
+  return (
+    <button
+      onClick={() => alert("Download CV clicked")}
+      className="px-3.5 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer"
+    >
+      View Original CV
+    </button>
   );
-  return {
-    requiredSkills: required.slice(0, 6),
-    preferredSkills: required.slice(6, 12),
-    position: foundPosition ? foundPosition.charAt(0).toUpperCase() + foundPosition.slice(1) : "General",
-    seniority: /senior|lead|manager/i.test(text) ? "Senior" : /junior|intern/i.test(text) ? "Junior" : "Mid",
-  };
 }
 
-function simpleMatch(candidates: typeof candidatesWithLogs, jd: JDParsed): MatchResult[] {
-  const skills = [...jd.requiredSkills, ...jd.preferredSkills];
-
-  const results: MatchResult[] = candidates.map((c) => {
-    const candidateText = [c.position, c.education, c.language, c.aiSummary, c.previousEmployment].join(" ").toLowerCase();
-    const skillMatches = skills.filter((s) => candidateText.includes(s));
-    const positionMatch = candidateText.includes(jd.position.toLowerCase());
-    const expBonus = c.experience >= 3 ? 0.08 : c.experience >= 1 ? 0.03 : 0;
-    const langBonus = /english.*fluent|fluent.*english/i.test(c.language) ? 0.07 : 0;
-    const baseScore = (skillMatches.length / (skills.length || 1)) * 0.7 + (positionMatch ? 0.25 : 0);
-    const scoreRaw = baseScore + expBonus + langBonus;
-    const score = Math.min(Math.round(scoreRaw * 100), 100);
-
-    return {
-      candidate: c,
-      score,
-      matchReasons: [
-        ...skillMatches.map((s) => `Has "${s}" skill${skillMatches.length > 1 ? "s" : ""}`),
-        ...(positionMatch
-          ? [`${jd.seniority === "Senior" ? c.recruiter : ""} — Matches position — ${c.position}`]
-          : []),
-        ...(c.experience >= 3 ? [`Strong experience: ${c.experience} YEARS`] : []),
-        ...(langBonus > 0 ? ["Fluent English proficiency"] : []),
-      ],
-      gaps: [...jd.requiredSkills.filter((s) => !candidateText.includes(s)).slice(0, 3)],
-    };
-  });
-  return results.sort((a, b) => b.score - a.score);
+function ViewFormButton() {
+  return (
+    <a
+      href="#"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="px-3.5 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors inline-block"
+    >
+      View Application Form
+    </a>
+  );
 }
 
 export default function MatchingPage() {
-  const [jdText, setJdText] = useState("");
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [matching, setMatching] = useState(false);
-  const [results, setResults] = useState<MatchResult[]>([]);
-  const [jdTitle, setJdTitle] = useState("");
-  const [sortBy, setSortBy] = useState<"relevance" | "name" | "status">("relevance");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [search, setSearch] = useState("");
+  const [position, setPosition] = useState("");
+  const [expMin, setExpMin] = useState("");
+  const [expMax, setExpMax] = useState("");
+  const [dateRange, setDateRange] = useState("all");
+  const [status, setStatus] = useState("");
+  const [recruiter, setRecruiter] = useState("");
+  const [pageSize, setPageSize] = useState(25);
+  const [page, setPage] = useState(1);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) {
-      setUploadedFile(file);
-      setJdTitle(file.name);
-      const reader = new FileReader();
-      reader.onload = (ev) => setJdText(ev.target?.result as string);
-      reader.readAsText(file);
+  const allPositions = Array.from(new Set(candidatesWithLogs.map((c) => c.position)));
+
+  const filtered = useMemo(() => {
+    let data = [...candidatesWithLogs];
+
+    if (search) {
+      const q = search.toLowerCase();
+      data = data.filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          c.phone.includes(q) ||
+          c.nid.includes(q) ||
+          c.email.toLowerCase().includes(q)
+      );
     }
-  }
+    if (position) data = data.filter((c) => c.position === position);
+    if (expMin) data = data.filter((c) => c.experience >= Number(expMin));
+    if (expMax) data = data.filter((c) => c.experience <= Number(expMax));
+    if (dateRange !== "all") {
+      const days = Number(dateRange);
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+      data = data.filter((c) => c.dateApplied >= cutoff.toISOString().split("T")[0]);
+    }
+    if (status) data = data.filter((c) => c.status === status);
+    if (recruiter) data = data.filter((c) => c.recruiter === recruiter);
 
-  function handleMatch() {
-    if (!jdText.trim()) return;
-    setMatching(true);
-    setTimeout(() => {
-      const jd = parseSimpleJD(jdText);
-      const res = simpleMatch(candidatesWithLogs, jd);
-      setMatching(false);
-      setResults(res);
-    }, 1200);
-  }
-
-  const sortedResults = useMemo(() => {
-    let data = [...results];
-    if (sortBy === "name") data.sort((a, b) => a.candidate.name.localeCompare(b.candidate.name));
-    else if (sortBy === "status") data.sort((a, b) => a.score - b.score);
-    else data.sort((a, b) => b.score - a.score);
-    if (statusFilter) data = data.filter((r) => r.candidate.status === statusFilter);
     return data;
-  }, [results, sortBy, statusFilter]);
+  }, [search, position, expMin, expMax, dateRange, status, recruiter]);
+
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const paged = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  const expanded = paged.find((c) => c.id === expandedId);
 
   return (
-    <main className="max-w-7xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold text-[var(--foreground)] mb-6">Candidate Matching</h1>
+    <>
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <h1 className="text-2xl font-bold text-[var(--foreground)] mb-6">Matching</h1>
 
-        {/* Upload */}
+        {/* Filters */}
         <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Upload Job Description</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-wrap gap-4 items-end">
-              <div className="flex-1 min-w-72">
-                <Input
-                  label="JD Title"
-                  placeholder="e.g., Senior Software Engineer"
-                  value={jdTitle}
-                  onChange={(e) => setJdTitle(e.target.value)}
+          <CardContent className="!p-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              <Input label="Search" placeholder="Name, Phone, NID, Email..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-[var(--foreground)]">Position</label>
+                <Dropdown
+                  placeholder="All Positions"
+                  options={[{ label: "All Positions", value: "" }, ...allPositions.map((p) => ({ label: p, value: p }))]}
+                  value={position}
+                  onChange={setPosition}
                 />
               </div>
-              <label className="px-5 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer text-center">
-                <span>Upload PDF / TXT</span>
-                <input
-                  type="file"
-                  accept=".pdf,.txt,.md"
-                  onChange={handleFileUpload}
-                  className="hidden"
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-[var(--foreground)]">Experience</label>
+                <div className="flex gap-2">
+                  <Input
+                    label="Min"
+                    type="number"
+                    placeholder="Min"
+                    value={expMin}
+                    onChange={(e) => { setExpMin(e.target.value); setPage(1); }}
+                  />
+                  <Input
+                    label="Max"
+                    type="number"
+                    placeholder="Max"
+                    value={expMax}
+                    onChange={(e) => { setExpMax(e.target.value); setPage(1); }}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-[var(--foreground)]">Date Applied</label>
+                <Dropdown
+                  placeholder="All Time"
+                  options={[
+                    { label: "All Time", value: "all" },
+                    { label: "Last 7 days", value: "7" },
+                    { label: "Last 14 days", value: "14" },
+                    { label: "Last 30 days", value: "30" },
+                    { label: "Last 90 days", value: "90" },
+                  ]}
+                  value={dateRange}
+                  onChange={setDateRange}
                 />
-              </label>
-              <Button
-                size="md"
-                onClick={handleMatch}
-                disabled={!jdText.trim() || matching}
-              >
-                {matching ? "Matching..." : "Match Candidates"}
-              </Button>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-[var(--foreground)]">Status</label>
+                <Dropdown
+                  placeholder="All Statuses"
+                  options={[{ label: "All Statuses", value: "" }, ...STATUSES.map((s) => ({ label: s, value: s }))]}
+                  value={status}
+                  onChange={setStatus}
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-[var(--foreground)]">Recruiter</label>
+                <Dropdown
+                  placeholder="All Recruiters"
+                  options={[{ label: "All Recruiters", value: "" }, ...OWNERS.map((r) => ({ label: r, value: r }))]}
+                  value={recruiter}
+                  onChange={setRecruiter}
+                />
+              </div>
             </div>
-            {uploadedFile && (
-              <p className="text-xs font-medium text-[var(--text-secondary)]">
-                Uploaded: <span className="font-semibold">{uploadedFile.name}</span> ({uploadedFile.size} bytes)
-              </p>
+            {(search || position || status || recruiter || dateRange !== "all") && (
+              <div className="mt-4 pt-4 border-t border-[var(--border)]">
+                <button
+                  onClick={() => {
+                    setSearch(""); setPosition(""); setExpMin(""); setExpMax(""); setDateRange("all"); setStatus(""); setRecruiter(""); setPage(1);
+                  }}
+                  className="text-xs font-semibold text-[var(--accent-red)] hover:underline cursor-pointer bg-transparent border-none"
+                >
+                  Clear All Filters
+                </button>
+              </div>
             )}
-            <textarea
-              className="w-full h-44 px-3.5 py-3 text-sm border border-[var(--border)] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all resize-y"
-              placeholder="Paste job description here, or upload a file above..."
-              value={jdText}
-              onChange={(e) => setJdText(e.target.value)}
-            />
           </CardContent>
         </Card>
 
-        {/* Results */}
-        {sortedResults.length > 0 && (
-          <>
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>
-                  Matched Candidates — {sortedResults.length} results
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-4 items-end">
-                  <Dropdown
-                    options={[
-                      { label: "All Statuses", value: "" },
-                      ...STATUSES.map((s) => ({ label: s, value: s })),
-                    ]}
-                    value={statusFilter}
-                    onChange={setStatusFilter}
-                    placeholder="Filter by Status"
-                    className="w-52"
-                  />
-                  <div className="flex gap-2">
-                    {(
-                      [
-                        { label: "Highest Score", value: "relevance" },
-                        { label: "Name A–Z", value: "name" },
-                        { label: "Lowest Score", value: "status" },
-                      ] as const
-                    ).map((s) => (
-                      <button
-                        key={s.value}
-                        onClick={() => setSortBy(s.value)}
-                        className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors cursor-pointer border ${
-                          sortBy === s.value
-                            ? "bg-[var(--primary)] text-white border-[var(--primary)]"
-                            : "bg-white border-[var(--border)] text-[var(--text-secondary)] hover:bg-[#f8fafc]"
-                        }`}
-                      >
-                        {s.label}
-                      </button>
+        {/* Job Description (JD) */}
+        <Card className="mb-6">
+          <CardContent className="!p-5">
+            <div className="flex flex-wrap gap-4 items-end">
+              <div className="flex-1 min-w-72">
+                <label className="text-sm font-semibold text-[var(--foreground)] mb-1 block">Job Description (JD)</label>
+                <Dropdown
+                  placeholder="Select Position..."
+                  options={[{ label: "All Positions", value: "" }, ...allPositions.map((p) => ({ label: p, value: p }))]}
+                  value=""
+                  onChange={() => {}}
+                />
+              </div>
+              <button className="px-5 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer">
+                Matching
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Results Info + Pagination */}
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-sm text-[var(--text-secondary)]">
+            Showing {paged.length} of {total} candidates
+          </p>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold text-[var(--foreground)]">Per page:</span>
+            <select
+              className="text-sm border border-[var(--border)] rounded-lg px-2.5 py-1.5 bg-white cursor-pointer"
+              value={pageSize}
+              onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+            >
+              {[25, 50, 100].map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* Table */}
+        <Card>
+          <Table<{ id: string; name: string; position: string; experience: number; dateApplied: string; status: Status; recruiter: string }>
+            columns={[
+              {
+                key: "name",
+                header: "Name",
+                render: (row) => {
+                  const c = candidatesWithLogs.find((x) => x.id === row.id)!;
+                  return (
+                    <span className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xs">
+                        {c.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                      </div>
+                      <span className="font-semibold">{row.name}</span>
+                    </span>
+                  );
+                },
+              },
+              { key: "position", header: "Position" },
+              {
+                key: "experience",
+                header: "Experience",
+                render: (row) => getExperienceLabel(row.experience),
+              },
+              { key: "dateApplied", header: "Date Applied" },
+              {
+                key: "status",
+                header: "Status",
+                render: (row) => {
+                  const cls = STATUSES.map((s) => {
+                    const slug = s.toLowerCase().replace(/\s+/g, "-");
+                    return `status-${slug}`;
+                  });
+                  const idx = STATUSES.indexOf(row.status);
+                  return <span className={`status-badge ${cls[idx] || ""}`}>{row.status}</span>;
+                },
+              },
+              { key: "recruiter", header: "Recruiter" },
+            ]}
+            data={paged}
+            onRowClick={(row) => setExpandedId(expandedId === row.id ? null : row.id)}
+            rowClassName={(row) => (expandedId === row.id ? "bg-[var(--primary-light)]" : "")}
+          />
+
+          {/* Expanded Details */}
+          {expanded && (
+            <div className="px-5 py-4 border-t-2 border-[var(--primary)] bg-[#f8fafc] animate-in fade-in-50 duration-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                {/* Candidate Info */}
+                <section>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-4">Candidate Information</h3>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                    <div className="col-span-2 flex items-center gap-4 mb-2">
+                      <div className="w-16 h-16 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xl">
+                        {expanded.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                      </div>
+                      <div>
+                        <p className="text-xs text-[var(--text-muted)]">{expanded.id}</p>
+                        <p className="font-bold text-base">{expanded.name}</p>
+                      </div>
+                    </div>
+                    {[
+                      ["Position", expanded.position], ["Age", `${expanded.age}`], ["Weight", `${expanded.weight} kg`],
+                      ["Height", `${expanded.height} cm`], ["BMI", String(expanded.bmi)],
+                    ].map(([k, v]) => (
+                      <><div key={k} className="font-semibold text-[var(--text-secondary)]">{k}</div><div>{v}</div></>
                     ))}
                   </div>
+                  <div className="mt-4 flex gap-2">
+                    <DownloadCVButton /><ViewFormButton />
+                  </div>
+                </section>
+
+                {/* Contact & AI */}
+                <section>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-4">Contact & Professional Info</h3>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
+                    {[
+                      ["Phone", expanded.phone], ["Email", expanded.email], ["Expected Salary", expanded.expectedSalary],
+                      ["Education", expanded.education], ["Address", expanded.address], ["Language", expanded.language],
+                      ["License", expanded.license], ["Previous Employment", expanded.previousEmployment],
+                    ].map(([k, v]) => (
+                      <><div key={k} className="font-semibold text-[var(--text-secondary)]">{k}</div><div>{v}</div></>
+                    ))}
+                  </div>
+                  <div className="mt-4 p-3 bg-[var(--primary-light)] rounded-lg">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--primary)] mb-1">AI Summary</h4>
+                    <p className="text-sm text-[var(--text-secondary)]">{expanded.aiSummary}</p>
+                  </div>
+                </section>
+              </div>
+
+              {/* Log Action */}
+              <section className="mt-5 pt-5 border-t border-[var(--border)]">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-3">Log Action</h3>
+                <div className="flex flex-wrap gap-3 items-end">
+                  <input
+                    className="px-3.5 py-2.5 text-sm border border-[var(--border)] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                    placeholder="Add a note..."
+                    id={`note-${expanded.id}`}
+                  />
+                  <Dropdown options={STATUSES.map(s => ({ label: s, value: s }))} placeholder="Select Status..." value="" onChange={() => {}} />
+                  <button className="px-5 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer">
+                    Save Log
+                  </button>
                 </div>
-              </CardContent>
-            </Card>
 
-            <div className="space-y-4">
-              {sortedResults.map((r) => {
-                const badgeColor =
-                  r.score >= 80 ? "bg-green-100 text-green-700" :
-                  r.score >= 60 ? "bg-yellow-100 text-yellow-700" :
-                  r.score >= 40 ? "bg-orange-100 text-orange-700" :
-                  "bg-gray-100 text-gray-600";
-
-                return (
-                  <Card key={r.candidate.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="!p-5">
-                      <div className="flex flex-wrap items-start justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-11 h-11 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-sm">
-                            {r.candidate.name.split(" ").map(n => n[0]).join("")}
-                          </div>
-                          <div>
-                            <p className="font-bold text-sm">{r.candidate.name}</p>
-                            <p className="text-xs text-[var(--text-secondary)]">{r.candidate.position} · {r.candidate.recruiter}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className={`status-badge`}>{r.candidate.status}</span>
-                          <div className="text-right">
-                            <span className={`inline-block px-3 py-1.5 rounded-full text-lg font-bold ${badgeColor}`}>
-                              {r.score}%
-                            </span>
-                            <p className="text-xs text-[var(--text-muted)] mt-1">Match Score</p>
-                          </div>
-                        </div>
-                      </div>
-                      {r.matchReasons.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-1.5">
-                          {r.matchReasons.map((m, i) => (
-                            <span key={i} className="px-2 py-0.5 text-xs font-medium bg-[#dcfce7] text-green-700 rounded-full">
-                              {m}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      <div className="mt-4 pt-4 border-t border-[var(--border)] grid grid-cols-1 md:grid-cols-3 gap-2 text-xs text-[var(--text-secondary)]">
-                        <span><span className="font-semibold">NID:</span> {r.candidate.nid}</span>
-                        <span><span className="font-semibold">Applied:</span> {r.candidate.dateApplied}</span>
-                        <span><span className="font-semibold">Experience:</span> {r.candidate.experience} yrs</span>
-                        <span><span className="font-semibold">Phone:</span> {r.candidate.phone}</span>
-                        <span><span className="font-semibold">Email:</span> {r.candidate.email}</span>
-                        <span><span className="font-semibold">Education:</span> {r.candidate.education}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                {/* Activity Log */}
+                <div className="mt-4">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">History Log</h4>
+                  <div className="overflow-y-auto max-h-48">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-xs font-semibold text-[var(--text-muted)] border-b border-[var(--border)]">
+                          <th className="text-left py-2 pr-4">Date / Time</th>
+                          <th className="text-left py-2 pr-4">Status</th>
+                          <th className="text-left py-2">Note</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {expanded.logs.map((l: { date: string; time: string; status: string; note: string }, i: number) => (
+                          <tr key={i} className="border-b border-[var(--border)] last:border-0">
+                            <td className="py-2 pr-4 text-[var(--text-secondary)] whitespace-nowrap">
+                              {l.date} {l.time}
+                            </td>
+                            <td className="py-2 pr-4">
+                              <span className={`status-badge status-${l.status.toLowerCase().replace(/\s+/g, "-")}`}>
+                                {l.status}
+                              </span>
+                            </td>
+                            <td className="py-2 text-[var(--text-secondary)]">{l.note}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
             </div>
-          </>
-        )}
+          )}
+        </Card>
 
-        {/* Empty state */}
-        {!matching && sortedResults.length === 0 && (
-          <Card>
-            <CardContent className="text-center py-16">
-              <svg className="mx-auto w-16 h-16 text-[var(--text-muted)] mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <h3 className="text-lg font-semibold text-[var(--foreground)]">No matches yet</h3>
-              <p className="text-sm text-[var(--text-secondary)] mt-1">
-                Upload a job description and click <span className="font-bold text-[var(--primary)]">Match Candidates</span> to see results.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-    </main>
+        {/* Pagination */}
+        <div className="flex items-center justify-between mt-5">
+          <p className="text-sm text-[var(--text-secondary)]">
+            Page {safePage} of {totalPages}
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={safePage <= 1}
+              className="px-4 py-2 text-sm font-medium rounded-lg border border-[var(--border)] bg-white hover:bg-[#f8fafc] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage >= totalPages}
+              className="px-4 py-2 text-sm font-medium rounded-lg border border-[var(--border)] bg-white hover:bg-[#f8fafc] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </main>
+    </>
   );
 }
