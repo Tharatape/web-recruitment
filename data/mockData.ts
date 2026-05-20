@@ -332,3 +332,67 @@ export const candidatesWithLogs: CandidateWithLogs[] = candidates.map((c) => ({
   ...c,
   logs: buildLogs(c.status, logRng, c.recruiter),
 }));
+
+// JD Library data - shared between matching and jd-library pages
+export interface JD {
+  id: string;
+  name: string;
+  position: string;
+  createdAt: string;
+  disabled?: boolean;
+  experienceChecklist?: string[];
+  educationChecklist?: string[];
+  languageChecklist?: string[];
+  technicalChecklist?: string[];
+}
+
+const defaultExperienceChecklist = [
+  "5+ years relevant experience",
+  "Leadership roles demonstrated",
+  "Project management skills",
+  "Cross-functional collaboration",
+  "Industry expertise",
+];
+
+const defaultEducationChecklist = [
+  "Bachelor's degree completed",
+  "Relevant coursework",
+  "Academic achievements",
+];
+
+const defaultLanguageChecklist = [
+  "Fluent in English",
+  "Multilingual capabilities",
+];
+
+const defaultTechnicalChecklist = [
+  "Programming proficiency",
+  "System architecture knowledge",
+  "Cloud platforms experience",
+  "Database management",
+  "DevOps practices",
+];
+
+// Use ref date for consistent timestamps
+export const jds: JD[] = [
+  { id: "JD-0001", name: "Sales Executive JD", position: "Sales Executive", createdAt: REF_DATE_2026_05_20, experienceChecklist: defaultExperienceChecklist, educationChecklist: defaultEducationChecklist, languageChecklist: defaultLanguageChecklist, technicalChecklist: defaultTechnicalChecklist },
+  { id: "JD-0002", name: "Marketing Specialist JD", position: "Marketing Specialist", createdAt: REF_DATE_2026_05_20, experienceChecklist: defaultExperienceChecklist, educationChecklist: defaultEducationChecklist, languageChecklist: defaultLanguageChecklist, technicalChecklist: defaultTechnicalChecklist },
+  { id: "JD-0003", name: "Software Engineer JD", position: "Software Engineer", createdAt: REF_DATE_2026_05_20, experienceChecklist: defaultExperienceChecklist, educationChecklist: defaultEducationChecklist, languageChecklist: defaultLanguageChecklist, technicalChecklist: defaultTechnicalChecklist },
+  { id: "JD-0004", name: "Data Analyst JD", position: "Data Analyst", createdAt: REF_DATE_2026_05_20, experienceChecklist: defaultExperienceChecklist, educationChecklist: defaultEducationChecklist, languageChecklist: defaultLanguageChecklist, technicalChecklist: defaultTechnicalChecklist },
+  { id: "JD-0005", name: "HR Manager JD", position: "HR Manager", createdAt: REF_DATE_2026_05_20, experienceChecklist: defaultExperienceChecklist, educationChecklist: defaultEducationChecklist, languageChecklist: defaultLanguageChecklist, technicalChecklist: defaultTechnicalChecklist },
+  { id: "JD-0006", name: "Financial Analyst JD", position: "Financial Analyst", createdAt: REF_DATE_2026_05_20, experienceChecklist: defaultExperienceChecklist, educationChecklist: defaultEducationChecklist, languageChecklist: defaultLanguageChecklist, technicalChecklist: defaultTechnicalChecklist },
+  { id: "JD-0007", name: "Customer Service JD", position: "Customer Service", createdAt: REF_DATE_2026_05_20, experienceChecklist: defaultExperienceChecklist, educationChecklist: defaultEducationChecklist, languageChecklist: defaultLanguageChecklist, technicalChecklist: defaultTechnicalChecklist },
+  { id: "JD-0008", name: "Project Manager JD", position: "Project Manager", createdAt: REF_DATE_2026_05_20, experienceChecklist: defaultExperienceChecklist, educationChecklist: defaultEducationChecklist, languageChecklist: defaultLanguageChecklist, technicalChecklist: defaultTechnicalChecklist },
+  { id: "JD-0009", name: "Business Analyst JD", position: "Business Analyst", createdAt: REF_DATE_2026_05_20, experienceChecklist: defaultExperienceChecklist, educationChecklist: defaultEducationChecklist, languageChecklist: defaultLanguageChecklist, technicalChecklist: defaultTechnicalChecklist },
+  { id: "JD-0010", name: "Operations Manager JD", position: "Operations Manager", createdAt: REF_DATE_2026_05_20, experienceChecklist: defaultExperienceChecklist, educationChecklist: defaultEducationChecklist, languageChecklist: defaultLanguageChecklist, technicalChecklist: defaultTechnicalChecklist },
+];
+
+export function addJD(position: string): void {
+  const newJD: JD = {
+    id: `JD-${String(jds.length + 1).padStart(4, "0")}`,
+    name: `${position} JD`,
+    position,
+    createdAt: REF_DATE_2026_05_20,
+  };
+  jds.push(newJD);
+}

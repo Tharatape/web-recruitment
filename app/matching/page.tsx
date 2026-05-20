@@ -7,8 +7,10 @@ import { Dropdown } from "@/components/ui/Dropdown";
 import { MultiSelect } from "@/components/ui/MultiSelect";
 import { Table } from "@/components/ui/Table";
 import { STATUSES, OWNERS, CandidateWithLogs } from "@/data/types";
+import { JD } from "@/data/mockData";
 import { candidatesWithLogs } from "@/data/mockData";
 import { CandidateExpandedView } from "@/components/CandidateExpandedView";
+import { AdvancedJDSearch } from "@/components/AdvancedJDSearch";
 
 function getExperienceLabel(exp: number): string {
   return exp < 2 ? "0-1 Year" : exp < 5 ? "2-4 Years" : exp < 9 ? "5-8 Years" : "9+ Years";
@@ -25,23 +27,6 @@ function getWeightedMatchingScore(
   technicalPoints: number
 ): number {
   return experiencePoints + educationPoints + languagePoints + technicalPoints;
-}
-
-function getMatchingScore(jdTitle: string, experience: number): number {
-  const levels: Record<string, number> = {
-    "Sales Executive": 3,
-    "Marketing Specialist": 3,
-    "Software Engineer": 4,
-    "Data Analyst": 3,
-    "HR Manager": 5,
-    "Financial Analyst": 4,
-    "Customer Service": 2,
-    "Project Manager": 6,
-    "Business Analyst": 3,
-    "Operations Manager": 5,
-  };
-  const expected = levels[jdTitle] ?? 3;
-  return Math.min(100, Math.round((experience / expected) * 100));
 }
 
 function ScoringBadge({ score }: { score: number }) {
@@ -73,7 +58,7 @@ export default function MatchingPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [includeScore, setIncludeScore] = useState(false);
-  const [selectedJd, setSelectedJd] = useState("");
+  const [selectedJd, setSelectedJd] = useState<JD | null>(null);
 
   const toggleId = (id: string) =>
     setSelectedIds((prev) => {
@@ -170,13 +155,13 @@ export default function MatchingPage() {
                     { label: "Last 90 days", value: "90" },
                   ]}
                   value={dateRange}
-                  onChange={setDateRange}
+                  onChange={(v) => { setDateRange(v); setPage(1); }}
                 />
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Status</label>
                 <MultiSelect
-                  placeholder="All Status"
+                  placeholder="All Statuses"
                   options={STATUSES.map((s) => ({ label: s, value: s }))}
                   value={status}
                   onChange={(vals) => { setStatus(vals); setPage(1); }}
@@ -186,17 +171,17 @@ export default function MatchingPage() {
                 <label className="text-sm font-semibold text-[var(--foreground)]">Recruiter</label>
                 <Dropdown
                   placeholder="All Recruiters"
-                  options={[{ label: "All Recruiters", value: "" }, ...OWNERS.map((r) => ({ label: r, value: r }))]}
+                  options={[{ label: "All Recruiters", value: "" }, ...OWNERS.map((o) => ({ label: o, value: o }))]}
                   value={recruiter}
-                  onChange={setRecruiter}
+                  onChange={(v) => { setRecruiter(v); setPage(1); }}
                 />
               </div>
             </div>
-            {(search || position.length > 0 || status.length > 0 || recruiter || dateRange !== "all") && (
-              <div className="mt-4 pt-4 border-t border-[var(--border)]">
+            {(search || position.length > 0 || expMin || expMax || dateRange !== "all" || status.length > 0 || recruiter) && (
+              <div className="mt-4 pt-4 border-t border-[var(--border)] flex justify-end">
                 <button
                   onClick={() => {
-                      setSearch(""); setPosition([]); setExpMin(""); setExpMax(""); setDateRange("all"); setStatus([]); setRecruiter(""); setPage(1);
+                    setSearch(""); setPosition([]); setExpMin(""); setExpMax(""); setDateRange("all"); setStatus([]); setRecruiter(""); setPage(1);
                   }}
                   className="text-xs font-semibold text-[var(--accent-red)] hover:underline cursor-pointer bg-transparent border-none"
                 >
@@ -210,21 +195,21 @@ export default function MatchingPage() {
         {/* Job Description (JD) */}
         <Card className="mb-6">
           <CardContent className="!p-5">
-            <div className="flex flex-wrap gap-4 items-end">
-              <div className="flex-1 min-w-72">
-                <label className="text-sm font-semibold text-[var(--foreground)] mb-1 block">Job Description (JD)</label>
-                <Dropdown
-                  placeholder="Select Position..."
-                  options={[{ label: "All Positions", value: "" }, ...allPositions.map((p) => ({ label: p, value: p }))]}
-                  value={selectedJd}
-                  onChange={(v) => { setSelectedJd(v); setIncludeScore(false); }}
+            <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+              <div className="flex-1 min-w-64">
+                <AdvancedJDSearch
+                  jd={selectedJd}
+                  onChange={(jd) => {
+                    setSelectedJd(jd);
+                    setIncludeScore(false);
+                  }}
                 />
               </div>
               <button
                 onClick={() => setIncludeScore(true)}
-                className="px-5 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer"
+                className="px-6 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer shadow-sm"
               >
-                Matching
+                Run Matching
               </button>
             </div>
           </CardContent>

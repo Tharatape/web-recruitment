@@ -8,6 +8,7 @@ const nav = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/applications", label: "Applications" },
   { href: "/matching", label: "Matching" },
+  { href: "/jd-library", label: "JD Library" },
 ];
 
 export default function Sidebar() {
