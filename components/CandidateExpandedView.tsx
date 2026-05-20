@@ -38,11 +38,11 @@ interface CandidateExpandedViewProps {
     phone: string;
     email: string;
     expectedSalary: string;
-    education: string;
-    address: string;
-    language: string;
-    license: string;
-    previousEmployment: string;
+    education?: string;
+    address?: string;
+    language?: string;
+    license?: string;
+    previousEmployment?: string;
     aiSummary: string;
     logs?: LogEntry[];
   };
@@ -97,161 +97,169 @@ function ScoreBar({ label, score }: { label: string; score: number }) {
   );
 }
 
+function safeStr(val?: string): string {
+  return val ?? "—";
+}
+
 export function CandidateExpandedView({ candidate, matchingScore, extraTopRight, barScores, pros, cons }: CandidateExpandedViewProps) {
   const logs = candidate.logs ?? [];
+  const scoreColor = matchingScore != null
+    ? (matchingScore >= 80 ? "#22c55e" : matchingScore >= 50 ? "#f59e0b" : "#ef4444")
+    : "var(--text-muted)";
+  const scoreLabel = matchingScore != null
+    ? (matchingScore >= 80 ? "Excellent Match" : matchingScore >= 50 ? "Partial Match" : "Low Match")
+    : "";
 
   return (
     <div className="px-5 py-4 border-t-2 border-[var(--primary)] bg-[#f8fafc]">
 
-{/* ── Basic Info ── */}
-        <SectionCard title="Basic Information">
-         <div className="relative pt-8">
-            <button
-              type="button"
-              onClick={() => alert("View Full Screen clicked")}
-              className="absolute -top-3 -right-3 px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer"
-            >
-              View Full Screen
-            </button>
-            <div className="space-y-4">
-              {/* Badge bar */}
-              {extraTopRight && (
-                <div className="flex items-center justify-end gap-2">
-                  {extraTopRight}
+      {/* ── Basic Information ── */}
+      <SectionCard title="Basic Information">
+        <div className="relative pt-8">
+          <button
+            type="button"
+            onClick={() => alert("View Full Screen clicked")}
+            className="absolute -top-3 -right-3 px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer"
+          >
+            View Full Screen
+          </button>
+          <div className="space-y-4">
+            {/* Badge bar — Position + Experience label */}
+            {extraTopRight && (
+              <div className="flex items-center justify-end gap-2">
+                {extraTopRight}
+              </div>
+            )}
+
+            {/* Photo + bio + basic info + buttons */}
+            <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xl shrink-0">
+                    {candidate.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                  </div>
+                  <div>
+                    <p className="text-xs text-[var(--text-muted)] font-medium">ID: {candidate.id}</p>
+                    <p className="font-bold text-base text-[var(--foreground)]">{candidate.name}</p>
+                    <p className="text-sm text-[var(--text-secondary)]">{candidate.position}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
+                  <InfoField label="Age" value={`${candidate.age} yrs`} />
+                  <InfoField label="Weight" value={`${candidate.weight} kg`} />
+                  <InfoField label="Height" value={`${candidate.height} cm`} />
+                  <InfoField label="BMI" value={candidate.bmi.toFixed(1)} />
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => alert("Download CV clicked")} className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer">View Original CV</button>
+                  <a href="#" target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors inline-block">View Form</a>
+                </div>
+              </div>
+
+            {/* ── Contact & Background fields — merged beneath basic info grid ── */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-3">Contact</p>
+                <div className="space-y-2.5 text-sm">
+                  <div>
+                    <span className="text-[var(--text-secondary)]">Phone</span>
+                    <p className="font-semibold mt-0.5">{safeStr(candidate.phone)}</p>
+                  </div>
+                  <div className="border-t border-[var(--border)] pt-2.5">
+                    <span className="text-[var(--text-secondary)]">E-Mail</span>
+                    <p className="font-semibold mt-0.5">{safeStr(candidate.email)}</p>
+                  </div>
+                  <div className="border-t border-[var(--border)] pt-2.5">
+                    <span className="text-[var(--text-secondary)]">Expected Salary</span>
+                    <p className="font-semibold mt-0.5">{safeStr(candidate.expectedSalary)}</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-3">Background</p>
+                <div className="space-y-2.5 text-sm">
+                  <div>
+                    <span className="text-[var(--text-secondary)]">Education</span>
+                    <p className="font-semibold mt-0.5">{safeStr(candidate.education)}</p>
+                  </div>
+                  <div className="border-t border-[var(--border)] pt-2.5">
+                    <span className="text-[var(--text-secondary)]">Address (Province)</span>
+                    <p className="font-semibold mt-0.5">{safeStr(candidate.address)}</p>
+                  </div>
+                  <div className="border-t border-[var(--border)] pt-2.5">
+                    <span className="text-[var(--text-secondary)]">Language</span>
+                    <p className="font-semibold mt-0.5">{safeStr(candidate.language)}</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-3">Employment</p>
+                <div className="space-y-2.5 text-sm">
+                  <div>
+                    <span className="text-[var(--text-secondary)]">License No.</span>
+                    <p className="font-semibold mt-0.5">{safeStr(candidate.license)}</p>
+                  </div>
+                  <div className="border-t border-[var(--border)] pt-2.5">
+                    <span className="text-[var(--text-secondary)]">Previous Employment</span>
+                    <p className="font-semibold mt-0.5">{safeStr(candidate.previousEmployment)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* ── Matching Score & Flat Percent ── */}
+      {matchingScore !== undefined && (
+        <div className="mt-4">
+          <SectionCard title="Matching Score">
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <div className="flex flex-col items-center shrink-0">
+                <p className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Matching Score</p>
+                <div className="relative w-28 h-28">
+                  <svg className="w-28 h-28 -rotate-90" viewBox="0 0 120 120" aria-hidden="true">
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="#e2e8f0" strokeWidth="10" />
+                    <circle cx="60" cy="60" r="50" fill="none" stroke={scoreColor} strokeWidth="10" strokeLinecap="round" strokeDasharray={`${matchingScore * 2.51327} 252.65`} />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-2xl font-bold text-[var(--foreground)]">{matchingScore}%</span>
+                  </div>
+                </div>
+                <p className="text-xs font-semibold mt-1" style={{ color: scoreColor }}>{scoreLabel}</p>
+              </div>
+
+              {barScores && (
+                <div className="flex-1 w-full min-w-0">
+                  <div className="space-y-3">
+                    {([
+                      ["Experience", barScores.experience],
+                      ["Education", barScores.education],
+                      ["Language", barScores.language],
+                      ["Technical", barScores.technical],
+                    ] as [string, number][])
+                      .map(([lbl, sc]) => (
+                        <ScoreBar key={lbl} label={lbl} score={sc} />
+                      ))}
+                  </div>
                 </div>
               )}
-
-              {/* Photo + bio + basic info + buttons | sc */}
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6">
-                {/* Left column */}
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xl shrink-0">
-                      {candidate.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
-                    </div>
-                    <div>
-                      <p className="text-xs text-[var(--text-muted)] font-medium">ID: {candidate.id}</p>
-                      <p className="font-bold text-base text-[var(--foreground)]">{candidate.name}</p>
-                      <p className="text-sm text-[var(--text-secondary)]">{candidate.position}</p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
-                    <InfoField label="Age" value={`${candidate.age} yrs`} />
-                    <InfoField label="Weight" value={`${candidate.weight} kg`} />
-                    <InfoField label="Height" value={`${candidate.height} cm`} />
-                    <InfoField label="BMI" value={candidate.bmi.toFixed(1)} />
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => alert("Download CV clicked")} className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer">View Original CV</button>
-                    <a href="#" target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors inline-block">View Form</a>
-                  </div>
-                </div>
-
-                {/* Right column — score circle + bars */}
-                {matchingScore !== undefined && (
-                  <div className="flex flex-col gap-4 min-w-[220px]">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Matching Score</p>
-                      <div className="relative w-28 h-28 mx-auto">
-                        <svg className="w-28 h-28 -rotate-90" viewBox="0 0 120 120" aria-hidden="true">
-                          <circle cx="60" cy="60" r="50" fill="none" stroke="#e2e8f0" strokeWidth="10" />
-                          <circle cx="60" cy="60" r="50" fill="none" stroke={matchingScore >= 80 ? "#22c55e" : matchingScore >= 50 ? "#f59e0b" : "#ef4444"} strokeWidth="10" strokeLinecap="round" strokeDasharray={`${matchingScore * 2.51327} 252.65`} />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-2xl font-bold text-[var(--foreground)]">{matchingScore}%</span>
-                        </div>
-                      </div>
-                      <p className="text-xs font-semibold mt-1 text-center" style={{ color: matchingScore >= 80 ? "#22c55e" : matchingScore >= 50 ? "#f59e0b" : "#ef4444" }}>
-                        {matchingScore >= 80 ? "Excellent Match" : matchingScore >= 50 ? "Partial Match" : "Low Match"}
-                      </p>
-                    </div>
-                    {barScores && (
-                      <div className="space-y-3">
-                        {([
-                          ["Experience", barScores.experience],
-                          ["Education", barScores.education],
-                          ["Language", barScores.language],
-                          ["Technical", barScores.technical],
-                        ] as [string, number][])
-                          .map(([lbl, sc]) => (
-                            <ScoreBar key={lbl} label={lbl} score={sc} />
-                          ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
             </div>
-          </div>
-        </SectionCard>
+          </SectionCard>
+        </div>
+      )}
 
-      {/* ── Contact & Background ── */}
-      <div className="mt-4">
-        <SectionCard title="Contact & Background">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-3">Contact</p>
-              <div className="space-y-2.5 text-sm">
-                <div>
-                  <span className="text-[var(--text-secondary)]">Phone</span>
-                  <p className="font-semibold mt-0.5">{candidate.phone}</p>
-                </div>
-                <div className="border-t border-[var(--border)] pt-2.5">
-                  <span className="text-[var(--text-secondary)]">E-Mail</span>
-                  <p className="font-semibold mt-0.5">{candidate.email}</p>
-                </div>
-                <div className="border-t border-[var(--border)] pt-2.5">
-                  <span className="text-[var(--text-secondary)]">Expected Salary</span>
-                  <p className="font-semibold mt-0.5">{candidate.expectedSalary}</p>
-                </div>
-              </div>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-3">Background</p>
-              <div className="space-y-2.5 text-sm">
-                <div>
-                  <span className="text-[var(--text-secondary)]">Education</span>
-                  <p className="font-semibold mt-0.5">{candidate.education}</p>
-                </div>
-                <div className="border-t border-[var(--border)] pt-2.5">
-                  <span className="text-[var(--text-secondary)]">Address (Province)</span>
-                  <p className="font-semibold mt-0.5">{candidate.address}</p>
-                </div>
-                <div className="border-t border-[var(--border)] pt-2.5">
-                  <span className="text-[var(--text-secondary)]">Language</span>
-                  <p className="font-semibold mt-0.5">{candidate.language}</p>
-                </div>
-              </div>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-3">Employment</p>
-              <div className="space-y-2.5 text-sm">
-                <div>
-                  <span className="text-[var(--text-secondary)]">License No.</span>
-                  <p className="font-semibold mt-0.5">{candidate.license}</p>
-                </div>
-                <div className="border-t border-[var(--border)] pt-2.5">
-                  <span className="text-[var(--text-secondary)]">Previous Employment</span>
-                  <p className="font-semibold mt-0.5">{candidate.previousEmployment}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </SectionCard>
-      </div>
-
-      {/* ── AI Summary ── */}
+      {/* ── AI Analysis ── */}
       <div className="mt-4">
         <SectionCard title={`AI Analysis — ${candidate.name}`} variant="primary">
           <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{candidate.aiSummary}</p>
 
-          {/* Pros & Cons as two colored boxes */}
+          {/* Strengths & Growth Opportunities as two colored boxes */}
           {(pros && pros.length > 0) || (cons && cons.length > 0) ? (
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
               {pros && pros.length > 0 && (
                 <div className="rounded-xl border border-green-200 bg-green-50 p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-green-600 font-bold text-sm uppercase tracking-wider">Pros</span>
+                    <span className="text-green-600 font-bold text-sm uppercase tracking-wider">Strengths</span>
                   </div>
                   <ul className="space-y-1.5">
                     {pros.map((p, i) => (
@@ -266,7 +274,7 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
               {cons && cons.length > 0 && (
                 <div className="rounded-xl border border-red-200 bg-red-50 p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-red-600 font-bold text-sm uppercase tracking-wider">Cons</span>
+                    <span className="text-red-600 font-bold text-sm uppercase tracking-wider">Growth Opportunities</span>
                   </div>
                   <ul className="space-y-1.5">
                     {cons.map((c, i) => (
@@ -281,10 +289,6 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
             </div>
           ) : null}
 
-          <div className="mt-4 flex gap-2">
-            <button onClick={() => alert("Download CV clicked")} className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-white rounded-lg hover:bg-[#f0f7ff] border border-[var(--primary)] transition-colors cursor-pointer">View Original CV</button>
-            <a href="#" target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-white rounded-lg hover:bg-[#f0f7ff] border border-[var(--primary)] transition-colors inline-block">View Application Form</a>
-          </div>
         </SectionCard>
       </div>
 
@@ -314,7 +318,7 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
                   <th className="text-left py-2.5 pr-4 min-w-[40px]">#</th>
                   <th className="text-left py-2.5 pr-4 min-w-[130px]">Date / Time</th>
                   <th className="text-left py-2.5 pr-4 min-w-[150px]">Status</th>
-                  <th className="text-left py-2.5">Note</th>
+                  <th className="text-left py-2.5 pr-4">Note</th>
                 </tr>
               </thead>
               <tbody>

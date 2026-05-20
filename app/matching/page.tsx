@@ -367,7 +367,7 @@ export default function MatchingPage() {
                 matchingScore={includeScore && isSelected(row.id) ? getMatchingScore(selectedJd || row.position, row.experience) : undefined}
                 barScores={includeScore && isSelected(row.id) ? {
                   experience: Math.min(100, Math.round(row.experience * 13)),
-                  education: row.education.includes("Bachelor") || row.education.includes("Master") ? 85 : row.education.includes("Degree") ? 70 : 55,
+                  education: (row.education ?? "").includes("Bachelor") || (row.education ?? "").includes("Master") ? 85 : (row.education ?? "").includes("Degree") ? 70 : 55,
                   language: row.language === "Fluent" ? 95 : row.language === "Conversational" ? 70 : 50,
                   technical: Math.min(100, Math.round(row.experience * 12)),
                 } : undefined}
@@ -378,7 +378,7 @@ export default function MatchingPage() {
                 }
                 pros={[
                   `${row.experience >= 5 ? "Extensive" : "Solid"} experience in ${row.position}`,
-                  row.education.includes("Bachelor") || row.education.includes("Master") ? "Strong educational background" : "Relevant education",
+                  (row.education ?? "").includes("Bachelor") || (row.education ?? "").includes("Master") ? "Strong educational background" : "Relevant education",
                   row.language === "Fluent" || row.language === "Conversational" ? "Good communication skills" : "Basic communication ability",
                 ].filter(Boolean)}
                 cons={[

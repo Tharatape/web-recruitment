@@ -260,7 +260,7 @@ export default function ApplicationsPage() {
                 }}
                 pros={[
                   `${row.experience >= 5 ? "Extensive" : "Solid"} experience in ${row.position}`,
-                  row.education.includes("Bachelor") || row.education.includes("Master") ? "Strong educational background" : "Relevant education",
+                  (row.education ?? "").includes("Bachelor") || (row.education ?? "").includes("Master") ? "Strong educational background" : "Relevant education",
                   row.language === "Fluent" || row.language === "Conversational" ? "Good communication skills" : "Basic communication ability",
                 ].filter(Boolean)}
                 cons={[
