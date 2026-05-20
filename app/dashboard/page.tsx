@@ -11,6 +11,14 @@ import { STATUSES } from "@/data/types";
 import { candidatesWithLogs } from "@/data/mockData";
 
 export default function DashboardPage() {
+  // Snapshot "now" once so the server and client each have a single stable
+  // reference — `new Date()` is never called inside useMemo callbacks, which
+  // prevents the server-rendered value from drifting between renders.
+  const now = new Date();   // only here, not inside useMemo
+  const todayStr = now.toISOString().split("T")[0];
+  const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+  const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [owner, setOwner] = useState("");
@@ -26,17 +34,13 @@ export default function DashboardPage() {
 
   const total = filtered.length;
   const today = useMemo(
-    () => filtered.filter((c) => c.dateApplied === new Date().toISOString().split("T")[0]).length,
+    () => filtered.filter((c) => c.dateApplied === todayStr).length,
     [filtered]
   );
   const lastWeek = useMemo(() => {
-    const now = new Date();
-    const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
     return filtered.filter((c) => new Date(c.dateApplied) >= weekAgo).length;
   }, [filtered]);
   const lastMonth = useMemo(() => {
-    const now = new Date();
-    const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
     return filtered.filter((c) => new Date(c.dateApplied) >= monthAgo).length;
   }, [filtered]);
 
@@ -62,7 +66,7 @@ export default function DashboardPage() {
   // Funnel: each stage only counts candidates who passed the prior stage.
   // Interview bar total = Shortlisted, Offer bar = Selected, Hired bar = Offer Accepted.
   const stageData = useMemo(() => {
-    const candidateStages = candidatesWithLogs.map((c) => {
+    const candidateStages = filtered.map((c) => {
       const s = new Set<string>();
       c.logs.forEach((l) => s.add(l.status));
       return s;
@@ -135,7 +139,7 @@ export default function DashboardPage() {
         ],
       },
     ];
-  }, []);
+  }, [filtered]);
 
   const positionDist = useMemo(() => {
     const map: Record<string, number> = {};
