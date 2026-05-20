@@ -1,6 +1,6 @@
 "use client";
 
-import { STATUSES, Status } from "@/data/types";
+import { STATUSES, Status, Owner } from "@/data/types";
 
 function getStatusStyle(status: string): string {
   const map: Record<string, string> = {
@@ -22,7 +22,8 @@ function getStatusStyle(status: string): string {
 interface LogEntry {
   date: string;
   time: string;
-  status: string;
+  recruiter: Owner;
+  status: Status;
   note: string;
 }
 
@@ -55,6 +56,14 @@ interface CandidateExpandedViewProps {
     education: number;
     language: number;
     technical: number;
+    experienceChecklist?: string[];
+    educationChecklist?: string[];
+    languageChecklist?: string[];
+    technicalChecklist?: string[];
+    experiencePoints?: number;
+    educationPoints?: number;
+    languagePoints?: number;
+    technicalPoints?: number;
   };
 }
 
@@ -79,13 +88,41 @@ function SectionCard({ title, variant, children }: { title: string; variant?: "n
   );
 }
 
-function ScoreBar({ label, score }: { label: string; score: number }) {
+function Checklist({ items, score }: { items: string[]; score: number }) {
+  const passCount = Math.max(1, Math.round((score / 100) * items.length));
+  return (
+    <div className="mt-2 p-2.5 border border-[var(--border)] rounded-lg bg-white">
+      {items.map((item, i) => {
+        const isPass = i < passCount;
+        return (
+          <div key={i} className="flex items-center gap-2 text-xs py-0.5">
+            <span className={`shrink-0 ${isPass ? "text-green-500" : "text-red-500"}`}>
+              {isPass ? "☑" : "☐"}
+            </span>
+            <span className={isPass ? "text-[var(--foreground)]" : "text-[var(--text-muted)]"}>{item}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+interface ScoreBarProps {
+  label: string;
+  score: number;
+  checklist?: string[];
+  totalPassed?: number;
+  maxPoints?: number;
+}
+
+function ScoreBar({ label, score, checklist, totalPassed, maxPoints }: ScoreBarProps) {
   const color = score >= 80 ? "#22c55e" : score >= 50 ? "#f59e0b" : "#ef4444";
+  const pointsDisplay = maxPoints !== undefined ? `${maxPoints} pts` : `${score}%`;
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
         <span className="text-xs font-bold text-[var(--foreground)]">{label}</span>
-        <span className="text-xs font-bold text-[var(--text-muted)]">{score}%</span>
+        <span className="text-xs font-bold text-[var(--text-muted)]">{pointsDisplay} {totalPassed !== undefined && `(${totalPassed}/${checklist?.length || 0})`}</span>
       </div>
       <div className="h-2 rounded-full bg-[#e2e8f0] overflow-hidden">
         <div
@@ -93,6 +130,7 @@ function ScoreBar({ label, score }: { label: string; score: number }) {
           style={{ width: `${score}%`, backgroundColor: color }}
         />
       </div>
+      {checklist && <Checklist items={checklist} score={score} />}
     </div>
   );
 }
@@ -222,7 +260,7 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
                     <circle cx="60" cy="60" r="50" fill="none" stroke={scoreColor} strokeWidth="10" strokeLinecap="round" strokeDasharray={`${matchingScore * 2.51327} 252.65`} />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-[var(--foreground)]">{matchingScore}%</span>
+                    <span className="text-2xl font-bold text-[var(--foreground)]">{matchingScore}<span className="text-sm">/100</span></span>
                   </div>
                 </div>
                 <p className="text-xs font-semibold mt-1" style={{ color: scoreColor }}>{scoreLabel}</p>
@@ -232,14 +270,15 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
                 <div className="flex-1 w-full min-w-0">
                   <div className="space-y-3">
                     {([
-                      ["Experience", barScores.experience],
-                      ["Education", barScores.education],
-                      ["Language", barScores.language],
-                      ["Technical", barScores.technical],
-                    ] as [string, number][])
-                      .map(([lbl, sc]) => (
-                        <ScoreBar key={lbl} label={lbl} score={sc} />
-                      ))}
+                      ["Experience", barScores.experience, barScores.experienceChecklist, barScores.experiencePoints],
+                      ["Education", barScores.education, barScores.educationChecklist, barScores.educationPoints],
+                      ["Language", barScores.language, barScores.languageChecklist, barScores.languagePoints],
+                      ["Technical", barScores.technical, barScores.technicalChecklist, barScores.technicalPoints],
+                    ] as [string, number, string[] | undefined, number | undefined][])
+                      .map(([lbl, sc, checklist, pts]) => {
+                        const passCount = checklist ? Math.max(1, Math.round((sc / 100) * checklist.length)) : undefined;
+                        return <ScoreBar key={lbl} label={lbl} score={sc} checklist={checklist} totalPassed={passCount} maxPoints={pts} />;
+                      })}
                   </div>
                 </div>
               )}
@@ -313,32 +352,34 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
           <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">History Log</h4>
           <div className="bg-white rounded-xl border border-[var(--border)] overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] border-b border-[var(--border)] bg-[#f8fafc]">
-                  <th className="text-left py-2.5 pr-4 min-w-[40px]">#</th>
-                  <th className="text-left py-2.5 pr-4 min-w-[130px]">Date / Time</th>
-                  <th className="text-left py-2.5 pr-4 min-w-[150px]">Status</th>
-                  <th className="text-left py-2.5 pr-4">Note</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="py-8 text-center text-sm text-[var(--text-muted)]">No history yet.</td>
-                  </tr>
-                ) : (
-                  logs.map((l: LogEntry, i: number) => (
-                    <tr key={i} className="border-b border-[var(--border)] last:border-0">
-                      <td className="py-3 pr-4 text-[var(--text-secondary)] text-xs font-mono align-top">#{String(i + 1).padStart(3, "0")}</td>
-                      <td className="py-3 pr-4 text-[var(--text-secondary)] whitespace-nowrap text-xs align-top">{l.date} {l.time}</td>
-                      <td className="py-3 pr-4 text-xs align-top">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-semibold ${getStatusStyle(l.status)}`}>{l.status}</span>
-                      </td>
-                      <td className="py-3 text-[var(--text-secondary)] text-xs align-top">{l.note}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
+<thead>
+                 <tr className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] border-b border-[var(--border)] bg-[#f8fafc]">
+                   <th className="text-left py-2.5 pr-4 min-w-[40px]">#</th>
+                   <th className="text-left py-2.5 pr-4 min-w-[130px]">Date / Time</th>
+                   <th className="text-left py-2.5 pr-4 min-w-[120px]">Recruiter</th>
+                   <th className="text-left py-2.5 pr-4 min-w-[150px]">Status</th>
+                   <th className="text-left py-2.5 pr-4">Note</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 {logs.length === 0 ? (
+                   <tr>
+                     <td colSpan={5} className="py-8 text-center text-sm text-[var(--text-muted)]">No history yet.</td>
+                   </tr>
+                 ) : (
+                   logs.map((l: LogEntry, i: number) => (
+                     <tr key={i} className="border-b border-[var(--border)] last:border-0">
+                       <td className="py-3 pr-4 text-[var(--text-secondary)] text-xs font-mono align-top">#{String(i + 1).padStart(3, "0")}</td>
+                       <td className="py-3 pr-4 text-[var(--text-secondary)] whitespace-nowrap text-xs align-top">{l.date} {l.time}</td>
+                       <td className="py-3 pr-4 text-[var(--text-secondary)] text-xs align-top">{l.recruiter}</td>
+                       <td className="py-3 pr-4 text-xs align-top">
+                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-semibold ${getStatusStyle(l.status)}`}>{l.status}</span>
+                       </td>
+                       <td className="py-3 text-[var(--text-secondary)] text-xs align-top">{l.note}</td>
+                     </tr>
+                   ))
+                 )}
+               </tbody>
             </table>
           </div>
         </div>

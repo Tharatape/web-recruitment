@@ -80,13 +80,14 @@ function UniqueLegend({ segments }: { segments: StageSegment[][] }) {
 export function StackedBarChart({ data, height = 300 }: StackedBarChartProps) {
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <RechartsBarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+      <RechartsBarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }} barCategoryGap={30}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
         <XAxis
           dataKey="name"
           tick={{ fontSize: 12 }}
           tickLine={false}
           axisLine={{ stroke: "#e2e8f0" }}
+          padding={{ left: 40, right: 40 }}
         />
         <YAxis
           tick={{ fontSize: 12 }}

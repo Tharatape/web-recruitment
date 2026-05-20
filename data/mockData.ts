@@ -1,5 +1,5 @@
 import type { Candidate, CandidateWithLogs } from "./types";
-import type { Status, LogEntry } from "./types";
+import type { Status, LogEntry, Owner } from "./types";
 import { OWNERS, POSITIONS } from "./types";
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -211,12 +211,12 @@ const NOTES: Partial<Record<Status, string>> = {
   "Not Hired":       "Offer rescinded. Candidate did not complete background verification within the required timeframe.",
 };
 
-function buildLogs(status: Status, r: () => number): LogEntry[] {
+function buildLogs(status: Status, r: () => number, recruiter: Owner): LogEntry[] {
   const logs: LogEntry[] = [];
 
   // Every candidate has a submitted-application record
   const appDate = daysBeforeRef(r, 0, 365);          // last year window
-  logs.push({ date: appDate, time: "09:00", status: "Applied", note: "Candidate submitted application via online portal." });
+  logs.push({ date: appDate, time: "09:00", recruiter, status: "Applied", note: "Candidate submitted application via online portal." });
 
   const idx = FUNNEL.indexOf(status);
 
@@ -227,7 +227,7 @@ function buildLogs(status: Status, r: () => number): LogEntry[] {
     const hour   = Math.round(r() * 9 + 9);
     const minute = String(randInt(r, 60)).padStart(2, "0");
     const note   = NOTES[stage] ?? `Status updated to ${stage}.`;
-    logs.push({ date: logDate, time: `${hour}:${minute}`, status: stage, note });
+    logs.push({ date: logDate, time: `${hour}:${minute}`, recruiter, status: stage, note });
   }
 
   return logs;
@@ -330,5 +330,5 @@ export const candidates: Candidate[] = SHUFFLED.map((rawName, i) => {
 
 export const candidatesWithLogs: CandidateWithLogs[] = candidates.map((c) => ({
   ...c,
-  logs: buildLogs(c.status, logRng),
+  logs: buildLogs(c.status, logRng, c.recruiter),
 }));

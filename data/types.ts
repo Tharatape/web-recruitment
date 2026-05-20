@@ -70,6 +70,7 @@ export interface Candidate {
 export type LogEntry = {
   date: string;
   time: string;
+  recruiter: Owner;
   status: Status;
   note: string;
 };
