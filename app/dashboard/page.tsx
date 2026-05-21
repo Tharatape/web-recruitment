@@ -75,7 +75,7 @@ export default function DashboardPage() {
   // ── Stage Performance data ─────────────────────────────────────────────
   // Funnel: each stage only counts candidates who passed the prior stage.
   // Interview bar total = Shortlisted, Offer bar = Selected, Hired bar = Offer Accepted.
-  const { stageData, maxTotal } = useMemo(() => {
+  const { stageData, maxTotal, stageTotals } = useMemo(() => {
     const candidateStages = filtered.map((c) => {
       const s = new Set<string>();
       c.logs.forEach((l) => s.add(l.status));
@@ -124,6 +124,13 @@ export default function DashboardPage() {
         (stages) => stages.has("Offer Accepted") && !stages.has("Hired")
       ).length;
 
+const stageTotals: Record<string, number> = {
+      "Application Stage": shortlistedCount + notSuitableCount + appliedCount,
+      "Interview Stage": shortlistedCount,
+      "Offer Stage": selectedCount,
+      "Hired Stage": offerAcceptedCount,
+    };
+
     const data = [
       {
         name: "Application Stage",
@@ -156,8 +163,8 @@ export default function DashboardPage() {
       },
     ];
 
-    const maxTotal = Math.max(...data.map((s) => s.segments.reduce((sum, seg) => sum + seg.value, 0)));
-    return { stageData: data, maxTotal };
+    const maxTotal = Math.max(...Object.values(stageTotals));
+    return { stageData: data, maxTotal, stageTotals };
   }, [filtered]);
 
   const positionDist = useMemo(() => {
@@ -260,28 +267,28 @@ export default function DashboardPage() {
         {/* Stage Performance */}
         <Card className="mb-8">
           <CardHeader><CardTitle>Stage Performance</CardTitle></CardHeader>
-          <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {stageData.map((stage) => (
-                    <div key={stage.name} className="flex flex-col">
-                      <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">{stage.name}</h4>
-                      <StageBar name={stage.name} segments={stage.segments} height={180} yAxisMax={maxTotal} />
-<div className="mt-2 space-y-1">
-                         {stage.segments.map((seg) => (
-                           <div key={seg.name} className="flex items-center justify-between text-xs">
-                             <span className="flex items-center gap-1">
-                               <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: seg.color }} />
-                               {seg.name}
-                             </span>
-                             <span className="font-medium">
-                               {seg.value} ({total > 0 ? ((seg.value / total) * 100).toFixed(1) : 0}%)
-                             </span>
-                           </div>
-                         ))}
-                       </div>
-                    </div>
-                  ))}
+<CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {stageData.map((stage) => (
+                <div key={stage.name} className="flex flex-col">
+                  <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">{stage.name}</h4>
+                  <StageBar name={stage.name} segments={stage.segments} height={180} yAxisMax={maxTotal} />
+                  <div className="mt-2 space-y-1">
+                    {stage.segments.map((seg) => (
+                      <div key={seg.name} className="flex items-center justify-between text-xs">
+                        <span className="flex items-center gap-1">
+                          <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: seg.color }} />
+                          {seg.name}
+                        </span>
+                        <span className="font-medium">
+                          {seg.value} ({stageTotals[stage.name] > 0 ? ((seg.value / stageTotals[stage.name]) * 100).toFixed(1) : 0}%)
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
 
