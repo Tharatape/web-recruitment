@@ -32,6 +32,16 @@ export default function JdLibraryPage() {
   };
 
   const handleSelectJd = (id: string) => {
+    const jd = jdList.find((j) => j.id === id);
+    if (jd) {
+      // Initialize counts for all checklist categories
+      const initialCounts: CriterionCounts = {};
+      ["exp", "edu", "lang", "tech"].forEach((cat) => {
+        const checklist = jd[`${cat}Checklist` as keyof JD] as string[] | undefined;
+        if (checklist) initialCounts[`${jd.id}-${cat}`] = checklist.length;
+      });
+      setCounts((prev) => ({ ...prev, ...initialCounts }));
+    }
     setExpandedId(id);
     setActiveMenuId(null);
   };
@@ -62,15 +72,16 @@ export default function JdLibraryPage() {
 
   const addCriterion = (jdId: string, category: string) => {
     const key = `${jdId}-${category}`;
-    const currentCount = counts[key] || 0;
+    const currentCount = counts[key] ?? 0;
     if (currentCount < 5) {
       setCounts((prev) => ({ ...prev, [key]: currentCount + 1 }));
     }
   };
 
-  const removeCriterion = (jdId: string, category: string, index: number) => {
+  const removeCriterion = (jdId: string, category: string, index: number, checklistCount?: number) => {
     const key = `${jdId}-${category}`;
-    const currentCount = counts[key] || 0;
+    // Use stored count if available, otherwise use checklist count as fallback
+    const currentCount = counts[key] ?? checklistCount ?? 0;
     if (currentCount > 0) {
       setCriteria((prev) => {
         const newCriteria = { ...prev };
@@ -106,7 +117,7 @@ export default function JdLibraryPage() {
         </div>
         <div className="flex flex-col gap-2">
           {Array.from({ length: count }).map((_, i) => (
-            <div key={i} className="flex gap-2">
+            <div key={i} className="flex gap-2 items-center">
               <Input
                 placeholder={`${label.split(" ")[0]} criterion ${i + 1}`}
                 value={criteria[`${jd.id}-${category}-${i}`] || initialValue[i] || ""}
@@ -114,7 +125,7 @@ export default function JdLibraryPage() {
                 className="text-xs flex-1"
               />
               <button
-                onClick={() => removeCriterion(jd.id, category, i)}
+                onClick={() => removeCriterion(jd.id, category, i, count)}
                 className="px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 rounded cursor-pointer"
               >
                 ×
