@@ -1,6 +1,6 @@
 "use client";
 
-import { STATUSES } from "@/data/types";
+import { STATUSES, Status, Owner } from "@/data/types";
 
 function getStatusStyle(status: string): string {
   const map: Record<string, string> = {

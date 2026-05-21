@@ -82,11 +82,17 @@ export default function DashboardPage() {
       return s;
     });
 
-    const count = (statuses: string[]) =>
-      candidateStages.filter((stages) => statuses.some((sg) => stages.has(sg))).length;
-
-    // Application: everyone (no gate)
+    // Application Stage: need mutually exclusive counts
+    // Applied = candidates with ONLY "Applied" (no Shortlisted, Not Suitable, or later stages)
+    const appliedCount = candidateStages.filter(
+      (stages) => stages.has("Applied") && !stages.has("Shortlisted") && !stages.has("Not Suitable")
+    ).length;
+    // Shortlisted = candidates who made it to shortlist (includes those who progressed further)
     const shortlistedCount = candidateStages.filter((stages) => stages.has("Shortlisted")).length;
+    // Not Suitable = candidates rejected at screening (NOT shortlisted)
+    const notSuitableCount = candidateStages.filter(
+      (stages) => stages.has("Not Suitable") && !stages.has("Shortlisted")
+    ).length;
 
     // Interview: only Shortlisted candidates
     const selectedCount = candidateStages.filter(
@@ -123,8 +129,8 @@ export default function DashboardPage() {
         name: "Application Stage",
         segments: [
           { name: "Shortlisted", value: shortlistedCount, color: "#22c55e" },
-          { name: "Not Suitable", value: count(["Not Suitable"]), color: "#ef4444" },
-          { name: "Applied",      value: count(["Applied"]),      color: "#9ca3af" },
+          { name: "Not Suitable", value: notSuitableCount, color: "#ef4444" },
+          { name: "Applied",      value: appliedCount,       color: "#9ca3af" },
         ],
       },
       {
@@ -206,7 +212,7 @@ export default function DashboardPage() {
           <Card>
             <CardHeader><CardTitle>Position Distribution</CardTitle></CardHeader>
             <CardContent>
-              <DonutChart data={positionDist} height={260} centerLabel="Total" />
+              <DonutChart data={positionDist} height={260} centerLabel="Total" centerTotal={total} />
               <div className="mt-4 flex flex-wrap gap-3 justify-center">
                 {positionDist.map((p) => (
                   <span key={p.name} className="text-xs font-medium text-[var(--text-secondary)]">
@@ -260,19 +266,19 @@ export default function DashboardPage() {
                     <div key={stage.name} className="flex flex-col">
                       <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">{stage.name}</h4>
                       <StageBar name={stage.name} segments={stage.segments} height={180} yAxisMax={maxTotal} />
-                      <div className="mt-2 space-y-1">
-                        {(() => { const stageTotal = stage.segments.reduce((sum, seg) => sum + seg.value, 0); return stage.segments.map((seg) => (
-                          <div key={seg.name} className="flex items-center justify-between text-xs">
-                            <span className="flex items-center gap-1">
-                              <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: seg.color }} />
-                              {seg.name}
-                            </span>
-                            <span className="font-medium">
-                              {seg.value} ({stageTotal > 0 ? ((seg.value / stageTotal) * 100).toFixed(0) : 0} %)
-                            </span>
-                          </div>
-                        )); })()}
-                      </div>
+<div className="mt-2 space-y-1">
+                         {stage.segments.map((seg) => (
+                           <div key={seg.name} className="flex items-center justify-between text-xs">
+                             <span className="flex items-center gap-1">
+                               <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: seg.color }} />
+                               {seg.name}
+                             </span>
+                             <span className="font-medium">
+                               {seg.value} ({total > 0 ? ((seg.value / total) * 100).toFixed(1) : 0}%)
+                             </span>
+                           </div>
+                         ))}
+                       </div>
                     </div>
                   ))}
                 </div>

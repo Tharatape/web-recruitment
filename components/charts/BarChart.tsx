@@ -44,6 +44,16 @@ export function BarChart({
         />
         <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={{ stroke: "#e2e8f0" }} />
         <Tooltip
+          content={({ active, payload }) => {
+            if (!active || !payload?.[0]) return null;
+            const d = payload[0].payload;
+            return (
+              <div className="bg-white border border-[#e2e8f0] rounded-lg px-3 py-2 text-sm">
+                <div className="font-medium">{d.name}</div>
+                <div className="text-[var(--text-secondary)]">{d.value} {d.percentage && `(${d.percentage})`}</div>
+              </div>
+            );
+          }}
           contentStyle={{
             backgroundColor: "#ffffff",
             border: "1px solid #e2e8f0",

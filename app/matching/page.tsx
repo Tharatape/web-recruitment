@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { MultiSelect } from "@/components/ui/MultiSelect";
 import { Table } from "@/components/ui/Table";
-import { STATUSES, OWNERS } from "@/data/types";
+import { STATUSES, OWNERS, CandidateWithLogs } from "@/data/types";
 import { JD } from "@/data/mockData";
 import { candidatesWithLogs } from "@/data/mockData";
 import { CandidateExpandedView } from "@/components/CandidateExpandedView";

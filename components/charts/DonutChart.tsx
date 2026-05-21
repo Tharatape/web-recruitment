@@ -6,6 +6,7 @@ interface DonutChartProps {
   data: { name: string; value: number; color?: string }[];
   height?: number;
   centerLabel?: string;
+  centerTotal?: number;
 }
 
 const COLORS = [
@@ -14,11 +15,11 @@ const COLORS = [
   "#8b5cf6",
 ];
 
-export function DonutChart({ data, height = 260, centerLabel }: DonutChartProps) {
-  const total = data.reduce((s, d) => s + d.value, 0);
+export function DonutChart({ data, height = 260, centerLabel, centerTotal }: DonutChartProps) {
+  const total = centerTotal !== undefined ? centerTotal : data.reduce((s, d) => s + d.value, 0);
 
   return (
-    <div className="w-full">
+    <div className="w-full relative">
       <ResponsiveContainer width="100%" height={height}>
         <RechartsPieChart>
           <Pie
@@ -47,7 +48,7 @@ export function DonutChart({ data, height = 260, centerLabel }: DonutChartProps)
         </RechartsPieChart>
       </ResponsiveContainer>
       {centerLabel && total > 0 && (
-        <div className="flex flex-col items-center -mt-16 pb-4 pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none">
           <span className="text-2xl font-bold text-[var(--foreground)]">{total}</span>
           <span className="text-xs text-[var(--text-muted)]">{centerLabel}</span>
         </div>
