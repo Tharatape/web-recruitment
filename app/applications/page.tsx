@@ -6,13 +6,11 @@ import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { MultiSelect } from "@/components/ui/MultiSelect";
 import { Table } from "@/components/ui/Table";
-import { STATUSES, OWNERS, CandidateWithLogs } from "@/data/types";
+import { STATUSES, OWNERS } from "@/data/types";
 import { candidatesWithLogs } from "@/data/mockData";
 import { CandidateExpandedView } from "@/components/CandidateExpandedView";
-
-function getExperienceLabel(exp: number): string {
-  return exp < 2 ? "0-1 Year" : exp < 5 ? "2-4 Years" : exp < 9 ? "5-8 Years" : "9+ Years";
-}
+import { STATUS_CLASS_MAP } from "@/data/colors";
+import { getExperienceLabel } from "@/data/types";
 
 export default function ApplicationsPage() {
   const [search, setSearch] = useState("");
@@ -195,12 +193,8 @@ export default function ApplicationsPage() {
                 key: "status",
                 header: "Status",
                 render: (row) => {
-                  const cls = STATUSES.map((s) => {
-                    const slug = s.toLowerCase().replace(/\s+/g, "-");
-                    return `status-${slug}`;
-                  });
-                  const idx = STATUSES.indexOf(row.status);
-                  return <span className={`status-badge ${cls[idx] || ""}`}>{row.status}</span>;
+                  const statusCls = STATUS_CLASS_MAP[row.status] || "";
+                  return <span className={`status-badge ${statusCls}`}>{row.status}</span>;
                 },
               },
               { key: "recruiter", header: "Recruiter" },

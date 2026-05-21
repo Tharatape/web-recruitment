@@ -55,9 +55,11 @@ export default function Sidebar() {
     <>
       {/* ── Mobile hamburger ─────────────────────────────────── */}
       <button
+        type="button"
         onClick={() => setOpen(!open)}
         className="fixed top-4 left-4 z-50 lg:hidden bg-[var(--bg-sidebar)] text-white px-3 py-2 rounded-lg shadow-lg cursor-pointer"
         aria-label="Toggle sidebar"
+        aria-expanded={open}
       >
         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           {open ? (

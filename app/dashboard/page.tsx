@@ -39,15 +39,20 @@ export default function DashboardPage() {
 
   const total = filtered.length;
   const today = useMemo(
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     () => filtered.filter((c) => c.dateApplied === todayStr).length,
     [filtered]
   );
-  const lastWeek = useMemo(() => {
-    return filtered.filter((c) => new Date(c.dateApplied) >= weekAgo).length;
-  }, [filtered]);
-  const lastMonth = useMemo(() => {
-    return filtered.filter((c) => new Date(c.dateApplied) >= monthAgo).length;
-  }, [filtered]);
+  const lastWeek = useMemo(
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    () => filtered.filter((c) => new Date(c.dateApplied) >= weekAgo).length,
+    [filtered]
+  );
+  const lastMonth = useMemo(
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    () => filtered.filter((c) => new Date(c.dateApplied) >= monthAgo).length,
+    [filtered]
+  );
 
   const fullStatusCounts = useMemo(() => {
     const map: Record<string, number> = {};
@@ -70,7 +75,7 @@ export default function DashboardPage() {
   // ── Stage Performance data ─────────────────────────────────────────────
   // Funnel: each stage only counts candidates who passed the prior stage.
   // Interview bar total = Shortlisted, Offer bar = Selected, Hired bar = Offer Accepted.
-  const stageData = useMemo(() => {
+  const { stageData, maxTotal } = useMemo(() => {
     const candidateStages = filtered.map((c) => {
       const s = new Set<string>();
       c.logs.forEach((l) => s.add(l.status));
@@ -113,27 +118,27 @@ export default function DashboardPage() {
         (stages) => stages.has("Offer Accepted") && !stages.has("Hired")
       ).length;
 
-    return [
+    const data = [
       {
         name: "Application Stage",
         segments: [
-          { name: "Shortlisted",  value: shortlistedCount,          color: "#22c55e" },
-          { name: "Not Suitable", value: count(["Not Suitable"]),   color: "#ef4444" },
-          { name: "Applied",      value: count(["Applied"]),        color: "#9ca3af" },
+          { name: "Shortlisted", value: shortlistedCount, color: "#22c55e" },
+          { name: "Not Suitable", value: count(["Not Suitable"]), color: "#ef4444" },
+          { name: "Applied",      value: count(["Applied"]),      color: "#9ca3af" },
         ],
       },
       {
         name: "Interview Stage",
         segments: [
-          { name: "Selected",     value: selectedCount,             color: "#22c55e" },
-          { name: "Not Selected", value: notSelectedCount,          color: "#ef4444" },
+          { name: "Selected",     value: selectedCount,     color: "#22c55e" },
+          { name: "Not Selected", value: notSelectedCount,  color: "#ef4444" },
         ],
       },
       {
         name: "Offer Stage",
         segments: [
-          { name: "Accepted", value: offerAcceptedCount,  color: "#22c55e" },
-          { name: "Decline",  value: offerDeclinedCount,  color: "#ef4444" },
+          { name: "Accepted", value: offerAcceptedCount, color: "#22c55e" },
+          { name: "Decline",  value: offerDeclinedCount, color: "#ef4444" },
         ],
       },
       {
@@ -144,6 +149,9 @@ export default function DashboardPage() {
         ],
       },
     ];
+
+    const maxTotal = Math.max(...data.map((s) => s.segments.reduce((sum, seg) => sum + seg.value, 0)));
+    return { stageData: data, maxTotal };
   }, [filtered]);
 
   const positionDist = useMemo(() => {
@@ -247,35 +255,27 @@ export default function DashboardPage() {
         <Card className="mb-8">
           <CardHeader><CardTitle>Stage Performance</CardTitle></CardHeader>
           <CardContent>
-            {(() => {
-              const maxTotal = Math.max(...stageData.map((s) => s.segments.reduce((sum, seg) => sum + seg.value, 0)));
-              return (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {stageData.map((stage) => (
                     <div key={stage.name} className="flex flex-col">
                       <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">{stage.name}</h4>
                       <StageBar name={stage.name} segments={stage.segments} height={180} yAxisMax={maxTotal} />
                       <div className="mt-2 space-y-1">
-                        {(() => {
-                          const stageTotal = stage.segments.reduce((sum, seg) => sum + seg.value, 0);
-                          return stage.segments.map((seg) => (
-                            <div key={seg.name} className="flex items-center justify-between text-xs">
-                              <span className="flex items-center gap-1">
-                                <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: seg.color }} />
-                                {seg.name}
-                              </span>
-                              <span className="font-medium">
-                                {seg.value} ({stageTotal > 0 ? ((seg.value / stageTotal) * 100).toFixed(0) : 0} %)
-                              </span>
-                            </div>
-                          ));
-                        })()}
+                        {(() => { const stageTotal = stage.segments.reduce((sum, seg) => sum + seg.value, 0); return stage.segments.map((seg) => (
+                          <div key={seg.name} className="flex items-center justify-between text-xs">
+                            <span className="flex items-center gap-1">
+                              <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: seg.color }} />
+                              {seg.name}
+                            </span>
+                            <span className="font-medium">
+                              {seg.value} ({stageTotal > 0 ? ((seg.value / stageTotal) * 100).toFixed(0) : 0} %)
+                            </span>
+                          </div>
+                        )); })()}
                       </div>
                     </div>
                   ))}
                 </div>
-              );
-            })()}
           </CardContent>
         </Card>
 

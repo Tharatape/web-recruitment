@@ -13,6 +13,7 @@ interface MultiSelectProps {
   onChange: (val: string[]) => void;
   placeholder?: string;
   className?: string;
+  allowEmpty?: boolean;
 }
 
 export function MultiSelect({
@@ -21,6 +22,7 @@ export function MultiSelect({
   onChange,
   placeholder = "Select...",
   className = "",
+  allowEmpty = false,
 }: MultiSelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -70,7 +72,7 @@ export function MultiSelect({
       {open && (
         <div className="absolute z-50 top-full mt-1 left-0 w-full bg-white border border-[var(--border)] rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {options
-            .filter((o) => o.value !== "")
+            .filter((o) => allowEmpty || o.value !== "")
             .map((option) => {
               const checked = value.includes(option.value);
               return (

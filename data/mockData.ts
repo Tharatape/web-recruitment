@@ -5,10 +5,15 @@ import { OWNERS, POSITIONS } from "./types";
 // ──────────────────────────────────────────────────────────────────────────────
 // Deterministic PRNG (sfc32)
 //
+// DO NOT call Math.random() anywhere in this module.  Doing so breaks the
+// deterministic seed sequence used to produce the 4 000-row dataset and
+// causes server/client hydration mismatches in Next.js.  All randomness must
+// flow through the rng / logRng functions created by makeRng() below.
+//
 // Using Math.random() at module level means the server and client produce
 // different sequences (different call order, different clocks), which causes
 // hydration mismatches.  A seeded PRNG called once at import time produces the
-// identical 4000-row dataset on both server and client.
+// identical 4 000-row dataset on both server and client.
 // ──────────────────────────────────────────────────────────────────────────────
 function makeRng(seed: number) {
   let a = seed | 0;

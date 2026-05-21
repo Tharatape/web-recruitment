@@ -1,6 +1,6 @@
 "use client";
 
-import { STATUSES, Status, Owner } from "@/data/types";
+import { STATUSES } from "@/data/types";
 
 function getStatusStyle(status: string): string {
   const map: Record<string, string> = {
@@ -154,13 +154,13 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
       {/* ── Basic Information ── */}
       <SectionCard title="Basic Information">
         <div className="relative pt-8">
-          <button
-            type="button"
-            onClick={() => alert("View Full Screen clicked")}
-            className="absolute -top-3 -right-3 px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer"
-          >
-            View Full Screen
-          </button>
+            <button
+              type="button"
+              onClick={() => { /* TODO: open full-screen candidate profile modal */ }}
+              className="absolute -top-3 -right-3 px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer"
+            >
+              View Full Screen
+            </button>
           <div className="space-y-4">
             {/* Badge bar — Position + Experience label */}
             {extraTopRight && (
@@ -188,7 +188,7 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
                   <InfoField label="BMI" value={candidate.bmi.toFixed(1)} />
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => alert("Download CV clicked")} className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer">View Original CV</button>
+                  <button onClick={() => { /* TODO: download/wire candidate CV */ }} className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer">View Original CV</button>
                   <a href="#" target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors inline-block">View Form</a>
                 </div>
               </div>

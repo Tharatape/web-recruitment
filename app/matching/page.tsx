@@ -6,28 +6,15 @@ import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { MultiSelect } from "@/components/ui/MultiSelect";
 import { Table } from "@/components/ui/Table";
-import { STATUSES, OWNERS, CandidateWithLogs } from "@/data/types";
+import { STATUSES, OWNERS } from "@/data/types";
 import { JD } from "@/data/mockData";
 import { candidatesWithLogs } from "@/data/mockData";
 import { CandidateExpandedView } from "@/components/CandidateExpandedView";
 import { AdvancedJDSearch } from "@/components/AdvancedJDSearch";
 
-function getExperienceLabel(exp: number): string {
-  return exp < 2 ? "0-1 Year" : exp < 5 ? "2-4 Years" : exp < 9 ? "5-8 Years" : "9+ Years";
-}
-
-function calculatePoints(passedCount: number, totalItems: number, maxPoints: number): number {
-  return Math.round((passedCount / totalItems) * maxPoints);
-}
-
-function getWeightedMatchingScore(
-  experiencePoints: number,
-  educationPoints: number,
-  languagePoints: number,
-  technicalPoints: number
-): number {
-  return experiencePoints + educationPoints + languagePoints + technicalPoints;
-}
+import { getExperienceLabel } from "@/data/types";
+import { STATUS_CLASS_MAP } from "@/data/colors";
+import { getMatchingScoreForRow, buildBarScores } from "@/data/scoring";
 
 function ScoringBadge({ score }: { score: number }) {
   const color =
@@ -285,22 +272,7 @@ export default function MatchingPage() {
                   if (!includeScore || !isSelected(row.id)) {
                     return <span className="text-[var(--text-muted)] text-xs font-medium">—</span>;
                   }
-                  const expScore = Math.min(100, Math.round(row.experience * 13));
-                  const eduScore = (row.education ?? "").includes("Bachelor") || (row.education ?? "").includes("Master") ? 85 : (row.education ?? "").includes("Degree") ? 70 : 55;
-                  const langScore = row.language === "Fluent" ? 95 : row.language === "Conversational" ? 70 : 50;
-                  const techScore = Math.min(100, Math.round(row.experience * 12));
-                  
-                  const expPass = Math.max(1, Math.round((expScore / 100) * 5));
-                  const eduPass = Math.max(1, Math.round((eduScore / 100) * 3));
-                  const langPass = Math.max(1, Math.round((langScore / 100) * 2));
-                  const techPass = Math.max(1, Math.round((techScore / 100) * 5));
-                  
-                  const score = getWeightedMatchingScore(
-                    calculatePoints(expPass, 5, 40),
-                    calculatePoints(eduPass, 3, 20),
-                    calculatePoints(langPass, 2, 10),
-                    calculatePoints(techPass, 5, 30)
-                  );
+                  const score = getMatchingScoreForRow(row);
                   return <ScoringBadge score={score} />;
                 },
               },
@@ -315,12 +287,8 @@ export default function MatchingPage() {
                 key: "status",
                 header: "Status",
                 render: (row) => {
-                  const cls = STATUSES.map((s) => {
-                    const slug = s.toLowerCase().replace(/\s+/g, "-");
-                    return `status-${slug}`;
-                  });
-                  const idx = STATUSES.indexOf(row.status);
-                  return <span className={`status-badge ${cls[idx] || ""}`}>{row.status}</span>;
+                  const statusCls = STATUS_CLASS_MAP[row.status] || "";
+                  return <span className={`status-badge ${statusCls}`}>{row.status}</span>;
                 },
               },
               { key: "recruiter", header: "Recruiter" },
@@ -378,38 +346,13 @@ export default function MatchingPage() {
                   aiSummary: row.aiSummary,
                   logs: row.logs,
                 }}
-                matchingScore={includeScore && isSelected(row.id) ? (() => {
-                    const expScore = Math.min(100, Math.round(row.experience * 13));
-                    const eduScore = (row.education ?? "").includes("Bachelor") || (row.education ?? "").includes("Master") ? 85 : (row.education ?? "").includes("Degree") ? 70 : 55;
-                    const langScore = row.language === "Fluent" ? 95 : row.language === "Conversational" ? 70 : 50;
-                    const techScore = Math.min(100, Math.round(row.experience * 12));
-                    
-                    const expPass = Math.max(1, Math.round((expScore / 100) * 5));
-                    const eduPass = Math.max(1, Math.round((eduScore / 100) * 3));
-                    const langPass = Math.max(1, Math.round((langScore / 100) * 2));
-                    const techPass = Math.max(1, Math.round((techScore / 100) * 5));
-                    
-                    return getWeightedMatchingScore(
-                      calculatePoints(expPass, 5, 40),
-                      calculatePoints(eduPass, 3, 20),
-                      calculatePoints(langPass, 2, 10),
-                      calculatePoints(techPass, 5, 30)
-                    );
-                  })() : undefined}
-                barScores={includeScore && isSelected(row.id) ? {
-                   experience: Math.min(100, Math.round(row.experience * 13)),
-                   education: (row.education ?? "").includes("Bachelor") || (row.education ?? "").includes("Master") ? 85 : (row.education ?? "").includes("Degree") ? 70 : 55,
-                   language: row.language === "Fluent" ? 95 : row.language === "Conversational" ? 70 : 50,
-                   technical: Math.min(100, Math.round(row.experience * 12)),
-                   experienceChecklist: ["5+ years relevant experience", "Leadership roles demonstrated", "Project management skills", "Cross-functional collaboration", "Industry expertise"],
-                   educationChecklist: ["Bachelor's degree completed", "Relevant coursework", "Academic achievements"],
-                   languageChecklist: ["Fluent in English", "Multilingual capabilities"],
-                   technicalChecklist: ["Programming proficiency", "System architecture knowledge", "Cloud platforms experience", "Database management", "DevOps practices"],
-                   experiencePoints: calculatePoints(Math.max(1, Math.round((Math.min(100, Math.round(row.experience * 13)) / 100) * 5)), 5, 40),
-                   educationPoints: calculatePoints(Math.max(1, Math.round((((row.education ?? "").includes("Bachelor") || (row.education ?? "").includes("Master")) ? 85 : (row.education ?? "").includes("Degree") ? 70 : 55) / 100 * 3)), 3, 20),
-                   languagePoints: calculatePoints(Math.max(1, Math.round((row.language === "Fluent" ? 95 : row.language === "Conversational" ? 70 : 50) / 100 * 2)), 2, 10),
-                   technicalPoints: calculatePoints(Math.max(1, Math.round((Math.min(100, Math.round(row.experience * 12)) / 100) * 5)), 5, 30),
-                 } : undefined}
+                matchingScore={includeScore && isSelected(row.id) ? getMatchingScoreForRow(row) : undefined}
+                barScores={includeScore && isSelected(row.id) ? buildBarScores(row, selectedJd ? {
+                  experienceChecklist: selectedJd.experienceChecklist,
+                  educationChecklist: selectedJd.educationChecklist,
+                  languageChecklist: selectedJd.languageChecklist,
+                  technicalChecklist: selectedJd.technicalChecklist,
+                } : undefined) : undefined}
                 extraTopRight={
                   <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary-light)] text-[var(--primary)] text-xs font-bold">
                     Position: {row.position} · {getExperienceLabel(row.experience)}

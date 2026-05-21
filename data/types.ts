@@ -1,3 +1,7 @@
+export function getExperienceLabel(exp: number): string {
+  return exp < 2 ? "0-1 Year" : exp < 5 ? "2-4 Years" : exp < 9 ? "5-8 Years" : "9+ Years";
+}
+
 export type Status =
   | "Applied"
   | "Not Suitable"
