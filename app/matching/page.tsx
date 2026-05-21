@@ -44,7 +44,7 @@ export default function MatchingPage() {
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [includeScore, setIncludeScore] = useState(false);
+  const [scoredIds, setScoredIds] = useState<Set<string>>(new Set());
   const [selectedJd, setSelectedJd] = useState<JD | null>(null);
 
   const toggleId = (id: string) =>
@@ -184,20 +184,21 @@ export default function MatchingPage() {
           <CardContent className="!p-5">
             <div className="flex flex-col sm:flex-row sm:items-end gap-4">
               <div className="flex-1 min-w-64">
-                <AdvancedJDSearch
-                  jd={selectedJd}
-                  onChange={(jd) => {
-                    setSelectedJd(jd);
-                    setIncludeScore(false);
-                  }}
-                />
+<AdvancedJDSearch
+                   jd={selectedJd}
+                   onChange={(jd) => {
+                     setSelectedJd(jd);
+                     setScoredIds(new Set());
+                   }}
+                 />
               </div>
-              <button
-                onClick={() => setIncludeScore(true)}
-                className="px-6 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer shadow-sm"
-              >
-                Run Matching
-              </button>
+<button
+                 onClick={() => setScoredIds(new Set(selectedIds))}
+                 disabled={!selectedJd || selectedIds.size === 0}
+                 className="px-6 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+               >
+                 Run Matching
+               </button>
             </div>
           </CardContent>
         </Card>
@@ -265,17 +266,17 @@ export default function MatchingPage() {
                   );
                 },
               },
-              {
-                key: "matchingScore",
-                header: "Matching Score",
-                render: (row) => {
-                  if (!includeScore || !isSelected(row.id)) {
-                    return <span className="text-[var(--text-muted)] text-xs font-medium">—</span>;
-                  }
-                  const score = getMatchingScoreForRow(row);
-                  return <ScoringBadge score={score} />;
-                },
-              },
+{
+                 key: "matchingScore",
+                 header: "Matching Score",
+                 render: (row) => {
+                   if (!scoredIds.has(row.id)) {
+                     return <span className="text-[var(--text-muted)] text-xs font-medium">—</span>;
+                   }
+                   const score = getMatchingScoreForRow(row);
+                   return <ScoringBadge score={score} />;
+                 },
+               },
               { key: "position", header: "Position" },
               {
                 key: "experience",
@@ -292,35 +293,35 @@ export default function MatchingPage() {
                 },
               },
               { key: "recruiter", header: "Recruiter" },
-              {
-                key: "expand",
-                header: "",
-                className: "w-[120px]",
-                render: (row: { id: string }) => (
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setExpandedId(expandedId === row.id ? null : row.id);
-                      }}
-                      className="p-1.5 rounded-lg hover:bg-[#e2e8f0] transition-colors cursor-pointer"
-                      aria-label={expandedId === row.id ? "Collapse" : "Expand"}
-                    >
-                      <svg
-                        className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${
-                          expandedId === row.id ? "rotate-180" : ""
-                        }`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                  </div>
-                ),
-              },
+{
+                 key: "expand",
+                 header: "",
+                 className: "w-[120px]",
+                 render: (row: { id: string }) => (
+                   <div className="flex items-center gap-1">
+                     <button
+                       type="button"
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         setExpandedId(expandedId === row.id ? null : row.id);
+                       }}
+                       className="p-1.5 rounded-lg hover:bg-[#e2e8f0] transition-colors cursor-pointer"
+                       aria-label={expandedId === row.id ? "Collapse" : "Expand"}
+                     >
+                       <svg
+                         className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${
+                           expandedId === row.id ? "rotate-180" : ""
+                         }`}
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor"
+                       >
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                       </svg>
+                     </button>
+                   </div>
+                 ),
+               },
             ]}
             data={paged}
             keyExtractor={(row) => row.id}
@@ -346,13 +347,13 @@ export default function MatchingPage() {
                   aiSummary: row.aiSummary,
                   logs: row.logs,
                 }}
-                matchingScore={includeScore && isSelected(row.id) ? getMatchingScoreForRow(row) : undefined}
-                barScores={includeScore && isSelected(row.id) ? buildBarScores(row, selectedJd ? {
-                  experienceChecklist: selectedJd.experienceChecklist,
-                  educationChecklist: selectedJd.educationChecklist,
-                  languageChecklist: selectedJd.languageChecklist,
-                  technicalChecklist: selectedJd.technicalChecklist,
-                } : undefined) : undefined}
+matchingScore={scoredIds.has(row.id) ? getMatchingScoreForRow(row) : undefined}
+                 barScores={scoredIds.has(row.id) ? buildBarScores(row, selectedJd ? {
+                   experienceChecklist: selectedJd.experienceChecklist,
+                   educationChecklist: selectedJd.educationChecklist,
+                   languageChecklist: selectedJd.languageChecklist,
+                   technicalChecklist: selectedJd.technicalChecklist,
+                 } : undefined) : undefined}
                 extraTopRight={
                   <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary-light)] text-[var(--primary)] text-xs font-bold">
                     Position: {row.position} · {getExperienceLabel(row.experience)}
