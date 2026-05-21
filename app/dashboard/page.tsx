@@ -1,10 +1,15 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/Card";
 import { DonutChart } from "@/components/charts/DonutChart";
 import { BarChart } from "@/components/charts/BarChart";
-import { StackedBarChart } from "@/components/charts/StackedBarChart";
+import { StageBar } from "@/components/charts/StageBar";
 import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { STATUSES } from "@/data/types";
@@ -242,7 +247,35 @@ export default function DashboardPage() {
         <Card className="mb-8">
           <CardHeader><CardTitle>Stage Performance</CardTitle></CardHeader>
           <CardContent>
-            <StackedBarChart data={stageData} height={260} />
+            {(() => {
+              const maxTotal = Math.max(...stageData.map((s) => s.segments.reduce((sum, seg) => sum + seg.value, 0)));
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {stageData.map((stage) => (
+                    <div key={stage.name} className="flex flex-col">
+                      <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">{stage.name}</h4>
+                      <StageBar name={stage.name} segments={stage.segments} height={180} yAxisMax={maxTotal} />
+                      <div className="mt-2 space-y-1">
+                        {(() => {
+                          const stageTotal = stage.segments.reduce((sum, seg) => sum + seg.value, 0);
+                          return stage.segments.map((seg) => (
+                            <div key={seg.name} className="flex items-center justify-between text-xs">
+                              <span className="flex items-center gap-1">
+                                <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: seg.color }} />
+                                {seg.name}
+                              </span>
+                              <span className="font-medium">
+                                {seg.value} ({stageTotal > 0 ? ((seg.value / stageTotal) * 100).toFixed(0) : 0} %)
+                              </span>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
 

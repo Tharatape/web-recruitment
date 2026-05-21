@@ -126,66 +126,37 @@ export default function JdLibraryPage() {
     );
   };
 
-return (
+  return (
     <main className="max-w-7xl mx-auto px-6 py-8">
       <h1 className="text-3xl font-bold text-[var(--primary)] mb-6">JD Library</h1>
 
-      <div className="flex flex-col lg:flex-row gap-8 mb-8">
-        <div className="w-full lg:w-1/2 bg-white rounded-xl border border-[var(--border)] p-6">
-          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">Upload JD</h2>
-          <div className="border-2 border-dashed border-[var(--border)] rounded-lg p-8 text-center mb-4">
-            <svg className="w-12 h-12 mx-auto text-[var(--text-muted)] mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.9-7.95l.44-1.4A4 4 0 1115.44 6l1.4.44A4 4 0 0117 14h-1" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 12v9m-4-4l4 4 4-4" />
-            </svg>
-            <p className="text-[var(--text-secondary)] mb-2">Drop your JD files here or click to browse</p>
-            <Input type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} className="hidden" id="jd-upload" />
-            <label htmlFor="jd-upload" className="inline-block px-4 py-2 bg-[var(--primary)] text-white rounded-lg cursor-pointer hover:bg-[var(--primary)]/90">
-              Choose Files
-            </label>
+      <div className="w-full bg-white rounded-xl border border-[var(--border)] p-4 mb-6">
+        <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Upload JD</h2>
+        <div className="border-2 border-dashed border-[var(--border)] rounded-lg p-4 text-center mb-3">
+          <svg className="w-10 h-10 mx-auto text-[var(--text-muted)] mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.9-7.95l.44-1.4A4 4 0 1115.44 6l1.4.44A4 4 0 0117 14h-1" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 12v9m-4-4l4 4 4-4" />
+          </svg>
+          <p className="text-[var(--text-secondary)] mb-2 text-sm">Drop your JD files here or click to browse</p>
+          <Input type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} className="hidden" id="jd-upload" />
+          <label htmlFor="jd-upload" className="inline-block px-3 py-1.5 bg-[var(--primary)] text-white rounded-lg cursor-pointer hover:bg-[var(--primary)]/90 text-sm">
+            Choose Files
+          </label>
+        </div>
+        {files.length > 0 && (
+          <div className="mb-3">
+            <p className="text-sm font-medium text-[var(--text-primary)] mb-1">Selected files:</p>
+            <ul className="text-xs text-[var(--text-secondary)]">
+              {files.map((file) => (
+                <li key={file.name}>{file.name}</li>
+              ))}
+            </ul>
           </div>
-          {files.length > 0 && (
-            <div className="mb-4">
-              <p className="text-sm font-medium text-[var(--text-primary)] mb-2">Selected files:</p>
-              <ul className="text-sm text-[var(--text-secondary)]">
-                {files.map((file) => (
-                  <li key={file.name}>{file.name}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          <Button onClick={handleUpload} disabled={files.length === 0}>
+        )}
+        <div className="flex justify-end">
+          <Button onClick={handleUpload} disabled={files.length === 0} className="text-sm py-1.5">
             Upload
           </Button>
-        </div>
-
-        <div className="w-full lg:w-1/2 bg-white rounded-xl border border-[var(--border)] p-6">
-          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">JD Detail</h2>
-          {expandedId ? (
-            <div className="space-y-4">
-              {(() => {
-                const jd = jdList.find((j) => j.id === expandedId);
-                if (!jd) return null;
-                return (
-                  <>
-                    {renderCriteria(jd, "exp", "Experience (max 5)", jd.experienceChecklist)}
-                    {renderCriteria(jd, "edu", "Education (max 5)", jd.educationChecklist)}
-                    {renderCriteria(jd, "lang", "Language (max 5)", jd.languageChecklist)}
-                    {renderCriteria(jd, "tech", "Technical (max 5)", jd.technicalChecklist)}
-                  </>
-                );
-              })()}
-              <div className="flex justify-end">
-                <Button onClick={() => console.log("Save criteria for", expandedId)}>
-                  Save
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-lg border-2 border-dashed border-[var(--border)] flex items-center justify-center">
-              <span className="text-[var(--text-muted)]">Select a JD to view details</span>
-            </div>
-          )}
         </div>
       </div>
 
@@ -208,7 +179,7 @@ return (
                     <React.Fragment key={jd.id}>
                       <tr>
                         <td>
-<div className="flex items-center justify-between py-3 px-5 cursor-pointer"
+                          <div className="flex items-center justify-between py-3 px-5 cursor-pointer"
                             onClick={() => handleSelectJd(jd.id)}>
                               <div className="flex items-center gap-3">
                                 <span className={`font-medium text-sm ${jd.disabled ? "line-through text-[var(--text-muted)]" : ""}`}>{jd.name}</span>
@@ -232,12 +203,12 @@ return (
                                   </button>
                                   {activeMenuId === jd.id && (
                                     <div className="absolute right-0 mt-1 w-32 bg-white border border-[var(--border)] rounded-lg shadow-lg z-10">
-<button
-                                         onClick={() => handleSelectJd(jd.id)}
-                                         className="w-full px-3 py-2 text-left text-xs text-[var(--primary)] hover:bg-[var(--primary-light)]/30 rounded-lg cursor-pointer"
-                                       >
-                                         View JD
-                                       </button>
+                                      <button
+                                        onClick={() => handleSelectJd(jd.id)}
+                                        className="w-full px-3 py-2 text-left text-xs text-[var(--primary)] hover:bg-[var(--primary-light)]/30 rounded-lg cursor-pointer"
+                                      >
+                                        View JD
+                                      </button>
                                       <button
                                         onClick={() => handleToggleDisabled(jd.id)}
                                         className="w-full px-3 py-2 text-left text-xs text-amber-600 hover:bg-amber-50 rounded-lg cursor-pointer"
@@ -264,6 +235,35 @@ return (
             </div>
           </CardContent>
         </Card>
+
+        <div className="bg-white rounded-xl border border-[var(--border)] p-6">
+          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">JD Detail</h2>
+          {expandedId ? (
+            <div className="space-y-4">
+              {(() => {
+                const jd = jdList.find((j) => j.id === expandedId);
+                if (!jd) return null;
+                return (
+                  <>
+                    {renderCriteria(jd, "exp", "Experience (max 5)", jd.experienceChecklist)}
+                    {renderCriteria(jd, "edu", "Education (max 5)", jd.educationChecklist)}
+                    {renderCriteria(jd, "lang", "Language (max 5)", jd.languageChecklist)}
+                    {renderCriteria(jd, "tech", "Technical (max 5)", jd.technicalChecklist)}
+                  </>
+                );
+              })()}
+              <div className="flex justify-end">
+                <Button onClick={() => console.log("Save criteria for", expandedId)}>
+                  Save
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-lg border-2 border-dashed border-[var(--border)] flex items-center justify-center min-h-[200px]">
+              <span className="text-[var(--text-muted)]">Select a JD to view details</span>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
