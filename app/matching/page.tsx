@@ -148,7 +148,7 @@ export default function MatchingPage() {
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Status</label>
                 <MultiSelect
-                  placeholder="All Statuses"
+                  placeholder="All Status"
                   options={STATUSES.map((s) => ({ label: s, value: s }))}
                   value={status}
                   onChange={(vals) => { setStatus(vals); setPage(1); }}
@@ -158,7 +158,7 @@ export default function MatchingPage() {
                 <label className="text-sm font-semibold text-[var(--foreground)]">Recruiter</label>
                 <Dropdown
                   placeholder="All Recruiters"
-                  options={[{ label: "All Recruiters", value: "" }, ...OWNERS.map((o) => ({ label: o, value: o }))]}
+                  options={OWNERS.map((o) => ({ label: o, value: o }))}
                   value={recruiter}
                   onChange={(v) => { setRecruiter(v); setPage(1); }}
                 />

@@ -183,9 +183,9 @@ const stageTotals: Record<string, number> = {
           <Input label="Start Date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
           <Input label="End Date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
           <Dropdown
+            label="Recruiter"
             placeholder="All Owners"
             options={[
-              { label: "All Owners", value: "" },
               ...Array.from(
                 new Set(candidatesWithLogs.map((c) => c.recruiter))
               ).map((r) => ({ label: r, value: r })),
@@ -215,25 +215,36 @@ const stageTotals: Record<string, number> = {
 
         {/* Charts Row 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Position Distribution */}
-          <Card>
-            <CardHeader><CardTitle>Position Distribution</CardTitle></CardHeader>
-            <CardContent>
-              <DonutChart data={positionDist} height={260} centerLabel="Total" centerTotal={total} />
-              <div className="mt-4 flex flex-wrap gap-3 justify-center">
-                {positionDist.map((p) => (
-                  <span key={p.name} className="text-xs font-medium text-[var(--text-secondary)]">
-                    {p.name}: {p.value}
-                  </span>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+{/* Position Distribution */}
+           <Card>
+             <CardHeader>
+               <CardTitle className="mb-0">Position Distribution</CardTitle>
+               <p className="text-sm text-[var(--text-secondary)] -mt-1">
+                 Distribution of applications across different positions
+               </p>
+             </CardHeader>
+             <CardContent>
+               <DonutChart data={positionDist} height={260} centerLabel="Total" centerTotal={total} />
+               <div className="mt-4 space-y-2">
+                 {positionDist.map((p) => (
+                   <div key={p.name} className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
+                     <span>•</span>
+                     <span>{p.name}: {p.value}</span>
+                   </div>
+                 ))}
+               </div>
+             </CardContent>
+           </Card>
 
-          {/* Status Overview Bar */}
-          <Card>
-            <CardHeader><CardTitle>Status Overview</CardTitle></CardHeader>
-            <CardContent>
+{/* Status Overview Bar */}
+           <Card>
+             <CardHeader>
+               <CardTitle className="mb-0">Status Overview</CardTitle>
+               <p className="text-sm text-[var(--text-secondary)] -mt-1">
+                 Current candidate distribution across all application statuses
+               </p>
+             </CardHeader>
+             <CardContent>
               <BarChart data={statusBarData} height={300} />
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full text-sm">
@@ -264,10 +275,15 @@ const stageTotals: Record<string, number> = {
           </Card>
         </div>
 
-        {/* Stage Performance */}
-        <Card className="mb-8">
-          <CardHeader><CardTitle>Stage Performance</CardTitle></CardHeader>
-<CardContent>
+{/* Stage Performance */}
+         <Card className="mb-8">
+           <CardHeader>
+             <CardTitle className="mb-0">Stage Performance</CardTitle>
+             <p className="text-sm text-[var(--text-secondary)] -mt-1">
+               Funnel visualization of candidate progression through hiring stages
+             </p>
+           </CardHeader>
+           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {stageData.map((stage) => (
                 <div key={stage.name} className="flex flex-col">
@@ -290,11 +306,29 @@ const stageTotals: Record<string, number> = {
               ))}
             </div>
           </CardContent>
+          <div className="px-6 pb-4 border-t border-[var(--border)] pt-4">
+            <div className="text-xs text-[var(--text-secondary)] opacity-70 space-y-1">
+              <p><strong>Applied:</strong> Candidates who meet the initial job criteria but have not yet been selected for the next stage.</p>
+              <p><strong>Shortlisted:</strong> Candidates who meet the criteria and have been selected to move forward in the Interview process.</p>
+              <p><strong>Not Suitable:</strong> Candidates who do not meet the minimum requirements for the role.</p>
+              <p><strong>Selected:</strong> Candidates who have successfully passed both the 1st and 2nd round interviews.</p>
+              <p><strong>Not Selected:</strong> Candidates who did not pass either the 1st or 2nd round interviews.</p>
+              <p><strong>Offer Accepted:</strong> Candidates who have formally accepted the job offer.</p>
+              <p><strong>Offer Declined:</strong> Candidates who were extended an offer but chose not to accept it.</p>
+              <p><strong>Hired:</strong> Candidates who have successfully completed the onboarding process and are officially part of the company.</p>
+              <p><strong>Not Hired:</strong> Candidates who went through the process but were ultimately not chosen for the role.</p>
+            </div>
+          </div>
         </Card>
 
-        {/* Average Durations */}
+{/* Average Durations */}
         <Card>
-          <CardHeader><CardTitle>Average Duration Between Stages</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle className="mb-0">Average Duration Between Stages</CardTitle>
+<p className="text-sm text-[var(--text-secondary)] -mt-1">
+               Time candidates spend transitioning between Stage Performance
+             </p>
+          </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
@@ -314,6 +348,6 @@ const stageTotals: Record<string, number> = {
             </div>
           </CardContent>
         </Card>
-    </main>
+     </main>
   );
 }

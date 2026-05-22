@@ -123,12 +123,12 @@ export default function ApplicationsPage() {
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Recruiter</label>
-                <Dropdown
-                  placeholder="All Recruiters"
-                  options={[{ label: "All Recruiters", value: "" }, ...OWNERS.map((r) => ({ label: r, value: r }))]}
-                  value={recruiter}
-                  onChange={setRecruiter}
-                />
+<Dropdown
+                   placeholder="All Recruiters"
+                   options={OWNERS.map((r) => ({ label: r, value: r }))}
+                   value={recruiter}
+                   onChange={setRecruiter}
+                 />
               </div>
             </div>
             {(search || position.length > 0 || status.length > 0 || recruiter || dateRange !== "all") && (
