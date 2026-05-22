@@ -117,16 +117,16 @@ export default function JdLibraryPage() {
         </div>
         <div className="flex flex-col gap-2">
           {Array.from({ length: count }).map((_, i) => (
-            <div key={i} className="flex gap-2 items-center">
+            <div key={i} className="relative">
               <Input
                 placeholder={`${label.split(" ")[0]} criterion ${i + 1}`}
                 value={criteria[`${jd.id}-${category}-${i}`] || initialValue[i] || ""}
                 onChange={(e) => handleCriterionChange(jd.id, category, i, e.target.value)}
-                className="text-xs flex-1"
+                className="text-xs pr-10"
               />
               <button
                 onClick={() => removeCriterion(jd.id, category, i, count)}
-                className="px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 rounded cursor-pointer"
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 rounded cursor-pointer"
               >
                 ×
               </button>
