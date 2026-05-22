@@ -1,5 +1,7 @@
 # Recruitment Analytics Dashboard
 
+> **⚠️ Mockup / Demo** — This is a demonstration mockup website. All data displayed is sample/mock data and does not represent real candidates or applications.
+
 A modern web application for recruitment analytics and candidate management, built with Next.js. This dashboard provides comprehensive insights into the hiring pipeline, candidate matching, and job description management.
 
 ## Features
