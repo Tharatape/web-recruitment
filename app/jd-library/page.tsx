@@ -256,6 +256,20 @@ export default function JdLibraryPage() {
                 if (!jd) return null;
                 return (
                   <>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="bg-[var(--primary-light)]/20 border border-[var(--primary)] rounded-lg p-3 text-center">
+                        <p className="text-xs font-semibold text-[var(--text-secondary)] mb-1">Last Update</p>
+                        <p className="text-sm font-bold text-[var(--primary)]">{jd.createdAt}</p>
+                      </div>
+                      <div className="bg-[var(--primary-light)]/20 border border-[var(--primary)] rounded-lg p-3 text-center">
+                        <p className="text-xs font-semibold text-[var(--text-secondary)] mb-1">Last Editor</p>
+                        <p className="text-sm font-bold text-[var(--primary)]">Admin User</p>
+                      </div>
+                      <div className="bg-[var(--primary-light)]/20 border border-[var(--primary)] rounded-lg p-3 text-center">
+                        <p className="text-xs font-semibold text-[var(--text-secondary)] mb-1">Version</p>
+                        <p className="text-sm font-bold text-[var(--primary)]">v1.0</p>
+                      </div>
+                    </div>
                     {renderCriteria(jd, "exp", "Experience (max 5)", jd.experienceChecklist)}
                     {renderCriteria(jd, "edu", "Education (max 5)", jd.educationChecklist)}
                     {renderCriteria(jd, "lang", "Language (max 5)", jd.languageChecklist)}

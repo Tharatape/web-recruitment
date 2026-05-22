@@ -4,13 +4,12 @@ import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
+import { ComboBox } from "@/components/ui/ComboBox";
 import { MultiSelect } from "@/components/ui/MultiSelect";
 import { Table } from "@/components/ui/Table";
 import { STATUSES, OWNERS, CandidateWithLogs } from "@/data/types";
-import { JD } from "@/data/mockData";
-import { candidatesWithLogs } from "@/data/mockData";
+import { candidatesWithLogs, jds } from "@/data/mockData";
 import { CandidateExpandedView } from "@/components/CandidateExpandedView";
-import { AdvancedJDSearch } from "@/components/AdvancedJDSearch";
 
 import { getExperienceLabel } from "@/data/types";
 import { STATUS_CLASS_MAP } from "@/data/colors";
@@ -45,7 +44,8 @@ export default function MatchingPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [scoredIds, setScoredIds] = useState<Set<string>>(new Set());
-  const [selectedJd, setSelectedJd] = useState<JD | null>(null);
+  const [selectedJdId, setSelectedJdId] = useState<string>("");
+  const selectedJd = jds.find(j => j.id === selectedJdId) || null;
 
   const toggleId = (id: string) =>
     setSelectedIds((prev) => {
@@ -188,18 +188,17 @@ export default function MatchingPage() {
           <CardContent className="!p-5">
             <div className="flex flex-col sm:flex-row sm:items-end gap-4">
               <div className="flex-1 min-w-64">
-<AdvancedJDSearch
-                    jd={selectedJd}
-                    onChange={(jd) => {
-                      setSelectedJd(jd);
-                      setScoredIds(new Set());
-                      clearScoreCache();
-                    }}
-                  />
+                <ComboBox
+                  label="Job Description (JD)"
+                  placeholder="Select JD..."
+                  options={jds.filter(j => !j.disabled).map((j) => ({ label: `${j.name} - ${j.position}`, value: j.id }))}
+                  value={selectedJdId}
+                  onChange={(v) => { setSelectedJdId(v); setScoredIds(new Set()); clearScoreCache(); }}
+                />
               </div>
-<button
+              <button
                  onClick={() => setScoredIds(new Set(selectedIds))}
-                 disabled={!selectedJd || selectedIds.size === 0}
+                 disabled={!selectedJdId || selectedIds.size === 0}
                  className="px-6 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
                >
                  Run Matching
@@ -243,7 +242,7 @@ export default function MatchingPage() {
                       else setSelectedIds(new Set(paged.map((r) => r.id)));
                     }}
                     className="w-4 h-4 accent-[var(--primary)] cursor-pointer"
-                   />
+                 />
                 ),
                 render: (row) => (
                   <input
@@ -272,16 +271,16 @@ export default function MatchingPage() {
                 },
               },
 {
-                  key: "matchingScore",
-                  header: "Matching Score",
-                  render: (row) => {
-                    if (!scoredIds.has(row.id)) {
-                      return <span className="text-[var(--text-muted)] text-xs font-medium">—</span>;
-                    }
-                    const score = getMatchingScoreForRow(row, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined);
-                    return <ScoringBadge score={score} />;
-                  },
+                key: "matchingScore",
+                header: "Matching Score",
+                render: (row) => {
+                  if (!scoredIds.has(row.id)) {
+                    return <span className="text-[var(--text-muted)] text-xs font-medium">—</span>;
+                  }
+                  const score = getMatchingScoreForRow(row, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined);
+                  return <ScoringBadge score={score} />;
                 },
+              },
               { key: "position", header: "Position" },
               {
                 key: "experience",
@@ -354,11 +353,11 @@ export default function MatchingPage() {
                 }}
 matchingScore={scoredIds.has(row.id) ? getMatchingScoreForRow(row, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined) : undefined}
                  barScores={scoredIds.has(row.id) ? buildBarScores(row, selectedJd ? {
-                   experienceChecklist: selectedJd.experienceChecklist,
-                   educationChecklist: selectedJd.educationChecklist,
-                   languageChecklist: selectedJd.languageChecklist,
-                   technicalChecklist: selectedJd.technicalChecklist,
-                 } : undefined) : undefined}
+                  experienceChecklist: selectedJd.experienceChecklist,
+                  educationChecklist: selectedJd.educationChecklist,
+                  languageChecklist: selectedJd.languageChecklist,
+                  technicalChecklist: selectedJd.technicalChecklist,
+                } : undefined) : undefined}
                 extraTopRight={
                   <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary-light)] text-[var(--primary)] text-xs font-bold">
                     Position: {row.position} · {getExperienceLabel(row.experience)}
