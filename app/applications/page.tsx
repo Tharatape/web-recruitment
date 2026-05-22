@@ -85,15 +85,19 @@ export default function ApplicationsPage() {
                     label="Min"
                     type="number"
                     placeholder="Min"
+                    min="0"
                     value={expMin}
-                    onChange={(e) => { setExpMin(e.target.value); setPage(1); }}
+                    onChange={(e) => { const val = Number(e.target.value); setExpMin(val < 0 ? "0" : e.target.value); setPage(1); }}
+                    onInput={(e) => { const target = e.target as HTMLInputElement; if (Number(target.value) < 0) target.value = "0"; }}
                   />
                   <Input
                     label="Max"
                     type="number"
                     placeholder="Max"
+                    min="0"
                     value={expMax}
-                    onChange={(e) => { setExpMax(e.target.value); setPage(1); }}
+                    onChange={(e) => { const val = Number(e.target.value); setExpMax(val < 0 ? "0" : e.target.value); setPage(1); }}
+                    onInput={(e) => { const target = e.target as HTMLInputElement; if (Number(target.value) < 0) target.value = "0"; }}
                   />
                 </div>
               </div>
@@ -131,18 +135,18 @@ export default function ApplicationsPage() {
                  />
               </div>
             </div>
-            {(search || position.length > 0 || status.length > 0 || recruiter || dateRange !== "all") && (
-              <div className="mt-4 pt-4 border-t border-[var(--border)]">
-                <button
-                  onClick={() => {
-                      setSearch(""); setPosition([]); setExpMin(""); setExpMax(""); setDateRange("all"); setStatus([]); setRecruiter(""); setPage(1);
-                  }}
-                  className="text-xs font-semibold text-[var(--accent-red)] hover:underline cursor-pointer bg-transparent border-none"
-                >
-                  Clear All Filters
-                </button>
-              </div>
-            )}
+{(search || position.length > 0 || status.length > 0 || recruiter || dateRange !== "all") && (
+               <div className="mt-4 pt-4 border-t border-[var(--border)] flex justify-end">
+                 <button
+                   onClick={() => {
+                       setSearch(""); setPosition([]); setExpMin(""); setExpMax(""); setDateRange("all"); setStatus([]); setRecruiter(""); setPage(1);
+                   }}
+                   className="text-xs font-semibold text-[var(--accent-red)] hover:underline cursor-pointer bg-transparent border-none"
+                 >
+                   Clear All Filters
+                 </button>
+               </div>
+             )}
           </CardContent>
         </Card>
 

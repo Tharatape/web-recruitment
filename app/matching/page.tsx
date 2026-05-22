@@ -118,15 +118,19 @@ export default function MatchingPage() {
                     label="Min"
                     type="number"
                     placeholder="Min"
+                    min="0"
                     value={expMin}
-                    onChange={(e) => { setExpMin(e.target.value); setPage(1); }}
+                    onChange={(e) => { const val = Number(e.target.value); setExpMin(val < 0 ? "0" : e.target.value); setPage(1); }}
+                    onInput={(e) => { const target = e.target as HTMLInputElement; if (Number(target.value) < 0) target.value = "0"; }}
                   />
                   <Input
                     label="Max"
                     type="number"
                     placeholder="Max"
+                    min="0"
                     value={expMax}
-                    onChange={(e) => { setExpMax(e.target.value); setPage(1); }}
+                    onChange={(e) => { const val = Number(e.target.value); setExpMax(val < 0 ? "0" : e.target.value); setPage(1); }}
+                    onInput={(e) => { const target = e.target as HTMLInputElement; if (Number(target.value) < 0) target.value = "0"; }}
                   />
                 </div>
               </div>
