@@ -351,6 +351,114 @@ export interface JD {
   technicalChecklist?: string[];
 }
 
+const salesExperienceChecklist = [
+  "5+ years sales experience",
+  "Quota achievement track record",
+  "Client relationship management",
+  "Negotiation skills",
+  "CRM software proficiency",
+];
+
+const salesEducationChecklist = [
+  "Bachelor's degree in Business or related field",
+  "Sales certification preferred",
+  "Continuous learning mindset",
+];
+
+const salesLanguageChecklist = [
+  "Fluent in English",
+  "Persuasive communication skills",
+];
+
+const salesTechnicalChecklist = [
+  "CRM platforms (Salesforce, HubSpot)",
+  "Sales analytics tools",
+  "Proposal writing",
+  "Lead generation techniques",
+  "Contract negotiation",
+];
+
+const marketingExperienceChecklist = [
+  "3+ years marketing experience",
+  "Campaign management",
+  "Digital marketing expertise",
+  "Brand strategy development",
+  "Market research skills",
+];
+
+const marketingEducationChecklist = [
+  "Bachelor's degree in Marketing or Communications",
+  "Google Ads certification",
+  "Creative portfolio",
+];
+
+const marketingLanguageChecklist = [
+  "Fluent in English",
+  "Copywriting ability",
+];
+
+const marketingTechnicalChecklist = [
+  "Google Analytics & Ads",
+  "Social media platforms",
+  "Email marketing tools",
+  "Adobe Creative Suite",
+  "Marketing automation",
+];
+
+const softwareExperienceChecklist = [
+  "3+ years software development",
+  "Full-stack development experience",
+  "Agile/scrum methodology",
+  "Code review participation",
+  "Technical architecture design",
+];
+
+const softwareEducationChecklist = [
+  "Bachelor's degree in Computer Science or related",
+  "Computer Science fundamentals",
+  "Ongoing technical education",
+];
+
+const softwareLanguageChecklist = [
+  "Fluent in English",
+  "Technical documentation skills",
+];
+
+const softwareTechnicalChecklist = [
+  "JavaScript/TypeScript proficiency",
+  "React or Vue frameworks",
+  "Node.js backend",
+  "Database design (SQL/NoSQL)",
+  "Cloud deployment (AWS/GCP)",
+];
+
+const dataExperienceChecklist = [
+  "2+ years data analysis experience",
+  "SQL query writing and optimization",
+  "Statistical analysis proficiency",
+  "Data visualization skills",
+  "Business intelligence reporting",
+];
+
+const dataEducationChecklist = [
+  "Bachelor's degree in Data Science, Statistics, or related",
+  "Quantitative coursework",
+  "Research methods background",
+];
+
+const dataLanguageChecklist = [
+  "Fluent in English",
+  "Technical documentation skills",
+];
+
+const dataTechnicalChecklist = [
+  "SQL proficiency",
+  "Python or R programming",
+  "Tableau or Power BI",
+  "Excel advanced functions",
+  "Statistical analysis tools",
+];
+
 const defaultExperienceChecklist = [
   "5+ years relevant experience",
   "Leadership roles demonstrated",
@@ -380,10 +488,10 @@ const defaultTechnicalChecklist = [
 
 // Use ref date for consistent timestamps
 export const jds: JD[] = [
-  { id: "JD-0001", name: "Sales Executive JD", position: "Sales Executive", createdAt: REF_DATE_2026_05_20, experienceChecklist: defaultExperienceChecklist, educationChecklist: defaultEducationChecklist, languageChecklist: defaultLanguageChecklist, technicalChecklist: defaultTechnicalChecklist },
-  { id: "JD-0002", name: "Marketing Specialist JD", position: "Marketing Specialist", createdAt: REF_DATE_2026_05_20, experienceChecklist: defaultExperienceChecklist, educationChecklist: defaultEducationChecklist, languageChecklist: defaultLanguageChecklist, technicalChecklist: defaultTechnicalChecklist },
-  { id: "JD-0003", name: "Software Engineer JD", position: "Software Engineer", createdAt: REF_DATE_2026_05_20, experienceChecklist: defaultExperienceChecklist, educationChecklist: defaultEducationChecklist, languageChecklist: defaultLanguageChecklist, technicalChecklist: defaultTechnicalChecklist },
-  { id: "JD-0004", name: "Data Analyst JD", position: "Data Analyst", createdAt: REF_DATE_2026_05_20, experienceChecklist: defaultExperienceChecklist, educationChecklist: defaultEducationChecklist, languageChecklist: defaultLanguageChecklist, technicalChecklist: defaultTechnicalChecklist },
+  { id: "JD-0001", name: "Sales Executive JD", position: "Sales Executive", createdAt: REF_DATE_2026_05_20, experienceChecklist: salesExperienceChecklist, educationChecklist: salesEducationChecklist, languageChecklist: salesLanguageChecklist, technicalChecklist: salesTechnicalChecklist },
+  { id: "JD-0002", name: "Marketing Specialist JD", position: "Marketing Specialist", createdAt: REF_DATE_2026_05_20, experienceChecklist: marketingExperienceChecklist, educationChecklist: marketingEducationChecklist, languageChecklist: marketingLanguageChecklist, technicalChecklist: marketingTechnicalChecklist },
+  { id: "JD-0003", name: "Software Engineer JD", position: "Software Engineer", createdAt: REF_DATE_2026_05_20, experienceChecklist: softwareExperienceChecklist, educationChecklist: softwareEducationChecklist, languageChecklist: softwareLanguageChecklist, technicalChecklist: softwareTechnicalChecklist },
+  { id: "JD-0004", name: "Data Analyst JD", position: "Data Analyst", createdAt: REF_DATE_2026_05_20, experienceChecklist: dataExperienceChecklist, educationChecklist: dataEducationChecklist, languageChecklist: dataLanguageChecklist, technicalChecklist: dataTechnicalChecklist },
   { id: "JD-0005", name: "HR Manager JD", position: "HR Manager", createdAt: REF_DATE_2026_05_20, experienceChecklist: defaultExperienceChecklist, educationChecklist: defaultEducationChecklist, languageChecklist: defaultLanguageChecklist, technicalChecklist: defaultTechnicalChecklist },
   { id: "JD-0006", name: "Financial Analyst JD", position: "Financial Analyst", createdAt: REF_DATE_2026_05_20, experienceChecklist: defaultExperienceChecklist, educationChecklist: defaultEducationChecklist, languageChecklist: defaultLanguageChecklist, technicalChecklist: defaultTechnicalChecklist },
   { id: "JD-0007", name: "Customer Service JD", position: "Customer Service", createdAt: REF_DATE_2026_05_20, experienceChecklist: defaultExperienceChecklist, educationChecklist: defaultEducationChecklist, languageChecklist: defaultLanguageChecklist, technicalChecklist: defaultTechnicalChecklist },

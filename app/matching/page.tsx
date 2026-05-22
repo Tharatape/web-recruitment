@@ -14,7 +14,7 @@ import { AdvancedJDSearch } from "@/components/AdvancedJDSearch";
 
 import { getExperienceLabel } from "@/data/types";
 import { STATUS_CLASS_MAP } from "@/data/colors";
-import { getMatchingScoreForRow, buildBarScores } from "@/data/scoring";
+import { getMatchingScoreForRow, buildBarScores, clearScoreCache } from "@/data/scoring";
 
 function ScoringBadge({ score }: { score: number }) {
   const color =
@@ -185,12 +185,13 @@ export default function MatchingPage() {
             <div className="flex flex-col sm:flex-row sm:items-end gap-4">
               <div className="flex-1 min-w-64">
 <AdvancedJDSearch
-                   jd={selectedJd}
-                   onChange={(jd) => {
-                     setSelectedJd(jd);
-                     setScoredIds(new Set());
-                   }}
-                 />
+                    jd={selectedJd}
+                    onChange={(jd) => {
+                      setSelectedJd(jd);
+                      setScoredIds(new Set());
+                      clearScoreCache();
+                    }}
+                  />
               </div>
 <button
                  onClick={() => setScoredIds(new Set(selectedIds))}
@@ -267,16 +268,16 @@ export default function MatchingPage() {
                 },
               },
 {
-                 key: "matchingScore",
-                 header: "Matching Score",
-                 render: (row) => {
-                   if (!scoredIds.has(row.id)) {
-                     return <span className="text-[var(--text-muted)] text-xs font-medium">—</span>;
-                   }
-                   const score = getMatchingScoreForRow(row);
-                   return <ScoringBadge score={score} />;
-                 },
-               },
+                  key: "matchingScore",
+                  header: "Matching Score",
+                  render: (row) => {
+                    if (!scoredIds.has(row.id)) {
+                      return <span className="text-[var(--text-muted)] text-xs font-medium">—</span>;
+                    }
+                    const score = getMatchingScoreForRow(row, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined);
+                    return <ScoringBadge score={score} />;
+                  },
+                },
               { key: "position", header: "Position" },
               {
                 key: "experience",
@@ -347,7 +348,7 @@ export default function MatchingPage() {
                   aiSummary: row.aiSummary,
                   logs: row.logs,
                 }}
-matchingScore={scoredIds.has(row.id) ? getMatchingScoreForRow(row) : undefined}
+matchingScore={scoredIds.has(row.id) ? getMatchingScoreForRow(row, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined) : undefined}
                  barScores={scoredIds.has(row.id) ? buildBarScores(row, selectedJd ? {
                    experienceChecklist: selectedJd.experienceChecklist,
                    educationChecklist: selectedJd.educationChecklist,

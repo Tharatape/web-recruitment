@@ -85,39 +85,120 @@ export function getLanguageScore(language?: string): number {
 
 const _scoreCache = new Map<string, number>();
 
+export function clearScoreCache(): void {
+  _scoreCache.clear();
+}
+
 /**
- * Compute and cache the weighted matching score for a candidate row.
- * The result is cached per `row.id` for the lifetime of the page session.
+ * JD type-specific scoring modifiers.
+ * Each JD position has a unique scoring profile based on typical requirements.
+ * These factors are designed to produce clearly different scores for different JD types.
+ */
+const JD_SCORING_PROFILES: Record<string, {
+  expFactor: number; eduFactor: number; langFactor: number; techFactor: number;
+}> = {
+  sales: { expFactor: 1.4, eduFactor: 0.9, langFactor: 1.2, techFactor: 0.8 },
+  marketing: { expFactor: 1.2, eduFactor: 0.95, langFactor: 1.15, techFactor: 1.1 },
+  engineer: { expFactor: 1.3, eduFactor: 1.2, langFactor: 1.0, techFactor: 1.5 },
+  software: { expFactor: 1.3, eduFactor: 1.2, langFactor: 1.0, techFactor: 1.5 },
+  data: { expFactor: 1.1, eduFactor: 1.25, langFactor: 1.0, techFactor: 1.4 },
+  analyst: { expFactor: 1.1, eduFactor: 1.25, langFactor: 1.0, techFactor: 1.4 },
+  hr: { expFactor: 1.5, eduFactor: 1.15, langFactor: 1.3, techFactor: 0.7 },
+  financial: { expFactor: 1.0, eduFactor: 1.35, langFactor: 1.0, techFactor: 1.1 },
+  customer: { expFactor: 1.35, eduFactor: 1.0, langFactor: 1.4, techFactor: 0.6 },
+  project: { expFactor: 1.45, eduFactor: 1.2, langFactor: 1.15, techFactor: 1.3 },
+  business: { expFactor: 1.2, eduFactor: 1.3, langFactor: 1.25, techFactor: 1.25 },
+  operations: { expFactor: 1.35, eduFactor: 1.0, langFactor: 1.15, techFactor: 0.85 },
+};
+
+/**
+ * Compute and cache the weighted matching score for a candidate row against a specific JD.
+ * The result is cached per `row.id` + `jdId` combination for the lifetime of the page session.
+ * Scoring varies based on JD position alignment with candidate position.
  */
 export function getMatchingScoreForRow(row: {
   id: string;
   experience: number;
   education?: string;
   language?: string;
-}): number {
-  if (_scoreCache.has(row.id)) return _scoreCache.get(row.id)!;
+  position?: string;
+}, jdId?: string, jdChecklists?: {
+  experienceChecklist?: string[];
+  educationChecklist?: string[];
+  languageChecklist?: string[];
+  technicalChecklist?: string[];
+} | { jd?: { position?: string } }): number {
+  const cacheKey = jdId ? `${row.id}-${jdId}` : row.id;
+  if (_scoreCache.has(cacheKey)) return _scoreCache.get(cacheKey)!;
 
   const w = CATEGORY_WEIGHTS;
-  const score = getWeightedMatchingScore(
-    calculatePoints(
-      Math.max(1, Math.round((getExperienceScore(row.experience) / 100) * w.experience.itemCount)),
-      w.experience.itemCount, w.experience.maxPoints
-    ),
-    calculatePoints(
-      Math.max(1, Math.round((getEducationScore(row.education) / 100) * w.education.itemCount)),
-      w.education.itemCount, w.education.maxPoints
-    ),
-    calculatePoints(
-      Math.max(1, Math.round((getLanguageScore(row.language) / 100) * w.language.itemCount)),
-      w.language.itemCount, w.language.maxPoints
-    ),
-    calculatePoints(
-      Math.max(1, Math.round((getTechnicalScore(row.experience) / 100) * w.technical.itemCount)),
-      w.technical.itemCount, w.technical.maxPoints
-    )
+  const rowPos = (row.position || "").toLowerCase();
+  
+  // Extract JD position if available (for position matching)
+  const jdPos = jdChecklists && "jd" in jdChecklists && (jdChecklists as { jd?: { position?: string } }).jd?.position
+    ? String((jdChecklists as { jd: { position: string } }).jd.position).toLowerCase()
+    : "";
+  
+  // Base component score calculation
+  let expPoints = calculatePoints(
+    Math.max(1, Math.round((getExperienceScore(row.experience) / 100) * w.experience.itemCount)),
+    w.experience.itemCount, w.experience.maxPoints
+  );
+  let eduPoints = calculatePoints(
+    Math.max(1, Math.round((getEducationScore(row.education) / 100) * w.education.itemCount)),
+    w.education.itemCount, w.education.maxPoints
+  );
+  let langPoints = calculatePoints(
+    Math.max(1, Math.round((getLanguageScore(row.language) / 100) * w.language.itemCount)),
+    w.language.itemCount, w.language.maxPoints
+  );
+  let techPoints = calculatePoints(
+    Math.max(1, Math.round((getTechnicalScore(row.experience) / 100) * w.technical.itemCount)),
+    w.technical.itemCount, w.technical.maxPoints
   );
 
-  _scoreCache.set(row.id, score);
+  // Position alignment modifier - each JD type has a unique scoring profile
+  if (jdPos) {
+    // Find matching JD profile
+    let profile: typeof JD_SCORING_PROFILES[keyof typeof JD_SCORING_PROFILES] | null = null;
+    for (const [key, value] of Object.entries(JD_SCORING_PROFILES)) {
+      if (jdPos.includes(key)) {
+        profile = value;
+        break;
+      }
+    }
+    
+    if (profile) {
+      // Apply JD-specific modifiers
+      expPoints = Math.round(expPoints * profile.expFactor);
+      eduPoints = Math.round(eduPoints * profile.eduFactor);
+      langPoints = Math.round(langPoints * profile.langFactor);
+      techPoints = Math.round(techPoints * profile.techFactor);
+    }
+    
+    // Position match bonus - candidates aligned with JD position get extra points
+    const positionMatch = 
+      (rowPos.includes("sales") && jdPos.includes("sales")) ||
+      (rowPos.includes("marketing") && jdPos.includes("marketing")) ||
+      (rowPos.includes("engineer") && (jdPos.includes("engineer") || jdPos.includes("software"))) ||
+      (rowPos.includes("data") && (jdPos.includes("data") || jdPos.includes("analyst"))) ||
+      (rowPos.includes("hr") && jdPos.includes("hr")) ||
+      (rowPos.includes("financial") && jdPos.includes("financial")) ||
+      (rowPos.includes("customer") && jdPos.includes("customer")) ||
+      (rowPos.includes("project") && jdPos.includes("project")) ||
+      (rowPos.includes("business") && jdPos.includes("business")) ||
+      (rowPos.includes("operations") && jdPos.includes("operations"));
+    
+    if (positionMatch) {
+      // Add bonus for exact position alignment
+      expPoints = Math.min(40, expPoints + 5); // Cap at max points
+      techPoints = Math.min(30, techPoints + 4);
+    }
+  }
+
+  const score = getWeightedMatchingScore(expPoints, eduPoints, langPoints, techPoints);
+
+  _scoreCache.set(cacheKey, score);
   return score;
 }
 
