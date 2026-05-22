@@ -200,9 +200,9 @@ const stageTotals: Record<string, number> = {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[
             { label: "Total Applications", value: total },
-            { label: "Today", value: today },
-            { label: "Last Week", value: lastWeek },
-            { label: "Last Month", value: lastMonth },
+            { label: "Today Applied", value: today },
+            { label: "Last Week Applied", value: lastWeek },
+            { label: "Last Month Applied", value: lastMonth },
           ].map((stat) => (
             <Card key={stat.label} className="p-5">
               <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">
