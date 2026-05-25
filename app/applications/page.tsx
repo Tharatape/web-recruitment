@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { MultiSelect } from "@/components/ui/MultiSelect";
 import { Table } from "@/components/ui/Table";
-import { STATUSES, OWNERS, CandidateWithLogs } from "@/data/types";
-import { candidatesWithLogs } from "@/data/mockData";
+import { STATUSES, OWNERS } from "@/data/types";
 import { CandidateExpandedView } from "@/components/CandidateExpandedView";
 import { STATUS_CLASS_MAP } from "@/data/colors";
 import { getExperienceLabel } from "@/data/types";
+import type { DbCandidate } from "@/data/repositories/candidateRepository";
 
 export default function ApplicationsPage() {
   const [search, setSearch] = useState("");
@@ -23,11 +23,25 @@ export default function ApplicationsPage() {
   const [pageSize, setPageSize] = useState(25);
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [candidates, setCandidates] = useState<DbCandidate[]>([]);
+  const [allPositions, setAllPositions] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const allPositions = Array.from(new Set(candidatesWithLogs.map((c) => c.position)));
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      const res = await fetch('/api/candidates');
+      const data = await res.json();
+      setCandidates(data);
+      const positions = Array.from(new Set(data.map((c: DbCandidate) => c.position)));
+      setAllPositions(positions as string[]);
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
 
   const filtered = useMemo(() => {
-    let data = [...candidatesWithLogs];
+    let data = [...candidates];
 
     if (search) {
       const q = search.toLowerCase();
@@ -46,25 +60,32 @@ export default function ApplicationsPage() {
       const days = Number(dateRange);
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - days);
-      data = data.filter((c) => c.dateApplied >= cutoff.toISOString().split("T")[0]);
+      data = data.filter((c) => c.date_applied >= cutoff.toISOString().split("T")[0]);
     }
     if (status.length > 0) data = data.filter((c) => status.includes(c.status));
     if (recruiter) data = data.filter((c) => c.recruiter === recruiter);
 
     return data;
-  }, [search, position, expMin, expMax, dateRange, status, recruiter]);
+  }, [candidates, search, position, expMin, expMax, dateRange, status, recruiter]);
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const safePage = Math.min(page, totalPages);
   const paged = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
 
+  if (loading) {
+    return (
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <p className="text-center py-8">Loading...</p>
+      </main>
+    );
+  }
+
   return (
     <>
       <main className="max-w-7xl mx-auto px-6 py-8">
         <h1 className="text-2xl font-bold text-[var(--foreground)] mb-6">Application List</h1>
 
-        {/* Filters */}
         <Card className="mb-6">
           <CardContent className="!p-5">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -127,7 +148,7 @@ export default function ApplicationsPage() {
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Recruiter</label>
-<Dropdown
+                <Dropdown
                    placeholder="All Recruiters"
                    options={OWNERS.map((r) => ({ label: r, value: r }))}
                    value={recruiter}
@@ -135,22 +156,21 @@ export default function ApplicationsPage() {
                  />
               </div>
             </div>
-{(search || position.length > 0 || status.length > 0 || recruiter || dateRange !== "all") && (
-               <div className="mt-4 pt-4 border-t border-[var(--border)] flex justify-end">
-                 <button
-                   onClick={() => {
-                       setSearch(""); setPosition([]); setExpMin(""); setExpMax(""); setDateRange("all"); setStatus([]); setRecruiter(""); setPage(1);
-                   }}
-                   className="text-xs font-semibold text-[var(--accent-red)] hover:underline cursor-pointer bg-transparent border-none"
-                 >
-                   Clear All Filters
-                 </button>
-               </div>
-             )}
+            {(search || position.length > 0 || status.length > 0 || recruiter || dateRange !== "all") && (
+              <div className="mt-4 pt-4 border-t border-[var(--border)] flex justify-end">
+                <button
+                  onClick={() => {
+                    setSearch(""); setPosition([]); setExpMin(""); setExpMax(""); setDateRange("all"); setStatus([]); setRecruiter(""); setPage(1);
+                  }}
+                  className="text-xs font-semibold text-[var(--accent-red)] hover:underline cursor-pointer bg-transparent border-none"
+                >
+                  Clear All Filters
+                </button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Results Info + Pagination */}
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-[var(--text-secondary)]">
             Showing {paged.length} of {total} candidates
@@ -167,19 +187,18 @@ export default function ApplicationsPage() {
           </div>
         </div>
 
-        {/* Table */}
         <Card>
-          <Table<CandidateWithLogs>
+          <Table<DbCandidate>
             columns={[
               {
                 key: "name",
                 header: "Name",
                 render: (row) => {
-                  const c = candidatesWithLogs.find((x) => x.id === row.id)!;
+                  const c = candidates.find((x) => x.id === row.id)!;
                   return (
                     <span className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xs">
-                        {c.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                        {c.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
                       </div>
                       <span className="font-semibold">{row.name}</span>
                     </span>
@@ -192,7 +211,7 @@ export default function ApplicationsPage() {
                 header: "Experience",
                 render: (row) => getExperienceLabel(row.experience),
               },
-              { key: "dateApplied", header: "Date Applied" },
+              { key: "date_applied", header: "Date Applied" },
               {
                 key: "status",
                 header: "Status",
@@ -247,14 +266,14 @@ export default function ApplicationsPage() {
                   bmi: row.bmi,
                   phone: row.phone,
                   email: row.email,
-                  expectedSalary: row.expectedSalary,
+                  expectedSalary: row.expected_salary,
                   education: row.education,
                   address: row.address,
                   language: row.language,
                   license: row.license,
-                  previousEmployment: row.previousEmployment,
-                  aiSummary: row.aiSummary,
-                  logs: row.logs,
+                  previousEmployment: row.previous_employment,
+                  aiSummary: row.ai_summary,
+                  logs: row.logs as any,
                 }}
                 pros={[
                   `${row.experience >= 5 ? "Extensive" : "Solid"} experience in ${row.position}`,
@@ -272,7 +291,6 @@ export default function ApplicationsPage() {
           />
         </Card>
 
-        {/* Pagination */}
         <div className="flex items-center justify-between mt-5">
           <p className="text-sm text-[var(--text-secondary)]">
             Page {safePage} of {totalPages}

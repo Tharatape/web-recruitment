@@ -1,32 +1,65 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
-import { jds, JD } from "@/data/mockData";
 
 type CriterionCounts = Record<string, number>;
 
+interface JD {
+  id: string;
+  name: string;
+  position: string;
+  created_at: string;
+  disabled?: boolean;
+  experienceChecklist?: string[];
+  educationChecklist?: string[];
+  languageChecklist?: string[];
+  technicalChecklist?: string[];
+}
+
 export default function JdLibraryPage() {
   const [files, setFiles] = useState<File[]>([]);
-  const [jdList, setJdList] = useState([...jds]);
+  const [jdList, setJdList] = useState<JD[]>([]);
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [criteria, setCriteria] = useState<Record<string, string>>({});
   const [counts, setCounts] = useState<CriterionCounts>({});
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const menuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const handleDelete = (id: string) => {
+  useEffect(() => {
+    const fetchJDs = async () => {
+      setLoading(true);
+      const res = await fetch('/api/jds');
+      const data = await res.json();
+      setJdList(data);
+      setLoading(false);
+    };
+    fetchJDs();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    await fetch('/api/jds', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'deleteJD', id })
+    });
     setJdList((prev) => prev.filter((jd) => jd.id !== id));
     if (expandedId === id) setExpandedId(null);
     setActiveMenuId(null);
   };
 
-  const handleToggleDisabled = (id: string) => {
+  const handleToggleDisabled = async (id: string, disabled: boolean) => {
+    await fetch('/api/jds', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'toggleDisabled', id, disabled })
+    });
     setJdList((prev) =>
-      prev.map((jd) => (jd.id === id ? { ...jd, disabled: !jd.disabled } : jd))
+      prev.map((jd) => (jd.id === id ? { ...jd, disabled } : jd))
     );
     setActiveMenuId(null);
   };
@@ -34,7 +67,6 @@ export default function JdLibraryPage() {
   const handleSelectJd = (id: string) => {
     const jd = jdList.find((j) => j.id === id);
     if (jd) {
-      // Initialize counts for all checklist categories
       const initialCounts: CriterionCounts = {};
       ["exp", "edu", "lang", "tech"].forEach((cat) => {
         const checklist = jd[`${cat}Checklist` as keyof JD] as string[] | undefined;
@@ -80,7 +112,6 @@ export default function JdLibraryPage() {
 
   const removeCriterion = (jdId: string, category: string, index: number, checklistCount?: number) => {
     const key = `${jdId}-${category}`;
-    // Use stored count if available, otherwise use checklist count as fallback
     const currentCount = counts[key] ?? checklistCount ?? 0;
     if (currentCount > 0) {
       setCriteria((prev) => {
@@ -136,6 +167,14 @@ export default function JdLibraryPage() {
       </div>
     );
   };
+
+  if (loading) {
+    return (
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <p className="text-center py-8">Loading...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="max-w-7xl mx-auto px-6 py-8">
@@ -221,7 +260,7 @@ export default function JdLibraryPage() {
                                         View JD
                                       </button>
                                       <button
-                                        onClick={() => handleToggleDisabled(jd.id)}
+                                        onClick={() => handleToggleDisabled(jd.id, !jd.disabled)}
                                         className="w-full px-3 py-2 text-left text-xs text-amber-600 hover:bg-amber-50 rounded-lg cursor-pointer"
                                       >
                                         {jd.disabled ? "Enable JD" : "Disable JD"}
@@ -259,7 +298,7 @@ export default function JdLibraryPage() {
                     <div className="grid grid-cols-3 gap-3">
                       <div className="bg-[var(--primary-light)]/20 border border-[var(--primary)] rounded-lg p-3 text-center">
                         <p className="text-xs font-semibold text-[var(--text-secondary)] mb-1">Last Update</p>
-                        <p className="text-sm font-bold text-[var(--primary)]">{jd.createdAt}</p>
+                        <p className="text-sm font-bold text-[var(--primary)]">{jd.created_at}</p>
                       </div>
                       <div className="bg-[var(--primary-light)]/20 border border-[var(--primary)] rounded-lg p-3 text-center">
                         <p className="text-xs font-semibold text-[var(--text-secondary)] mb-1">Last Editor</p>

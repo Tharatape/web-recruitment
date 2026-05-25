@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { ComboBox } from "@/components/ui/ComboBox";
 import { MultiSelect } from "@/components/ui/MultiSelect";
 import { Table } from "@/components/ui/Table";
-import { STATUSES, OWNERS, CandidateWithLogs } from "@/data/types";
-import { candidatesWithLogs, jds } from "@/data/mockData";
+import { STATUSES, OWNERS } from "@/data/types";
 import { CandidateExpandedView } from "@/components/CandidateExpandedView";
 
 import { getExperienceLabel } from "@/data/types";
 import { STATUS_CLASS_MAP } from "@/data/colors";
 import { getMatchingScoreForRow, buildBarScores, clearScoreCache } from "@/data/scoring";
+import type { DbCandidate } from "@/data/repositories/candidateRepository";
 
 function ScoringBadge({ score }: { score: number }) {
   const color =
@@ -45,7 +45,30 @@ export default function MatchingPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [scoredIds, setScoredIds] = useState<Set<string>>(new Set());
   const [selectedJdId, setSelectedJdId] = useState<string>("");
-  const selectedJd = jds.find(j => j.id === selectedJdId) || null;
+  const [candidates, setCandidates] = useState<DbCandidate[]>([]);
+  const [allPositions, setAllPositions] = useState<string[]>([]);
+  const [jds, setJds] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      const [candRes, jdRes] = await Promise.all([
+        fetch('/api/candidates'),
+        fetch('/api/jds')
+      ]);
+      const cands = await candRes.json();
+      const jdData = await jdRes.json();
+      setCandidates(cands);
+      setJds(jdData);
+      const positions = Array.from(new Set(cands.map((c: DbCandidate) => c.position)));
+      setAllPositions(positions as string[]);
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
+
+  const selectedJd = jds.find((j: any) => j.id === selectedJdId) || null;
 
   const toggleId = (id: string) =>
     setSelectedIds((prev) => {
@@ -57,10 +80,8 @@ export default function MatchingPage() {
 
   const isSelected = (id: string) => selectedIds.has(id);
 
-  const allPositions = Array.from(new Set(candidatesWithLogs.map((c) => c.position)));
-
   const filtered = useMemo(() => {
-    let data = [...candidatesWithLogs];
+    let data = [...candidates];
 
     if (search) {
       const q = search.toLowerCase();
@@ -79,25 +100,32 @@ export default function MatchingPage() {
       const days = Number(dateRange);
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - days);
-      data = data.filter((c) => c.dateApplied >= cutoff.toISOString().split("T")[0]);
+      data = data.filter((c) => c.date_applied >= cutoff.toISOString().split("T")[0]);
     }
     if (status.length > 0) data = data.filter((c) => status.includes(c.status));
     if (recruiter) data = data.filter((c) => c.recruiter === recruiter);
 
     return data;
-  }, [search, position, expMin, expMax, dateRange, status, recruiter]);
+  }, [candidates, search, position, expMin, expMax, dateRange, status, recruiter]);
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const safePage = Math.min(page, totalPages);
   const paged = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
 
+  if (loading) {
+    return (
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <p className="text-center py-8">Loading...</p>
+      </main>
+    );
+  }
+
   return (
     <>
       <main className="max-w-7xl mx-auto px-6 py-8">
         <h1 className="text-2xl font-bold text-[var(--foreground)] mb-6">Matching</h1>
 
-        {/* Filters */}
         <Card className="mb-6">
           <CardContent className="!p-5">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -183,7 +211,6 @@ export default function MatchingPage() {
           </CardContent>
         </Card>
 
-        {/* Job Description (JD) */}
         <Card className="mb-6">
           <CardContent className="!p-5">
             <div className="flex flex-col sm:flex-row sm:items-end gap-4">
@@ -191,7 +218,7 @@ export default function MatchingPage() {
                 <ComboBox
                   label="Job Description (JD)"
                   placeholder="Select JD..."
-                  options={jds.filter(j => !j.disabled).map((j) => ({ label: `${j.name} - ${j.position}`, value: j.id }))}
+                  options={jds.filter((j: any) => !j.disabled).map((j: any) => ({ label: `${j.name} - ${j.position}`, value: j.id }))}
                   value={selectedJdId}
                   onChange={(v) => { setSelectedJdId(v); setScoredIds(new Set()); clearScoreCache(); }}
                 />
@@ -201,13 +228,12 @@ export default function MatchingPage() {
                  disabled={!selectedJdId || selectedIds.size === 0}
                  className="px-6 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
                >
-                 Run Matching
-               </button>
+                Run Matching
+              </button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Results Info + Pagination */}
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-[var(--text-secondary)]">
             Showing {paged.length} of {total} candidates
@@ -224,9 +250,8 @@ export default function MatchingPage() {
           </div>
         </div>
 
-        {/* Table */}
         <Card>
-          <Table<CandidateWithLogs>
+          <Table<DbCandidate>
             columns={[
               {
                 key: "checkbox",
@@ -259,18 +284,18 @@ export default function MatchingPage() {
                 key: "name",
                 header: "Name",
                 render: (row) => {
-                  const c = candidatesWithLogs.find((x) => x.id === row.id)!;
+                  const c = candidates.find((x) => x.id === row.id)!;
                   return (
                     <span className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xs">
-                        {c.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                        {c.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
                       </div>
                       <span className="font-semibold">{row.name}</span>
                     </span>
                   );
                 },
               },
-{
+              {
                 key: "matchingScore",
                 header: "Matching Score",
                 render: (row) => {
@@ -297,34 +322,34 @@ export default function MatchingPage() {
                 },
               },
               { key: "recruiter", header: "Recruiter" },
-{
+              {
                  key: "expand",
                  header: "",
                  className: "w-[120px]",
                  render: (row: { id: string }) => (
-                   <div className="flex items-center gap-1">
-                     <button
-                       type="button"
-                       onClick={(e) => {
-                         e.stopPropagation();
-                         setExpandedId(expandedId === row.id ? null : row.id);
-                       }}
-                       className="p-1.5 rounded-lg hover:bg-[#e2e8f0] transition-colors cursor-pointer"
-                       aria-label={expandedId === row.id ? "Collapse" : "Expand"}
-                     >
-                       <svg
-                         className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${
-                           expandedId === row.id ? "rotate-180" : ""
-                         }`}
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor"
-                       >
-                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                       </svg>
-                     </button>
-                   </div>
-                 ),
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedId(expandedId === row.id ? null : row.id);
+                        }}
+                        className="p-1.5 rounded-lg hover:bg-[#e2e8f0] transition-colors cursor-pointer"
+                        aria-label={expandedId === row.id ? "Collapse" : "Expand"}
+                      >
+                        <svg
+                          className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${
+                            expandedId === row.id ? "rotate-180" : ""
+                          }`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                  ),
                },
             ]}
             data={paged}
@@ -342,17 +367,17 @@ export default function MatchingPage() {
                   bmi: row.bmi,
                   phone: row.phone,
                   email: row.email,
-                  expectedSalary: row.expectedSalary,
+                  expectedSalary: row.expected_salary,
                   education: row.education,
                   address: row.address,
                   language: row.language,
                   license: row.license,
-                  previousEmployment: row.previousEmployment,
-                  aiSummary: row.aiSummary,
-                  logs: row.logs,
+                  previousEmployment: row.previous_employment,
+                  aiSummary: row.ai_summary,
+                  logs: row.logs as any,
                 }}
-matchingScore={scoredIds.has(row.id) ? getMatchingScoreForRow(row, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined) : undefined}
-                 barScores={scoredIds.has(row.id) ? buildBarScores(row, selectedJd ? {
+                matchingScore={scoredIds.has(row.id) ? getMatchingScoreForRow(row, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined) : undefined}
+                barScores={scoredIds.has(row.id) ? buildBarScores(row, selectedJd ? {
                   experienceChecklist: selectedJd.experienceChecklist,
                   educationChecklist: selectedJd.educationChecklist,
                   languageChecklist: selectedJd.languageChecklist,
@@ -379,7 +404,6 @@ matchingScore={scoredIds.has(row.id) ? getMatchingScoreForRow(row, selectedJd?.i
           />
         </Card>
 
-        {/* Pagination */}
         <div className="flex items-center justify-between mt-5">
           <p className="text-sm text-[var(--text-secondary)]">
             Page {safePage} of {totalPages}
