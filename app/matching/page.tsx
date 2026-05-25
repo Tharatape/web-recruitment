@@ -116,15 +116,22 @@ export default function MatchingPage() {
     if (!sortKey) return filtered;
     const dir = sortDir === "asc" ? 1 : -1;
     return [...filtered].sort((a, b) => {
-      let valA: any = (a as Record<string, any>)[sortKey];
-      let valB: any = (b as Record<string, any>)[sortKey];
-      if (typeof valA === "string") valA = valA.toLowerCase();
-      if (typeof valB === "string") valB = valB.toLowerCase();
+      let valA: any;
+      let valB: any;
+      if (sortKey === "matchingScore") {
+        valA = scoredIds.has(a.id) ? getMatchingScoreForRow(a, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined) : -1;
+        valB = scoredIds.has(b.id) ? getMatchingScoreForRow(b, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined) : -1;
+      } else {
+        valA = (a as Record<string, any>)[sortKey];
+        valB = (b as Record<string, any>)[sortKey];
+        if (typeof valA === "string") valA = valA.toLowerCase();
+        if (typeof valB === "string") valB = valB.toLowerCase();
+      }
       if (valA < valB) return -1 * dir;
       if (valA > valB) return 1 * dir;
       return 0;
     });
-  }, [filtered, sortKey, sortDir]);
+  }, [filtered, sortKey, sortDir, scoredIds, selectedJd]);
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -375,17 +382,24 @@ export default function MatchingPage() {
                    );
                  },
                },
-               {
-                 key: "matchingScore",
-                 header: "Matching Score",
-                 render: (row) => {
-                   if (!scoredIds.has(row.id)) {
-                     return <span className="text-[var(--text-muted)] text-xs font-medium">—</span>;
-                   }
-                   const score = getMatchingScoreForRow(row, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined);
-                   return <ScoringBadge score={score} />;
-                 },
-               },
+{
+                  key: "matchingScore",
+                  header: (
+                    <span
+                      className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
+                      onClick={(e) => { e.stopPropagation(); handleSort("matchingScore"); }}
+                    >
+                      Matching Score {sortKey === "matchingScore" && (sortDir === "asc" ? "▲" : "▼")}
+                    </span>
+                  ),
+                  render: (row) => {
+                    if (!scoredIds.has(row.id)) {
+                      return <span className="text-[var(--text-muted)] text-xs font-medium">—</span>;
+                    }
+                    const score = getMatchingScoreForRow(row, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined);
+                    return <ScoringBadge score={score} />;
+                  },
+                },
                {
                  key: "position",
                  header: (
