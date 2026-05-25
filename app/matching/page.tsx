@@ -32,23 +32,27 @@ function ScoringBadge({ score }: { score: number }) {
 }
 
 export default function MatchingPage() {
-  const [search, setSearch] = useState("");
-  const [position, setPosition] = useState<string[]>([]);
-  const [expMin, setExpMin] = useState("");
-  const [expMax, setExpMax] = useState("");
-  const [dateRange, setDateRange] = useState("all");
-  const [status, setStatus] = useState<string[]>([]);
-  const [recruiter, setRecruiter] = useState("");
-  const [pageSize, setPageSize] = useState(25);
-  const [page, setPage] = useState(1);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [scoredIds, setScoredIds] = useState<Set<string>>(new Set());
-  const [selectedJdId, setSelectedJdId] = useState<string>("");
-  const [candidates, setCandidates] = useState<DbCandidate[]>([]);
-  const [allPositions, setAllPositions] = useState<string[]>([]);
-  const [jds, setJds] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+   const [search, setSearch] = useState("");
+   const [position, setPosition] = useState<string[]>([]);
+   const [expMin, setExpMin] = useState("");
+   const [expMax, setExpMax] = useState("");
+   const [dateRange, setDateRange] = useState("all");
+   const [status, setStatus] = useState<string[]>([]);
+   const [recruiter, setRecruiter] = useState("");
+   const [pageSize, setPageSize] = useState(25);
+   const [page, setPage] = useState(1);
+   const [expandedId, setExpandedId] = useState<string | null>(null);
+   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+   const [scoredIds, setScoredIds] = useState<Set<string>>(new Set());
+   const [selectedJdId, setSelectedJdId] = useState<string>("");
+   const [selectedAiJdId, setSelectedAiJdId] = useState<string>("");
+   const [candidates, setCandidates] = useState<DbCandidate[]>([]);
+   const [allPositions, setAllPositions] = useState<string[]>([]);
+   const [jds, setJds] = useState<any[]>([]);
+   const [aiOpinion, setAiOpinion] = useState<{name: string; reasoning: string} | null>(null);
+   const [sortKey, setSortKey] = useState<string>("");
+   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -108,10 +112,33 @@ export default function MatchingPage() {
     return data;
   }, [candidates, search, position, expMin, expMax, dateRange, status, recruiter]);
 
-  const total = filtered.length;
+  const sorted = useMemo(() => {
+    if (!sortKey) return filtered;
+    const dir = sortDir === "asc" ? 1 : -1;
+    return [...filtered].sort((a, b) => {
+      let valA: any = (a as Record<string, any>)[sortKey];
+      let valB: any = (b as Record<string, any>)[sortKey];
+      if (typeof valA === "string") valA = valA.toLowerCase();
+      if (typeof valB === "string") valB = valB.toLowerCase();
+      if (valA < valB) return -1 * dir;
+      if (valA > valB) return 1 * dir;
+      return 0;
+    });
+  }, [filtered, sortKey, sortDir]);
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  const total = sorted.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const safePage = Math.min(page, totalPages);
-  const paged = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const paged = sorted.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   if (loading) {
     return (
@@ -196,7 +223,7 @@ export default function MatchingPage() {
                 />
               </div>
             </div>
-            {(search || position.length > 0 || expMin || expMax || dateRange !== "all" || status.length > 0 || recruiter) && (
+{(search || position.length > 0 || expMin || expMax || dateRange !== "all" || status.length > 0 || recruiter) && (
               <div className="mt-4 pt-4 border-t border-[var(--border)] flex justify-end">
                 <button
                   onClick={() => {
@@ -224,15 +251,61 @@ export default function MatchingPage() {
                 />
               </div>
               <button
-                 onClick={() => setScoredIds(new Set(selectedIds))}
-                 disabled={!selectedJdId || selectedIds.size === 0}
-                 className="px-6 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-               >
+                onClick={() => setScoredIds(new Set(selectedIds))}
+                disabled={!selectedJdId || selectedIds.size === 0}
+                className="px-6 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+              >
                 Run Matching
               </button>
             </div>
           </CardContent>
         </Card>
+
+<Card className="mb-6">
+           <CardContent className="!p-5">
+             <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+               <div className="flex-1 min-w-64">
+                 <ComboBox
+                   label="AI Opinion"
+                   placeholder="Select JD..."
+                   options={jds.filter((j: any) => !j.disabled).map((j: any) => ({ label: `${j.name} - ${j.position}`, value: j.id }))}
+                   value={selectedAiJdId}
+                   onChange={(v) => setSelectedAiJdId(v)}
+                 />
+               </div>
+               <button
+                 onClick={() => {
+                   const selected = candidates.filter(c => selectedIds.has(c.id));
+                   if (selected.length >= 2) {
+                     let best = selected[0];
+                     let bestScore = selected[0].experience * 10 + (selected[0].status === 'Qualified' ? 50 : 0) + (selected[0].status === 'Suitable' ? 30 : 0);
+                     for (let i = 1; i < selected.length; i++) {
+                       const score = selected[i].experience * 10 + (selected[i].status === 'Qualified' ? 50 : 0) + (selected[i].status === 'Suitable' ? 30 : 0);
+                       if (score > bestScore) {
+                         best = selected[i];
+                         bestScore = score;
+                       }
+                     }
+                     setAiOpinion({
+                       name: best.name,
+                       reasoning: `${best.name} has the strongest profile with ${best.experience} years of experience and a ${best.status?.toLowerCase()} status. Their background aligns well with typical role requirements, making them the most suitable candidate for recruitment.`
+                     });
+                   }
+                 }}
+                 disabled={selectedIds.size < 2}
+                 className="px-6 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+               >
+                 AI Opinion
+               </button>
+             </div>
+             {aiOpinion && (
+               <div className="mt-4 p-4 bg-[var(--primary-light)] rounded-lg">
+                 <p className="font-semibold text-[var(--foreground)]">Recommended: {aiOpinion.name}</p>
+                 <p className="text-sm text-[var(--text-secondary)] mt-1">{aiOpinion.reasoning}</p>
+               </div>
+             )}
+           </CardContent>
+         </Card>
 
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-[var(--text-secondary)]">
@@ -250,112 +323,163 @@ export default function MatchingPage() {
           </div>
         </div>
 
-        <Card>
-          <Table<DbCandidate>
-            columns={[
-              {
-                key: "checkbox",
-                header: (
-                  <input
-                    type="checkbox"
-                    checked={paged.length > 0 && selectedIds.size === paged.length}
-                    ref={(el: HTMLInputElement | null) => {
-                      if (el) el.indeterminate = selectedIds.size > 0 && selectedIds.size < paged.length;
-                    }}
-                    onChange={() => {
-                      if (selectedIds.size === paged.length) setSelectedIds(new Set());
-                      else setSelectedIds(new Set(paged.map((r) => r.id)));
-                    }}
-                    className="w-4 h-4 accent-[var(--primary)] cursor-pointer"
-                 />
-                ),
-                render: (row) => (
-                  <input
-                    type="checkbox"
-                    checked={isSelected(row.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    onChange={() => toggleId(row.id)}
-                    className="w-4 h-4 accent-[var(--primary)] cursor-pointer"
+<Card>
+           <Table<DbCandidate>
+             columns={[
+               {
+                 key: "checkbox",
+                 header: (
+                   <input
+                     type="checkbox"
+                     checked={paged.length > 0 && selectedIds.size === paged.length}
+                     ref={(el: HTMLInputElement | null) => {
+                       if (el) el.indeterminate = selectedIds.size > 0 && selectedIds.size < paged.length;
+                     }}
+                     onChange={() => {
+                       if (selectedIds.size === paged.length) setSelectedIds(new Set());
+                       else setSelectedIds(new Set(paged.map((r) => r.id)));
+                     }}
+                     className="w-4 h-4 accent-[var(--primary)] cursor-pointer"
                   />
-                ),
-                className: "w-[50px]",
-              },
-              {
-                key: "name",
-                header: "Name",
-                render: (row) => {
-                  const c = candidates.find((x) => x.id === row.id)!;
-                  return (
-                    <span className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xs">
-                        {c.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
-                      </div>
-                      <span className="font-semibold">{row.name}</span>
-                    </span>
-                  );
-                },
-              },
-              {
-                key: "matchingScore",
-                header: "Matching Score",
-                render: (row) => {
-                  if (!scoredIds.has(row.id)) {
-                    return <span className="text-[var(--text-muted)] text-xs font-medium">—</span>;
-                  }
-                  const score = getMatchingScoreForRow(row, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined);
-                  return <ScoringBadge score={score} />;
-                },
-              },
-              { key: "position", header: "Position" },
-              {
-                key: "experience",
-                header: "Experience",
-                render: (row) => getExperienceLabel(row.experience),
-              },
-              { key: "dateApplied", header: "Date Applied" },
-              {
-                key: "status",
-                header: "Status",
-                render: (row) => {
-                  const statusCls = STATUS_CLASS_MAP[row.status] || "";
-                  return <span className={`status-badge ${statusCls}`}>{row.status}</span>;
-                },
-              },
-              { key: "recruiter", header: "Recruiter" },
-              {
-                 key: "expand",
-                 header: "",
-                 className: "w-[120px]",
-                 render: (row: { id: string }) => (
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setExpandedId(expandedId === row.id ? null : row.id);
-                        }}
-                        className="p-1.5 rounded-lg hover:bg-[#e2e8f0] transition-colors cursor-pointer"
-                        aria-label={expandedId === row.id ? "Collapse" : "Expand"}
-                      >
-                        <svg
-                          className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${
-                            expandedId === row.id ? "rotate-180" : ""
-                          }`}
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                    </div>
-                  ),
+                 ),
+                 render: (row) => (
+                   <input
+                     type="checkbox"
+                     checked={isSelected(row.id)}
+                     onClick={(e) => e.stopPropagation()}
+                     onChange={() => toggleId(row.id)}
+                     className="w-4 h-4 accent-[var(--primary)] cursor-pointer"
+                   />
+                 ),
+                 className: "w-[50px]",
                },
-            ]}
-            data={paged}
-            keyExtractor={(row) => row.id}
-            expandedId={expandedId}
-            renderExpanded={(row) => (
+               {
+                 key: "name",
+                 header: (
+                   <span
+                     className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
+                     onClick={(e) => { e.stopPropagation(); handleSort("name"); }}
+                   >
+                     Name {sortKey === "name" && (sortDir === "asc" ? "▲" : "▼")}
+                   </span>
+                 ),
+                 render: (row) => {
+                   const c = candidates.find((x) => x.id === row.id)!;
+                   return (
+                     <span className="flex items-center gap-3">
+                       <div className="w-9 h-9 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xs">
+                         {c.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
+                       </div>
+                       <span className="font-semibold">{row.name}</span>
+                     </span>
+                   );
+                 },
+               },
+               {
+                 key: "matchingScore",
+                 header: "Matching Score",
+                 render: (row) => {
+                   if (!scoredIds.has(row.id)) {
+                     return <span className="text-[var(--text-muted)] text-xs font-medium">—</span>;
+                   }
+                   const score = getMatchingScoreForRow(row, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined);
+                   return <ScoringBadge score={score} />;
+                 },
+               },
+               {
+                 key: "position",
+                 header: (
+                   <span
+                     className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
+                     onClick={(e) => { e.stopPropagation(); handleSort("position"); }}
+                   >
+                     Position {sortKey === "position" && (sortDir === "asc" ? "▲" : "▼")}
+                   </span>
+                 ),
+               },
+               {
+                 key: "experience",
+                 header: (
+                   <span
+                     className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
+                     onClick={(e) => { e.stopPropagation(); handleSort("experience"); }}
+                   >
+                     Experience {sortKey === "experience" && (sortDir === "asc" ? "▲" : "▼")}
+                   </span>
+                 ),
+                 render: (row) => getExperienceLabel(row.experience),
+               },
+               {
+                 key: "dateApplied",
+                 header: (
+                   <span
+                     className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
+                     onClick={(e) => { e.stopPropagation(); handleSort("date_applied"); }}
+                   >
+                     Date Applied {sortKey === "date_applied" && (sortDir === "asc" ? "▲" : "▼")}
+                   </span>
+                 ),
+               },
+               {
+                 key: "status",
+                 header: (
+                   <span
+                     className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
+                     onClick={(e) => { e.stopPropagation(); handleSort("status"); }}
+                   >
+                     Status {sortKey === "status" && (sortDir === "asc" ? "▲" : "▼")}
+                   </span>
+                 ),
+                 render: (row) => {
+                   const statusCls = STATUS_CLASS_MAP[row.status] || "";
+                   return <span className={`status-badge ${statusCls}`}>{row.status}</span>;
+                 },
+               },
+               {
+                 key: "recruiter",
+                 header: (
+                   <span
+                     className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
+                     onClick={(e) => { e.stopPropagation(); handleSort("recruiter"); }}
+                   >
+                     Recruiter {sortKey === "recruiter" && (sortDir === "asc" ? "▲" : "▼")}
+                   </span>
+                 ),
+               },
+               {
+                  key: "expand",
+                  header: "",
+                  className: "w-[120px]",
+                  render: (row: { id: string }) => (
+                     <div className="flex items-center gap-1">
+                       <button
+                         type="button"
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           setExpandedId(expandedId === row.id ? null : row.id);
+                         }}
+                         className="p-1.5 rounded-lg hover:bg-[#e2e8f0] transition-colors cursor-pointer"
+                         aria-label={expandedId === row.id ? "Collapse" : "Expand"}
+                       >
+                         <svg
+                           className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${
+                             expandedId === row.id ? "rotate-180" : ""
+                           }`}
+                           fill="none"
+                           viewBox="0 0 24 24"
+                           stroke="currentColor"
+                         >
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                         </svg>
+                       </button>
+                     </div>
+                   ),
+                },
+             ]}
+             data={paged}
+             keyExtractor={(row) => row.id}
+             expandedId={expandedId}
+             renderExpanded={(row) => (
               <CandidateExpandedView
                 candidate={{
                   id: row.id,

@@ -33,16 +33,20 @@ export function BarChart({
     <ResponsiveContainer width="100%" height={height}>
       <RechartsBarChart data={data} layout={layout} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-        <XAxis
-          dataKey="name"
-          tick={{ fontSize: 12 }}
-          tickLine={false}
-          axisLine={{ stroke: "#e2e8f0" }}
-          angle={-45}
-          textAnchor="end"
-          height={70}
-        />
-        <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={{ stroke: "#e2e8f0" }} />
+<XAxis
+           dataKey="name"
+           tick={{ fontSize: 12 }}
+           tickLine={false}
+           axisLine={{ stroke: "#e2e8f0" }}
+           angle={-45}
+           textAnchor="end"
+           height={70}
+           type="category"
+           tickCount={data.length}
+           interval={0}
+           padding={{ left: 10, right: 10 }}
+         />
+        <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={{ stroke: "#e2e8f0" }} domain={[0, 'dataMax']} />
         <Tooltip
           content={({ active, payload }) => {
             if (!active || !payload?.[0]) return null;

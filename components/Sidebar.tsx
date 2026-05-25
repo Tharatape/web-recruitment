@@ -9,6 +9,7 @@ const nav = [
   { href: "/applications", label: "Applications" },
   { href: "/matching", label: "Matching" },
   { href: "/jd-library", label: "JD Library" },
+  { href: "/admin-activity", label: "Admin Activity" },
 ];
 
 export default function Sidebar() {
