@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS positions (
 -- Candidates table
 CREATE TABLE IF NOT EXISTS candidates (
   id TEXT PRIMARY KEY,
+  unique_id TEXT UNIQUE,
   name TEXT NOT NULL,
   phone TEXT NOT NULL,
   nid TEXT NOT NULL,
@@ -81,5 +82,6 @@ CREATE TABLE IF NOT EXISTS jd_checklists (
 CREATE INDEX IF NOT EXISTS idx_candidates_date_applied ON candidates(date_applied);
 CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status_id);
 CREATE INDEX IF NOT EXISTS idx_candidates_recruiter ON candidates(recruiter_id);
+CREATE INDEX IF NOT EXISTS idx_candidates_unique_id ON candidates(unique_id);
 CREATE INDEX IF NOT EXISTS idx_activity_logs_candidate ON activity_logs(candidate_id);
 CREATE INDEX IF NOT EXISTS idx_activity_logs_action_type ON activity_logs(action_type);

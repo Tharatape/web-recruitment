@@ -30,6 +30,7 @@ interface LogEntry {
 interface CandidateExpandedViewProps {
   candidate: {
     id: string;
+    uniqueId?: string;
     name: string;
     position: string;
     age: number;
@@ -176,7 +177,7 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
                     {candidate.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
                   </div>
                   <div>
-                    <p className="text-xs text-[var(--text-muted)] font-medium">ID: {candidate.id}</p>
+                    <p className="text-xs text-[var(--text-muted)] font-medium">Unique ID: {candidate.id}</p>
                     <p className="font-bold text-base text-[var(--foreground)]">{candidate.name}</p>
                     <p className="text-sm text-[var(--text-secondary)]">{candidate.position}</p>
                   </div>

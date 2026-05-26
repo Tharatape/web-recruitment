@@ -2,6 +2,7 @@ import { db } from '../db';
 
 export interface DbCandidate {
   id: string;
+  unique_id: string;
   name: string;
   phone: string;
   nid: string;
@@ -79,8 +80,8 @@ export function getCandidatesWithFilters(filters: {
     params.push(...filters.position);
   }
   if (filters.search) {
-    params.push(`%${filters.search}%`);
-    query += ` AND (c.name LIKE ? OR c.email LIKE ? OR c.nid LIKE ?)`;
+    params.push(`%${filters.search}%`, `%${filters.search}%`, `%${filters.search}%`, `%${filters.search}%`);
+    query += ` AND (c.name LIKE ? OR c.email LIKE ? OR c.nid LIKE ? OR c.unique_id LIKE ?)`;
   }
 
   query += ' ORDER BY c.date_applied DESC';
@@ -150,4 +151,15 @@ export function getCandidateById(id: string): DbCandidate | undefined {
     JOIN positions p ON c.position_id = p.id
     WHERE c.id = ?
   `).get(id) as DbCandidate | undefined;
+}
+
+export function getCandidateByUniqueId(uniqueId: string): DbCandidate | undefined {
+  return db.prepare(`
+    SELECT c.*, s.name as status, o.name as recruiter, p.name as position
+    FROM candidates c
+    JOIN statuses s ON c.status_id = s.id
+    JOIN owners o ON c.recruiter_id = o.id
+    JOIN positions p ON c.position_id = p.id
+    WHERE c.unique_id = ?
+  `).get(uniqueId) as DbCandidate | undefined;
 }

@@ -97,7 +97,8 @@ const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
           c.name.toLowerCase().includes(q) ||
           c.phone.includes(q) ||
           c.nid.includes(q) ||
-          c.email.toLowerCase().includes(q)
+          c.email.toLowerCase().includes(q) ||
+          c.unique_id.toLowerCase().includes(q)
       );
     }
     if (position.length > 0) data = data.filter((c) => position.includes(c.position));
@@ -124,6 +125,9 @@ const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
       if (sortKey === "matchingScore") {
         valA = scoredIds.has(a.id) ? getMatchingScoreForRow(a, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined) : -1;
         valB = scoredIds.has(b.id) ? getMatchingScoreForRow(b, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined) : -1;
+      } else if (sortKey === "unique_id") {
+        valA = Number((a as Record<string, any>)[sortKey]) || 0;
+        valB = Number((b as Record<string, any>)[sortKey]) || 0;
       } else {
         valA = (a as Record<string, any>)[sortKey];
         valB = (b as Record<string, any>)[sortKey];
@@ -166,7 +170,7 @@ const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
         <Card className="mb-6">
           <CardContent className="!p-5">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              <Input label="Search" placeholder="Name, Phone, NID, Email..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+              <Input label="Search" placeholder="Name, Phone, NID, Email, Unique ID..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Position</label>
                 <MultiSelect
@@ -394,14 +398,13 @@ const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
                   header: (
                     <span
                       className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
-                      onClick={(e) => { e.stopPropagation(); handleSort("id"); }}
+                      onClick={(e) => { e.stopPropagation(); handleSort("unique_id"); }}
                     >
-                      ID {sortKey === "id" && (sortDir === "asc" ? "▲" : "▼")}
+                      ID {sortKey === "unique_id" && (sortDir === "asc" ? "▲" : "▼")}
                     </span>
                   ),
                   render: (row) => {
-                    const globalIndex = sorted.findIndex((c) => c.id === row.id) + 1;
-                    return <span className="font-mono text-xs text-[var(--text-secondary)]">{String(globalIndex).padStart(5, "0")}</span>;
+                    return <span className="font-mono text-xs text-[var(--text-secondary)]">{row.unique_id}</span>;
                   },
                   className: "w-[80px]",
                 },
@@ -538,51 +541,52 @@ const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
               data={paged}
              keyExtractor={(row) => row.id}
              expandedId={expandedId}
-             renderExpanded={(row) => (
-              <CandidateExpandedView
-                candidate={{
-                  id: row.id,
-                  name: row.name,
-                  position: row.position,
-                  age: row.age,
-                  weight: row.weight,
-                  height: row.height,
-                  bmi: row.bmi,
-                  phone: row.phone,
-                  email: row.email,
-                  expectedSalary: row.expected_salary,
-                  education: row.education,
-                  address: row.address,
-                  language: row.language,
-                  license: row.license,
-                  previousEmployment: row.previous_employment,
-                  aiSummary: row.ai_summary,
-                  logs: row.logs as any,
-                }}
-                matchingScore={scoredIds.has(row.id) ? getMatchingScoreForRow(row, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined) : undefined}
-                barScores={scoredIds.has(row.id) ? buildBarScores(row, selectedJd ? {
-                  experienceChecklist: selectedJd.experienceChecklist,
-                  educationChecklist: selectedJd.educationChecklist,
-                  languageChecklist: selectedJd.languageChecklist,
-                  technicalChecklist: selectedJd.technicalChecklist,
-                } : undefined) : undefined}
-                extraTopRight={
-                  <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary-light)] text-[var(--primary)] text-xs font-bold">
-                    Position: {row.position} · {getExperienceLabel(row.experience)}
-                  </span>
-                }
-                pros={[
-                  `${row.experience >= 5 ? "Extensive" : "Solid"} experience in ${row.position}`,
-                  (row.education ?? "").includes("Bachelor") || (row.education ?? "").includes("Master") ? "Strong educational background" : "Relevant education",
-                  row.language === "Fluent" || row.language === "Conversational" ? "Good communication skills" : "Basic communication ability",
-                ].filter(Boolean)}
-                cons={[
-                  row.experience < 3 ? "Limited professional experience" : null,
-                  row.status === "Not Suitable" ? "Does not fully match role requirements" : null,
-                  row.bmi > 30 ? "Health flag noted" : null,
-                ].filter(Boolean) as string[]}
-              />
-            )}
+renderExpanded={(row) => (
+               <CandidateExpandedView
+                 candidate={{
+                   id: row.unique_id,
+                   uniqueId: row.unique_id,
+                   name: row.name,
+                   position: row.position,
+                   age: row.age,
+                   weight: row.weight,
+                   height: row.height,
+                   bmi: row.bmi,
+                   phone: row.phone,
+                   email: row.email,
+                   expectedSalary: row.expected_salary,
+                   education: row.education,
+                   address: row.address,
+                   language: row.language,
+                   license: row.license,
+                   previousEmployment: row.previous_employment,
+                   aiSummary: row.ai_summary,
+                   logs: row.logs as any,
+                 }}
+                 matchingScore={scoredIds.has(row.id) ? getMatchingScoreForRow(row, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined) : undefined}
+                 barScores={scoredIds.has(row.id) ? buildBarScores(row, selectedJd ? {
+                   experienceChecklist: selectedJd.experienceChecklist,
+                   educationChecklist: selectedJd.educationChecklist,
+                   languageChecklist: selectedJd.languageChecklist,
+                   technicalChecklist: selectedJd.technicalChecklist,
+                 } : undefined) : undefined}
+                 extraTopRight={
+                   <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary-light)] text-[var(--primary)] text-xs font-bold">
+                     Position: {row.position} · {getExperienceLabel(row.experience)}
+                   </span>
+                 }
+                 pros={[
+                   `${row.experience >= 5 ? "Extensive" : "Solid"} experience in ${row.position}`,
+                   (row.education ?? "").includes("Bachelor") || (row.education ?? "").includes("Master") ? "Strong educational background" : "Relevant education",
+                   row.language === "Fluent" || row.language === "Conversational" ? "Good communication skills" : "Basic communication ability",
+                 ].filter(Boolean)}
+                 cons={[
+                   row.experience < 3 ? "Limited professional experience" : null,
+                   row.status === "Not Suitable" ? "Does not fully match role requirements" : null,
+                   row.bmi > 30 ? "Health flag noted" : null,
+                 ].filter(Boolean) as string[]}
+               />
+             )}
             onRowClick={(row) => setExpandedId(expandedId === row.id ? null : row.id)}
           />
         </Card>

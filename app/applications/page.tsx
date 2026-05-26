@@ -50,7 +50,8 @@ export default function ApplicationsPage() {
           c.name.toLowerCase().includes(q) ||
           c.phone.includes(q) ||
           c.nid.includes(q) ||
-          c.email.toLowerCase().includes(q)
+          c.email.toLowerCase().includes(q) ||
+          c.unique_id.toLowerCase().includes(q)
       );
     }
     if (position.length > 0) data = data.filter((c) => position.includes(c.position));
@@ -89,7 +90,7 @@ export default function ApplicationsPage() {
         <Card className="mb-6">
           <CardContent className="!p-5">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              <Input label="Search" placeholder="Name, Phone, NID, Email..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+              <Input label="Search" placeholder="Name, Phone, NID, Email, Unique ID..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Position</label>
                 <MultiSelect
@@ -194,8 +195,7 @@ export default function ApplicationsPage() {
                 key: "id",
                 header: "ID",
                 render: (row) => {
-                  const globalIndex = filtered.findIndex((c) => c.id === row.id) + 1;
-                  return <span className="font-mono text-xs text-[var(--text-secondary)]">{String(globalIndex).padStart(5, "0")}</span>;
+                  return <span className="font-mono text-xs text-[var(--text-secondary)]">{row.unique_id}</span>;
                 },
                 className: "w-[80px]",
               },
@@ -263,30 +263,31 @@ export default function ApplicationsPage() {
             data={paged}
             keyExtractor={(row) => row.id}
             expandedId={expandedId}
-            renderExpanded={(row) => (
-              <CandidateExpandedView
-                candidate={{
-                  id: row.id,
-                  name: row.name,
-                  position: row.position,
-                  age: row.age,
-                  weight: row.weight,
-                  height: row.height,
-                  bmi: row.bmi,
-                  phone: row.phone,
-                  email: row.email,
-                  expectedSalary: row.expected_salary,
-                  education: row.education,
-                  address: row.address,
-                  language: row.language,
-                  license: row.license,
-                  previousEmployment: row.previous_employment,
-                  aiSummary: row.ai_summary,
-                  logs: row.logs as any,
-                }}
-                pros={[
-                  `${row.experience >= 5 ? "Extensive" : "Solid"} experience in ${row.position}`,
-                  (row.education ?? "").includes("Bachelor") || (row.education ?? "").includes("Master") ? "Strong educational background" : "Relevant education",
+renderExpanded={(row) => (
+               <CandidateExpandedView
+                 candidate={{
+                   id: row.unique_id,
+                   uniqueId: row.unique_id,
+                   name: row.name,
+                   position: row.position,
+                   age: row.age,
+                   weight: row.weight,
+                   height: row.height,
+                   bmi: row.bmi,
+                   phone: row.phone,
+                   email: row.email,
+                   expectedSalary: row.expected_salary,
+                   education: row.education,
+                   address: row.address,
+                   language: row.language,
+                   license: row.license,
+                   previousEmployment: row.previous_employment,
+                   aiSummary: row.ai_summary,
+                   logs: row.logs as any,
+                 }}
+                 pros={[
+                   `${row.experience >= 5 ? "Extensive" : "Solid"} experience in ${row.position}`,
+                   (row.education ?? "").includes("Bachelor") || (row.education ?? "").includes("Master") ? "Strong educational background" : "Relevant education",
                   row.language === "Fluent" || row.language === "Conversational" ? "Good communication skills" : "Basic communication ability",
                 ].filter(Boolean)}
                 cons={[

@@ -38,5 +38,9 @@ export function initializeDatabase() {
     db.exec('ALTER TABLE activity_logs ADD COLUMN action_type TEXT');
   }
   
+  if (!columnExists('candidates', 'unique_id')) {
+    db.exec('ALTER TABLE candidates ADD COLUMN unique_id TEXT');
+  }
+  
   schemaInitialized = true;
 }

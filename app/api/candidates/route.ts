@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeDatabase } from '@/data/db';
-import { getCandidatesWithFilters, getCandidateLogs, getUniqueRecruiters } from '@/data/repositories/candidateRepository';
+import { getCandidatesWithFilters, getCandidateLogs, getUniqueRecruiters, getCandidateByUniqueId } from '@/data/repositories/candidateRepository';
 
 initializeDatabase();
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const limitParam = searchParams.get('limit');
+  const uniqueId = searchParams.get('uniqueId');
+  
+  if (uniqueId) {
+    const candidate = getCandidateByUniqueId(uniqueId);
+    return NextResponse.json(candidate || null);
+  }
+  
   const filters = {
     startDate: searchParams.get('startDate') || undefined,
     endDate: searchParams.get('endDate') || undefined,

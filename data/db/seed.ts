@@ -275,9 +275,11 @@ export function generateCandidates(): CandidateWithLogs[] {
   const candidates: Candidate[] = SHUFFLED.map((rawName, i) => {
     const name: string = rawName ?? `Unknown-${i + 1}`;
     const rRow = makeRng(i + 1);
+    const uniqueId = String(i + 1).padStart(5, "0");
 
     return {
       id:                 `APP-${String(i + 1).padStart(4, "0")}`,
+      uniqueId,
       name,
       phone:              `+1 (${randInt(rRow, 900) + 100}) ${randInt(rRow, 900) + 100}-${randInt(rRow, 9000) + 1000}`,
       nid:                `US-${String(randInt(rRow, 899) + 100).padStart(3, "0")}-${String(randInt(rRow, 89) + 10).padStart(2, "0")}-${String(randInt(rRow, 8999) + 1000).padStart(4, "0")}`,
@@ -327,12 +329,12 @@ export function seedReferenceData() {
 export function seedCandidates(candidates: CandidateWithLogs[]) {
   const insertCandidate = db.prepare(`
     INSERT INTO candidates (
-      id, name, phone, nid, email, position_id, experience, experience_level,
+      id, unique_id, name, phone, nid, email, position_id, experience, experience_level,
       date_applied, status_id, recruiter_id, age, weight, height, bmi,
       expected_salary, education, address, language, license,
       previous_employment, ai_summary
     ) VALUES (
-      @id, @name, @phone, @nid, @email, 
+      @id, @uniqueId, @name, @phone, @nid, @email, 
       (SELECT id FROM positions WHERE name = @position),
       @experience, @experienceLevel, @dateApplied,
       (SELECT id FROM statuses WHERE name = @status),
@@ -354,9 +356,11 @@ export function seedCandidates(candidates: CandidateWithLogs[]) {
     )
   `);
 
-  const tx = db.transaction((candidates: CandidateWithLogs[]) => {
-    for (const c of candidates) {
-      insertCandidate.run(c);
+  const tx = db.transaction((candidatesToInsert: CandidateWithLogs[]) => {
+    for (const c of candidatesToInsert) {
+      // Ensure uniqueId is generated if not present (for backwards compatibility)
+      const uniqueIdValue = c.uniqueId || String(Date.now()).slice(-5).padStart(5, '0');
+      insertCandidate.run({ ...c, uniqueId: uniqueIdValue });
       for (const log of c.logs) {
         insertLog.run({ ...log, candidateId: c.id });
       }

@@ -48,6 +48,7 @@ export const POSITIONS = [
 
 export interface Candidate {
   id: string;
+  uniqueId?: string;
   name: string;
   phone: string;
   nid: string;
