@@ -360,58 +360,74 @@ const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
         </div>
 
 <Card>
-           <Table<DbCandidate>
-             columns={[
-               {
-                 key: "checkbox",
-                 header: (
-                   <input
-                     type="checkbox"
-                     checked={paged.length > 0 && selectedIds.size === paged.length}
-                     ref={(el: HTMLInputElement | null) => {
-                       if (el) el.indeterminate = selectedIds.size > 0 && selectedIds.size < paged.length;
-                     }}
-                     onChange={() => {
-                       if (selectedIds.size === paged.length) setSelectedIds(new Set());
-                       else setSelectedIds(new Set(paged.map((r) => r.id)));
-                     }}
-                     className="w-4 h-4 accent-[var(--primary)] cursor-pointer"
-                  />
-                 ),
-                 render: (row) => (
-                   <input
-                     type="checkbox"
-                     checked={isSelected(row.id)}
-                     onClick={(e) => e.stopPropagation()}
-                     onChange={() => toggleId(row.id)}
-                     className="w-4 h-4 accent-[var(--primary)] cursor-pointer"
-                   />
-                 ),
-                 className: "w-[50px]",
-               },
-               {
-                 key: "name",
-                 header: (
-                   <span
-                     className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
-                     onClick={(e) => { e.stopPropagation(); handleSort("name"); }}
-                   >
-                     Name {sortKey === "name" && (sortDir === "asc" ? "▲" : "▼")}
-                   </span>
-                 ),
-                 render: (row) => {
-                   const c = candidates.find((x) => x.id === row.id)!;
-                   return (
-                     <span className="flex items-center gap-3">
-                       <div className="w-9 h-9 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xs">
-                         {c.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
-                       </div>
-                       <span className="font-semibold">{row.name}</span>
-                     </span>
-                   );
-                 },
-               },
-{
+            <Table<DbCandidate>
+              columns={[
+                {
+                  key: "checkbox",
+                  header: (
+                    <input
+                      type="checkbox"
+                      checked={paged.length > 0 && selectedIds.size === paged.length}
+                      ref={(el: HTMLInputElement | null) => {
+                        if (el) el.indeterminate = selectedIds.size > 0 && selectedIds.size < paged.length;
+                      }}
+                      onChange={() => {
+                        if (selectedIds.size === paged.length) setSelectedIds(new Set());
+                        else setSelectedIds(new Set(paged.map((r) => r.id)));
+                      }}
+                      className="w-4 h-4 accent-[var(--primary)] cursor-pointer"
+                    />
+                  ),
+                  render: (row) => (
+                    <input
+                      type="checkbox"
+                      checked={isSelected(row.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={() => toggleId(row.id)}
+                      className="w-4 h-4 accent-[var(--primary)] cursor-pointer"
+                    />
+                  ),
+                  className: "w-[50px]",
+                },
+                {
+                  key: "id",
+                  header: (
+                    <span
+                      className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
+                      onClick={(e) => { e.stopPropagation(); handleSort("id"); }}
+                    >
+                      ID {sortKey === "id" && (sortDir === "asc" ? "▲" : "▼")}
+                    </span>
+                  ),
+                  render: (row) => {
+                    const globalIndex = sorted.findIndex((c) => c.id === row.id) + 1;
+                    return <span className="font-mono text-xs text-[var(--text-secondary)]">{String(globalIndex).padStart(5, "0")}</span>;
+                  },
+                  className: "w-[80px]",
+                },
+                {
+                  key: "name",
+                  header: (
+                    <span
+                      className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
+                      onClick={(e) => { e.stopPropagation(); handleSort("name"); }}
+                    >
+                      Name {sortKey === "name" && (sortDir === "asc" ? "▲" : "▼")}
+                    </span>
+                  ),
+                  render: (row) => {
+                    const c = candidates.find((x) => x.id === row.id)!;
+                    return (
+                      <span className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xs">
+                          {c.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
+                        </div>
+                        <span className="font-semibold">{row.name}</span>
+                      </span>
+                    );
+                  },
+                },
+                {
                   key: "matchingScore",
                   header: (
                     <span
@@ -429,97 +445,97 @@ const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
                     return <ScoringBadge score={score} />;
                   },
                 },
-               {
-                 key: "position",
-                 header: (
-                   <span
-                     className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
-                     onClick={(e) => { e.stopPropagation(); handleSort("position"); }}
-                   >
-                     Position {sortKey === "position" && (sortDir === "asc" ? "▲" : "▼")}
-                   </span>
-                 ),
-               },
-               {
-                 key: "experience",
-                 header: (
-                   <span
-                     className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
-                     onClick={(e) => { e.stopPropagation(); handleSort("experience"); }}
-                   >
-                     Experience {sortKey === "experience" && (sortDir === "asc" ? "▲" : "▼")}
-                   </span>
-                 ),
-                 render: (row) => getExperienceLabel(row.experience),
-               },
-               {
-                 key: "dateApplied",
-                 header: (
-                   <span
-                     className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
-                     onClick={(e) => { e.stopPropagation(); handleSort("date_applied"); }}
-                   >
-                     Date Applied {sortKey === "date_applied" && (sortDir === "asc" ? "▲" : "▼")}
-                   </span>
-                 ),
-               },
-               {
-                 key: "status",
-                 header: (
-                   <span
-                     className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
-                     onClick={(e) => { e.stopPropagation(); handleSort("status"); }}
-                   >
-                     Status {sortKey === "status" && (sortDir === "asc" ? "▲" : "▼")}
-                   </span>
-                 ),
-                 render: (row) => {
-                   const statusCls = STATUS_CLASS_MAP[row.status] || "";
-                   return <span className={`status-badge ${statusCls}`}>{row.status}</span>;
-                 },
-               },
-               {
-                 key: "recruiter",
-                 header: (
-                   <span
-                     className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
-                     onClick={(e) => { e.stopPropagation(); handleSort("recruiter"); }}
-                   >
-                     Recruiter {sortKey === "recruiter" && (sortDir === "asc" ? "▲" : "▼")}
-                   </span>
-                 ),
-               },
-               {
+                {
+                  key: "position",
+                  header: (
+                    <span
+                      className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
+                      onClick={(e) => { e.stopPropagation(); handleSort("position"); }}
+                    >
+                      Position {sortKey === "position" && (sortDir === "asc" ? "▲" : "▼")}
+                    </span>
+                  ),
+                },
+                {
+                  key: "experience",
+                  header: (
+                    <span
+                      className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
+                      onClick={(e) => { e.stopPropagation(); handleSort("experience"); }}
+                    >
+                      Experience {sortKey === "experience" && (sortDir === "asc" ? "▲" : "▼")}
+                    </span>
+                  ),
+                  render: (row) => getExperienceLabel(row.experience),
+                },
+                {
+                  key: "dateApplied",
+                  header: (
+                    <span
+                      className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
+                      onClick={(e) => { e.stopPropagation(); handleSort("date_applied"); }}
+                    >
+                      Date Applied {sortKey === "date_applied" && (sortDir === "asc" ? "▲" : "▼")}
+                    </span>
+                  ),
+                },
+                {
+                  key: "status",
+                  header: (
+                    <span
+                      className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
+                      onClick={(e) => { e.stopPropagation(); handleSort("status"); }}
+                    >
+                      Status {sortKey === "status" && (sortDir === "asc" ? "▲" : "▼")}
+                    </span>
+                  ),
+                  render: (row) => {
+                    const statusCls = STATUS_CLASS_MAP[row.status] || "";
+                    return <span className={`status-badge ${statusCls}`}>{row.status}</span>;
+                  },
+                },
+                {
+                  key: "recruiter",
+                  header: (
+                    <span
+                      className="cursor-pointer hover:text-[var(--primary)] flex items-center gap-1"
+                      onClick={(e) => { e.stopPropagation(); handleSort("recruiter"); }}
+                    >
+                      Recruiter {sortKey === "recruiter" && (sortDir === "asc" ? "▲" : "▼")}
+                    </span>
+                  ),
+                },
+                {
                   key: "expand",
                   header: "",
                   className: "w-[120px]",
                   render: (row: { id: string }) => (
-                     <div className="flex items-center gap-1">
-                       <button
-                         type="button"
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           setExpandedId(expandedId === row.id ? null : row.id);
-                         }}
-                         className="p-1.5 rounded-lg hover:bg-[#e2e8f0] transition-colors cursor-pointer"
-                         aria-label={expandedId === row.id ? "Collapse" : "Expand"}
-                       >
-                         <svg
-                           className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${
-                             expandedId === row.id ? "rotate-180" : ""
-                           }`}
-                           fill="none"
-                           viewBox="0 0 24 24"
-                           stroke="currentColor"
-                         >
-                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                         </svg>
-                       </button>
-                     </div>
-                   ),
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedId(expandedId === row.id ? null : row.id);
+                        }}
+                        className="p-1.5 rounded-lg hover:bg-[#e2e8f0] transition-colors cursor-pointer"
+                        aria-label={expandedId === row.id ? "Collapse" : "Expand"}
+                      >
+                        <svg
+                          className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${
+                            expandedId === row.id ? "rotate-180" : ""
+                          }`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                  ),
                 },
-             ]}
-             data={paged}
+              ]}
+              data={paged}
              keyExtractor={(row) => row.id}
              expandedId={expandedId}
              renderExpanded={(row) => (

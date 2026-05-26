@@ -181,12 +181,13 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
                     <p className="text-sm text-[var(--text-secondary)]">{candidate.position}</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
-                  <InfoField label="Age" value={`${candidate.age} yrs`} />
-                  <InfoField label="Weight" value={`${candidate.weight} kg`} />
-                  <InfoField label="Height" value={`${candidate.height} cm`} />
-                  <InfoField label="BMI" value={candidate.bmi.toFixed(1)} />
-                </div>
+<div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-2">
+                   <InfoField label="Age" value={`${candidate.age} yrs`} />
+                   <InfoField label="Weight" value={`${candidate.weight} kg`} />
+                   <InfoField label="Height" value={`${candidate.height} cm`} />
+                   <InfoField label="BMI" value={candidate.bmi.toFixed(1)} />
+                   <InfoField label="Count of Submit" value={logs.length.toString()} />
+                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => { /* TODO: download/wire candidate CV */ }} className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer">View Original CV</button>
                   <a href="#" target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors inline-block">View Application Form</a>
@@ -273,7 +274,7 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
                       ["Experience", barScores.experience, barScores.experienceChecklist, barScores.experiencePoints],
                       ["Education", barScores.education, barScores.educationChecklist, barScores.educationPoints],
                       ["Language", barScores.language, barScores.languageChecklist, barScores.languagePoints],
-                      ["Technical", barScores.technical, barScores.technicalChecklist, barScores.technicalPoints],
+                      ["Skill", barScores.technical, barScores.technicalChecklist, barScores.technicalPoints],
                     ] as [string, number, string[] | undefined, number | undefined][])
                       .map(([lbl, sc, checklist, pts]) => {
                         const passCount = checklist ? Math.max(1, Math.round((sc / 100) * checklist.length)) : undefined;

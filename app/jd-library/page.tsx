@@ -312,7 +312,7 @@ export default function JdLibraryPage() {
                     {renderCriteria(jd, "exp", "Experience (max 5)", jd.experienceChecklist)}
                     {renderCriteria(jd, "edu", "Education (max 5)", jd.educationChecklist)}
                     {renderCriteria(jd, "lang", "Language (max 5)", jd.languageChecklist)}
-                    {renderCriteria(jd, "tech", "Technical (max 5)", jd.technicalChecklist)}
+                    {renderCriteria(jd, "tech", "Skill (max 5)", jd.technicalChecklist)}
                   </>
                 );
               })()}

@@ -191,6 +191,15 @@ export default function ApplicationsPage() {
           <Table<DbCandidate>
             columns={[
               {
+                key: "id",
+                header: "ID",
+                render: (row) => {
+                  const globalIndex = filtered.findIndex((c) => c.id === row.id) + 1;
+                  return <span className="font-mono text-xs text-[var(--text-secondary)]">{String(globalIndex).padStart(5, "0")}</span>;
+                },
+                className: "w-[80px]",
+              },
+              {
                 key: "name",
                 header: "Name",
                 render: (row) => {

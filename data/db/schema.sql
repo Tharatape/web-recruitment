@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS activity_logs (
   recruiter_id INTEGER NOT NULL,
   status_id INTEGER NOT NULL,
   note TEXT,
+  action_type TEXT,
   FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE,
   FOREIGN KEY (recruiter_id) REFERENCES owners(id),
   FOREIGN KEY (status_id) REFERENCES statuses(id)
@@ -81,3 +82,4 @@ CREATE INDEX IF NOT EXISTS idx_candidates_date_applied ON candidates(date_applie
 CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status_id);
 CREATE INDEX IF NOT EXISTS idx_candidates_recruiter ON candidates(recruiter_id);
 CREATE INDEX IF NOT EXISTS idx_activity_logs_candidate ON activity_logs(candidate_id);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_action_type ON activity_logs(action_type);

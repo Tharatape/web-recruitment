@@ -10,6 +10,10 @@ export async function GET(request: NextRequest) {
     const limit = Number(searchParams.get('limit')) || 50;
     const offset = Number(searchParams.get('offset')) || 0;
     const days = searchParams.get('days');
+    const statusFilter = searchParams.get('status');
+    const actionTypeFilter = searchParams.get('action_type');
+    const recruiterFilter = searchParams.get('recruiter');
+    const searchFilter = searchParams.get('search');
 
     let query = `
       SELECT 
@@ -33,15 +37,41 @@ export async function GET(request: NextRequest) {
       LEFT JOIN positions p ON c.position_id = p.id
     `;
 
-    const params: any[] = [];
-    
+    const params: (string | number)[] = [];
+    const conditions: string[] = [];
+
     if (days !== null && days !== undefined) {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - Number(days));
-      query += ' WHERE al.date >= ?';
+      conditions.push('al.date >= ?');
       params.push(cutoffDate.toISOString().split('T')[0]);
     }
-    
+
+    if (statusFilter) {
+      conditions.push('s.name = ?');
+      params.push(statusFilter);
+    }
+
+    if (actionTypeFilter) {
+      conditions.push('al.action_type = ?');
+      params.push(actionTypeFilter);
+    }
+
+    if (recruiterFilter) {
+      conditions.push('o.name = ?');
+      params.push(recruiterFilter);
+    }
+
+    if (searchFilter) {
+      conditions.push('(c.name LIKE ? OR c.email LIKE ? OR al.note LIKE ?)');
+      const searchPattern = `%${searchFilter}%`;
+      params.push(searchPattern, searchPattern, searchPattern);
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
     query += ' ORDER BY al.date DESC, al.time DESC LIMIT ? OFFSET ?';
     params.push(limit, offset);
 

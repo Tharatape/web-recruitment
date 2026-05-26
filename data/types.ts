@@ -71,12 +71,17 @@ export interface Candidate {
   aiSummary: string;
 }
 
+export const ACTION_TYPES = ["Change Status", "Matching", "Create/Edit JD", "AI Opinion"] as const;
+
+export type ActionType = (typeof ACTION_TYPES)[number];
+
 export type LogEntry = {
   date: string;
   time: string;
   recruiter: Owner;
   status: Status;
   note: string;
+  action_type?: ActionType;
 };
 
 export interface CandidateWithLogs extends Candidate {

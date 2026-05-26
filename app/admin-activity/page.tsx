@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { Table } from "@/components/ui/Table";
+import { OWNERS } from "@/data/types";
 
 interface Activity {
   id: string;
@@ -17,11 +18,53 @@ interface Activity {
   actionDetail: string;
 }
 
+interface ApiActivityItem {
+  id: number;
+  candidate_id: string;
+  candidate_name: string;
+  date: string;
+  time: string;
+  recruiter: string;
+  status: string;
+  note: string | null;
+  action_type: string | null;
+}
+
 export default function AdminActivityPage() {
   const [search, setSearch] = useState("");
   const [datePeriod, setDatePeriod] = useState("");
+  const [status, setStatus] = useState("");
+  const [action, setAction] = useState("");
   const [recruiter, setRecruiter] = useState("");
   const [activities, setActivities] = useState<Activity[]>([]);
+
+  useEffect(() => {
+    const fetchData = () => {
+      const params = new URLSearchParams();
+      if (datePeriod) params.set("days", datePeriod);
+      if (status) params.set("status", status);
+      if (action) params.set("action_type", action);
+      if (recruiter) params.set("recruiter", recruiter);
+      if (search) params.set("search", search);
+
+      fetch(`/api/activity?${params.toString()}`)
+        .then((res) => res.json())
+        .then((data) => {
+          const mappedActivities: Activity[] = data.map((item: ApiActivityItem) => ({
+            id: String(item.id),
+            timestamp: `${item.date} ${item.time}`,
+            action: item.action_type || "Matching",
+            recruiter: item.recruiter || "Unknown",
+            candidate: item.candidate_name || "Unknown",
+            candidateId: item.candidate_id || "",
+            status: item.status || "",
+            actionDetail: item.note || "",
+          }));
+          setActivities(mappedActivities);
+        });
+    };
+    fetchData();
+  }, [datePeriod, status, action, recruiter, search]);
 
   return (
     <main className="max-w-7xl mx-auto px-6 py-8">
@@ -29,30 +72,68 @@ export default function AdminActivityPage() {
 
       <Card className="mb-6">
         <CardContent className="!p-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4">
             <Input
               label="Advance Search"
               placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <Input
-              label="Start Date"
-              type="date"
-              value=""
-              onChange={() => {}}
-            />
-            <Input
-              label="End Date"
-              type="date"
-              value=""
-              onChange={() => {}}
-            />
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-[var(--foreground)]">Date Period</label>
+              <Dropdown
+                placeholder="Select period..."
+                options={[
+                  { label: "Last 7 days", value: "7" },
+                  { label: "Last 14 days", value: "14" },
+                  { label: "Last 30 days", value: "30" },
+                  { label: "Last 60 days", value: "60" },
+                  { label: "Last 90 days", value: "90" },
+                ]}
+                value={datePeriod}
+                onChange={setDatePeriod}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-[var(--foreground)]">Status</label>
+              <Dropdown
+                placeholder="All Statuses"
+                options={[
+                  { label: "Applied", value: "Applied" },
+                  { label: "Not Suitable", value: "Not Suitable" },
+                  { label: "Shortlisted", value: "Shortlisted" },
+                  { label: "1st Interview", value: "1st Interview" },
+                  { label: "2nd Interview", value: "2nd Interview" },
+                  { label: "Not Selected", value: "Not Selected" },
+                  { label: "Selected", value: "Selected" },
+                  { label: "Offer Accepted", value: "Offer Accepted" },
+                  { label: "Offer Declined", value: "Offer Declined" },
+                  { label: "Hired", value: "Hired" },
+                  { label: "Not Hired", value: "Not Hired" },
+                ]}
+                value={status}
+                onChange={setStatus}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-[var(--foreground)]">Action</label>
+              <Dropdown
+                placeholder="All Actions"
+                options={[
+                  { label: "Change Status", value: "Change Status" },
+                  { label: "Matching", value: "Matching" },
+                  { label: "Create/Edit JD", value: "Create/Edit JD" },
+                  { label: "AI Opinion", value: "AI Opinion" },
+                ]}
+                value={action}
+                onChange={setAction}
+              />
+            </div>
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-[var(--foreground)]">Recruiter</label>
               <Dropdown
                 placeholder="All Recruiters"
-                options={[]}
+                options={OWNERS.map((o) => ({ label: o, value: o }))}
                 value={recruiter}
                 onChange={setRecruiter}
               />

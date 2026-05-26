@@ -1,6 +1,6 @@
 import { db } from './index';
 import { STATUSES, OWNERS, POSITIONS } from '../types';
-import type { Candidate, CandidateWithLogs, LogEntry, Status, Owner } from '../types';
+import type { Candidate, CandidateWithLogs, LogEntry, Status, Owner, ActionType } from '../types';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Deterministic PRNG (sfc32)
@@ -182,11 +182,29 @@ const NOTES: Partial<Record<Status, string>> = {
   "Not Hired":       "Offer rescinded. Candidate did not complete background verification within the required timeframe.",
 };
 
+function determineActionType(status: Status): ActionType {
+  if (status === "Applied") return "Matching";
+  if (status === "Not Suitable" || status === "Shortlisted" || status === "1st Interview" ||
+      status === "2nd Interview" || status === "Not Selected" || status === "Selected" ||
+      status === "Offer Accepted" || status === "Offer Declined" || status === "Hired" ||
+      status === "Not Hired") {
+    return "Change Status";
+  }
+  return "Change Status";
+}
+
 function buildLogs(status: Status, r: () => number, recruiter: Owner): LogEntry[] {
   const logs: LogEntry[] = [];
 
   const appDate = daysBeforeRef(r, 0, 365);
-  logs.push({ date: appDate, time: "09:00", recruiter, status: "Applied", note: "Candidate submitted application via online portal." });
+  logs.push({ 
+    date: appDate, 
+    time: "09:00", 
+    recruiter, 
+    status: "Applied", 
+    note: "Candidate submitted application via online portal.",
+    action_type: "Matching"
+  });
 
   const idx = FUNNEL.indexOf(status);
 
@@ -196,7 +214,14 @@ function buildLogs(status: Status, r: () => number, recruiter: Owner): LogEntry[
     const hour   = Math.round(r() * 9 + 9);
     const minute = String(randInt(r, 60)).padStart(2, "0");
     const note   = NOTES[stage] ?? `Status updated to ${stage}.`;
-    logs.push({ date: logDate, time: `${hour}:${minute}`, recruiter, status: stage, note });
+    logs.push({ 
+      date: logDate, 
+      time: `${hour}:${minute}`, 
+      recruiter, 
+      status: stage, 
+      note,
+      action_type: determineActionType(stage)
+    });
   }
 
   return logs;
@@ -320,12 +345,12 @@ export function seedCandidates(candidates: CandidateWithLogs[]) {
 
   const insertLog = db.prepare(`
     INSERT INTO activity_logs (
-      candidate_id, date, time, recruiter_id, status_id, note
+      candidate_id, date, time, recruiter_id, status_id, note, action_type
     ) VALUES (
       @candidateId, @date, @time,
       (SELECT id FROM owners WHERE name = @recruiter),
       (SELECT id FROM statuses WHERE name = @status),
-      @note
+      @note, @action_type
     )
   `);
 
