@@ -16,63 +16,60 @@ import { STATUSES } from "@/data/types";
 import type { DbCandidate } from "@/data/repositories/candidateRepository";
 
 export default function DashboardPage() {
-  const now = new Date();
-  const todayStr = now.toISOString().split("T")[0];
-  const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
-  const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+const [startDate, setStartDate] = useState("");
+   const [endDate, setEndDate] = useState("");
+   const [owner, setOwner] = useState("");
+   const [candidates, setCandidates] = useState<DbCandidate[]>([]);
+   const [recruiters, setRecruiters] = useState<string[]>([]);
+   const [loading, setLoading] = useState(true);
 
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [owner, setOwner] = useState("");
-  const [candidates, setCandidates] = useState<DbCandidate[]>([]);
-  const [recruiters, setRecruiters] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+   useEffect(() => {
+     const fetchData = async () => {
+       setLoading(true);
+       const params = new URLSearchParams();
+       if (startDate) params.set('startDate', startDate);
+       if (endDate) params.set('endDate', endDate);
+       if (owner) params.set('owner', owner);
+       params.set('includeLogs', 'true');
+       
+       const [candRes, recRes] = await Promise.all([
+         fetch(`/api/candidates?${params}`),
+         fetch('/api/candidates', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'getRecruiters' }) })
+       ]);
+       
+       const cands = await candRes.json();
+       const recs = await recRes.json();
+       setCandidates(cands);
+       setRecruiters(recs.map((r: { name: string }) => r.name));
+       setLoading(false);
+     };
+     fetchData();
+   }, [startDate, endDate, owner]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const params = new URLSearchParams();
-      if (startDate) params.set('startDate', startDate);
-      if (endDate) params.set('endDate', endDate);
-      if (owner) params.set('owner', owner);
-      params.set('includeLogs', 'true');
-      
-      const [candRes, recRes] = await Promise.all([
-        fetch(`/api/candidates?${params}`),
-        fetch('/api/candidates', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'getRecruiters' }) })
-      ]);
-      
-      const cands = await candRes.json();
-      const recs = await recRes.json();
-      setCandidates(cands);
-      setRecruiters(recs.map((r: { name: string }) => r.name));
-      setLoading(false);
-    };
-    fetchData();
-  }, [startDate, endDate, owner]);
+   const filtered = useMemo(() => {
+     return candidates.filter((c) => {
+       if (startDate && c.date_applied < startDate) return false;
+       if (endDate && c.date_applied > endDate) return false;
+       if (owner && c.recruiter !== owner) return false;
+       return true;
+     });
+   }, [candidates, startDate, endDate, owner]);
 
-  const filtered = useMemo(() => {
-    return candidates.filter((c) => {
-      if (startDate && c.date_applied < startDate) return false;
-      if (endDate && c.date_applied > endDate) return false;
-      if (owner && c.recruiter !== owner) return false;
-      return true;
-    });
-  }, [candidates, startDate, endDate, owner]);
-
-  const total = filtered.length;
-  const today = useMemo(
-    () => filtered.filter((c) => c.date_applied === todayStr).length,
-    [filtered]
-  );
-  const lastWeek = useMemo(
-    () => filtered.filter((c) => new Date(c.date_applied) >= weekAgo).length,
-    [filtered]
-  );
-  const lastMonth = useMemo(
-    () => filtered.filter((c) => new Date(c.date_applied) >= monthAgo).length,
-    [filtered]
-  );
+   const total = filtered.length;
+   const today = useMemo(() => {
+     const todayStr = new Date().toISOString().split("T")[0];
+     return filtered.filter((c) => c.date_applied === todayStr).length;
+   }, [filtered]);
+   const lastWeek = useMemo(() => {
+     const weekAgo = new Date();
+     weekAgo.setDate(weekAgo.getDate() - 7);
+     return filtered.filter((c) => new Date(c.date_applied) >= weekAgo).length;
+   }, [filtered]);
+   const lastMonth = useMemo(() => {
+     const monthAgo = new Date();
+     monthAgo.setMonth(monthAgo.getMonth() - 1);
+     return filtered.filter((c) => new Date(c.date_applied) >= monthAgo).length;
+   }, [filtered]);
 
   const fullStatusCounts = useMemo(() => {
     const map: Record<string, number> = {};

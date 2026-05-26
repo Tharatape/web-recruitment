@@ -1,6 +1,7 @@
 "use client";
 
-import { STATUSES, Status, Owner } from "@/data/types";
+import { STATUSES, Status } from "@/data/types";
+import type { DbLog } from "@/data/repositories/candidateRepository";
 
 function getStatusStyle(status: string): string {
   const map: Record<string, string> = {
@@ -19,18 +20,10 @@ function getStatusStyle(status: string): string {
   return map[status] || "bg-gray-50 text-gray-700";
 }
 
-interface LogEntry {
-  date: string;
-  time: string;
-  recruiter: Owner;
-  status: Status;
-  note: string;
-}
-
 interface CandidateExpandedViewProps {
-  candidate: {
-    id: string;
-    uniqueId?: string;
+   candidate: {
+     id: string;
+     uniqueId?: string;
     name: string;
     position: string;
     age: number;
@@ -46,7 +39,7 @@ interface CandidateExpandedViewProps {
     license?: string;
     previousEmployment?: string;
     aiSummary: string;
-    logs?: LogEntry[];
+    logs?: DbLog[];
   };
   matchingScore?: number;
   extraTopRight?: React.ReactNode;
@@ -369,7 +362,7 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
                      <td colSpan={5} className="py-8 text-center text-sm text-[var(--text-muted)]">No history yet.</td>
                    </tr>
                  ) : (
-                   logs.map((l: LogEntry, i: number) => (
+                   logs.map((l, i: number) => (
                      <tr key={i} className="border-b border-[var(--border)] last:border-0">
                        <td className="py-3 pr-4 text-[var(--text-secondary)] text-xs font-mono align-top">#{String(i + 1).padStart(3, "0")}</td>
                        <td className="py-3 pr-4 text-[var(--text-secondary)] whitespace-nowrap text-xs align-top">{l.date} {l.time}</td>

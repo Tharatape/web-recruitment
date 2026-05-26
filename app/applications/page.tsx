@@ -283,7 +283,7 @@ renderExpanded={(row) => (
                    license: row.license,
                    previousEmployment: row.previous_employment,
                    aiSummary: row.ai_summary,
-                   logs: row.logs as any,
+                   logs: row.logs,
                  }}
                  pros={[
                    `${row.experience >= 5 ? "Extensive" : "Solid"} experience in ${row.position}`,

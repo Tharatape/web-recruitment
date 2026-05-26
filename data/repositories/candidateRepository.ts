@@ -57,7 +57,7 @@ export function getCandidatesWithFilters(filters: {
     WHERE 1=1
   `;
 
-  const params: any[] = [];
+  const params: (string | number | null)[] = [];
 
   if (filters.startDate) {
     params.push(filters.startDate);

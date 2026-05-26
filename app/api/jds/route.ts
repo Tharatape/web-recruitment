@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeDatabase } from '@/data/db';
 import { getAllJDs, getJDById, createJD, deleteJD, toggleJDDisabled } from '@/data/repositories/jdRepository';
-import { db } from '@/data/db';
 
 initializeDatabase();
 
@@ -20,7 +19,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { action, position, name, id, category, items, disabled } = body;
+  const { action, position, name, id, disabled } = body;
 
   if (action === 'createJD') {
     const result = createJD(position, name);

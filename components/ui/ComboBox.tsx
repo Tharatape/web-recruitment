@@ -21,40 +21,42 @@ export function ComboBox({
   label,
   disabled = false,
 }: ComboBoxProps) {
-  const [query, setQuery] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const [dropdownWidth, setDropdownWidth] = useState<number | undefined>(undefined);
+const [query, setQuery] = useState("");
+   const [isOpen, setIsOpen] = useState(false);
+   const wrapperRef = useRef<HTMLDivElement>(null);
+   const [dropdownWidth, setDropdownWidth] = useState<number | undefined>(undefined);
+   const querySetRef = useRef(false);
 
-  const selectedLabel = useMemo(() => {
-    const opt = options.find((o) => o.value === value);
-    return opt?.label || "";
-  }, [options, value]);
+   const selectedLabel = useMemo(() => {
+     const opt = options.find((o) => o.value === value);
+     return opt?.label || "";
+   }, [options, value]);
 
-  const filtered = useMemo(() => {
-    if (!query) return options;
-    const q = query.toLowerCase();
-    return options.filter((o) => o.label.toLowerCase().includes(q));
-  }, [options, query]);
+   const filtered = useMemo(() => {
+     if (!query) return options;
+     const q = query.toLowerCase();
+     return options.filter((o) => o.label.toLowerCase().includes(q));
+   }, [options, query]);
 
-  useEffect(() => {
-    if (wrapperRef.current) {
-      setDropdownWidth(wrapperRef.current.offsetWidth);
-    }
-    const ro = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setDropdownWidth(entry.contentRect.width);
-      }
-    });
-    if (wrapperRef.current) ro.observe(wrapperRef.current);
-    return () => ro.disconnect();
-  }, []);
+   useEffect(() => {
+     if (wrapperRef.current) {
+       setDropdownWidth(wrapperRef.current.offsetWidth);
+     }
+     const ro = new ResizeObserver((entries) => {
+       for (const entry of entries) {
+         setDropdownWidth(entry.contentRect.width);
+       }
+     });
+     if (wrapperRef.current) ro.observe(wrapperRef.current);
+     return () => ro.disconnect();
+   }, []);
 
-  useEffect(() => {
-    if (value && !query) {
-      setQuery(selectedLabel);
-    }
-  }, [value, selectedLabel, query]);
+   useEffect(() => {
+     if (value && !query && !querySetRef.current) {
+       querySetRef.current = true;
+       setQuery(selectedLabel);
+     }
+   }, [value, selectedLabel, query]);
 
   const handleSelect = (val: string, label: string) => {
     onChange(val);

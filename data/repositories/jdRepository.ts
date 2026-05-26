@@ -12,6 +12,11 @@ export interface DbJD {
   technicalChecklist: string[];
 }
 
+interface ChecklistItem {
+  category: string;
+  criterion: string;
+}
+
 function parseChecklists(checklistsJson: string | null): {
   experienceChecklist: string[];
   educationChecklist: string[];
@@ -22,62 +27,71 @@ function parseChecklists(checklistsJson: string | null): {
     return { experienceChecklist: [], educationChecklist: [], languageChecklist: [], technicalChecklist: [] };
   }
   try {
-    const items = JSON.parse(checklistsJson);
+    const items = JSON.parse(checklistsJson) as ChecklistItem[];
     return {
-      experienceChecklist: items.filter((i: any) => i.category === 'experience').map((i: any) => i.criterion),
-      educationChecklist: items.filter((i: any) => i.category === 'education').map((i: any) => i.criterion),
-      languageChecklist: items.filter((i: any) => i.category === 'language').map((i: any) => i.criterion),
-      technicalChecklist: items.filter((i: any) => i.category === 'technical').map((i: any) => i.criterion),
+      experienceChecklist: items.filter((i) => i.category === 'experience').map((i) => i.criterion),
+      educationChecklist: items.filter((i) => i.category === 'education').map((i) => i.criterion),
+      languageChecklist: items.filter((i) => i.category === 'language').map((i) => i.criterion),
+      technicalChecklist: items.filter((i) => i.category === 'technical').map((i) => i.criterion),
     };
   } catch {
     return { experienceChecklist: [], educationChecklist: [], languageChecklist: [], technicalChecklist: [] };
   }
 }
 
-export function getAllJDs(): DbJD[] {
-  const jds = db.prepare(`
-    SELECT j.*, 
-      json_group_array(
-        CASE WHEN jc.category IS NOT NULL 
-        THEN json_object('category', jc.category, 'criterion', jc.criterion_text)
-        END
-      ) as checklists
-    FROM jds j
-    LEFT JOIN jd_checklists jc ON j.id = jc.jd_id
-    GROUP BY j.id
-  `).all() as any[];
-
-  return jds.map((jd) => {
-    const parsed = parseChecklists(jd.checklists ?? null);
-    return {
-      id: jd.id,
-      name: jd.name,
-      position: jd.position,
-      created_at: jd.created_at,
-      disabled: jd.disabled,
-      experienceChecklist: parsed.experienceChecklist,
-      educationChecklist: parsed.educationChecklist,
-      languageChecklist: parsed.languageChecklist,
-      technicalChecklist: parsed.technicalChecklist,
-    };
-  });
+interface DbJDRow {
+  id: string;
+  name: string;
+  position: string;
+  created_at: string;
+  disabled: number;
+  checklists: string | null;
 }
 
-export function getJDById(id: string): DbJD | undefined {
-  const jd = db.prepare(`
-    SELECT j.*, 
-      json_group_array(
-        CASE WHEN jc.category IS NOT NULL 
-        THEN json_object('category', jc.category, 'criterion', jc.criterion_text)
-        END
-      ) as checklists
-    FROM jds j
-    LEFT JOIN jd_checklists jc ON j.id = jc.jd_id
-    WHERE j.id = ?
-    GROUP BY j.id
-  `).get(id) as any;
+export function getAllJDs(): DbJD[] {
+   const jds = db.prepare(`
+     SELECT j.*, 
+       json_group_array(
+         CASE WHEN jc.category IS NOT NULL 
+         THEN json_object('category', jc.category, 'criterion', jc.criterion_text)
+         END
+       ) as checklists
+     FROM jds j
+     LEFT JOIN jd_checklists jc ON j.id = jc.jd_id
+     GROUP BY j.id
+   `).all() as DbJDRow[];
 
-  if (!jd) return undefined;
+   return jds.map((jd) => {
+     const parsed = parseChecklists(jd.checklists ?? null);
+     return {
+       id: jd.id,
+       name: jd.name,
+       position: jd.position,
+       created_at: jd.created_at,
+       disabled: jd.disabled,
+       experienceChecklist: parsed.experienceChecklist,
+       educationChecklist: parsed.educationChecklist,
+       languageChecklist: parsed.languageChecklist,
+       technicalChecklist: parsed.technicalChecklist,
+     };
+   });
+ }
+
+export function getJDById(id: string): DbJD | undefined {
+   const jd = db.prepare(`
+     SELECT j.*, 
+       json_group_array(
+         CASE WHEN jc.category IS NOT NULL 
+         THEN json_object('category', jc.category, 'criterion', jc.criterion_text)
+         END
+       ) as checklists
+     FROM jds j
+     LEFT JOIN jd_checklists jc ON j.id = jc.jd_id
+     WHERE j.id = ?
+     GROUP BY j.id
+   `).get(id) as DbJDRow | undefined;
+
+   if (!jd) return undefined;
 
   const parsed = parseChecklists(jd.checklists ?? null);
   return {

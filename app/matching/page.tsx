@@ -9,11 +9,11 @@ import { MultiSelect } from "@/components/ui/MultiSelect";
 import { Table } from "@/components/ui/Table";
 import { STATUSES, OWNERS } from "@/data/types";
 import { CandidateExpandedView } from "@/components/CandidateExpandedView";
-
 import { getExperienceLabel } from "@/data/types";
 import { STATUS_CLASS_MAP } from "@/data/colors";
 import { getMatchingScoreForRow, buildBarScores, clearScoreCache, getTopCandidates } from "@/data/scoring";
 import type { DbCandidate } from "@/data/repositories/candidateRepository";
+import type { DbJD } from "@/data/repositories/jdRepository";
 
 function ScoringBadge({ score }: { score: number }) {
   const color =
@@ -49,9 +49,8 @@ const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [aiOpinionCount, setAiOpinionCount] = useState<number>(2);
     const [candidates, setCandidates] = useState<DbCandidate[]>([]);
     const [allPositions, setAllPositions] = useState<string[]>([]);
-    const [jds, setJds] = useState<any[]>([]);
-    const [aiOpinion, setAiOpinion] = useState<{name: string; reasoning: string} | null>(null);
-    const [aiOpinionResults, setAiOpinionResults] = useState<Array<{name: string; score: number; reasoning: string}> | null>(null);
+const [jds, setJds] = useState<DbJD[]>([]);
+   const [aiOpinionResults, setAiOpinionResults] = useState<Array<{name: string; score: number; reasoning: string}> | null>(null);
     const [sortKey, setSortKey] = useState<string>("");
     const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
     const [loading, setLoading] = useState(true);
@@ -74,8 +73,8 @@ const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     fetchData();
   }, []);
 
-  const selectedJd = jds.find((j: any) => j.id === selectedJdId) || null;
-   const selectedAiJd = jds.find((j: any) => j.id === selectedAiJdId) || null;
+   const selectedJd = jds.find((j) => j.id === selectedJdId) || null;
+   const selectedAiJd = jds.find((j) => j.id === selectedAiJdId) || null;
 
   const toggleId = (id: string) =>
     setSelectedIds((prev) => {
@@ -116,21 +115,21 @@ const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     return data;
   }, [candidates, search, position, expMin, expMax, dateRange, status, recruiter]);
 
-  const sorted = useMemo(() => {
+const sorted = useMemo(() => {
     if (!sortKey) return filtered;
     const dir = sortDir === "asc" ? 1 : -1;
     return [...filtered].sort((a, b) => {
-      let valA: any;
-      let valB: any;
+      let valA: number | string;
+      let valB: number | string;
       if (sortKey === "matchingScore") {
         valA = scoredIds.has(a.id) ? getMatchingScoreForRow(a, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined) : -1;
         valB = scoredIds.has(b.id) ? getMatchingScoreForRow(b, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined) : -1;
       } else if (sortKey === "unique_id") {
-        valA = Number((a as Record<string, any>)[sortKey]) || 0;
-        valB = Number((b as Record<string, any>)[sortKey]) || 0;
+        valA = Number(a[sortKey as keyof DbCandidate]) || 0;
+        valB = Number(b[sortKey as keyof DbCandidate]) || 0;
       } else {
-        valA = (a as Record<string, any>)[sortKey];
-        valB = (b as Record<string, any>)[sortKey];
+        valA = (a[sortKey as keyof DbCandidate] as string | number | undefined) ?? "";
+        valB = (b[sortKey as keyof DbCandidate] as string | number | undefined) ?? "";
         if (typeof valA === "string") valA = valA.toLowerCase();
         if (typeof valB === "string") valB = valB.toLowerCase();
       }
@@ -259,7 +258,7 @@ const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
                 <ComboBox
                   label="Job Description (JD)"
                   placeholder="Select JD..."
-                  options={jds.filter((j: any) => !j.disabled).map((j: any) => ({ label: `${j.name} - ${j.position}`, value: j.id }))}
+                  options={jds.filter((j) => !j.disabled).map((j) => ({ label: `${j.name} - ${j.position}`, value: j.id }))}
                   value={selectedJdId}
                   onChange={(v) => { setSelectedJdId(v); setScoredIds(new Set()); clearScoreCache(); }}
                 />
@@ -282,7 +281,7 @@ const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
                   <ComboBox
                     label="AI Opinion"
                     placeholder="Select JD..."
-                    options={jds.filter((j: any) => !j.disabled).map((j: any) => ({ label: `${j.name} - ${j.position}`, value: j.id }))}
+                    options={jds.filter((j) => !j.disabled).map((j) => ({ label: `${j.name} - ${j.position}`, value: j.id }))}
                     value={selectedAiJdId}
                     onChange={(v) => setSelectedAiJdId(v)}
                   />
@@ -308,22 +307,14 @@ const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
                         selectedAiJd ? { jd: selectedAiJd } : undefined
                       );
                       
-                      const results = topCandidates.map(tc => ({
-                        name: tc.candidate.name,
-                        score: tc.score,
-                        reasoning: `${tc.candidate.name} has the strongest profile with ${tc.candidate.experience} years of experience and a ${tc.candidate.status?.toLowerCase()} status. Their background aligns well with typical role requirements.`
-                      }));
-                      
-                      setAiOpinionResults(results);
-                      
-                      const best = topCandidates[0]?.candidate;
-                      if (best) {
-                        setAiOpinion({
-                          name: best.name,
-                          reasoning: `${best.name} has the strongest profile with ${best.experience} years of experience and a ${best.status?.toLowerCase()} status. Their background aligns well with typical role requirements, making them the most suitable candidate for recruitment.`
-                        });
-                      }
-                    }
+const results = topCandidates.map(tc => ({
+                         name: tc.candidate.name,
+                         score: tc.score,
+                         reasoning: `${tc.candidate.name} has the strongest profile with ${tc.candidate.experience} years of experience and a ${tc.candidate.status?.toLowerCase()} status. Their background aligns well with typical role requirements.`
+                       }));
+                       
+                       setAiOpinionResults(results);
+                     }
                   }}
                   disabled={!selectedAiJdId || selectedIds.size < aiOpinionCount}
                   className="px-6 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
@@ -561,7 +552,7 @@ renderExpanded={(row) => (
                    license: row.license,
                    previousEmployment: row.previous_employment,
                    aiSummary: row.ai_summary,
-                   logs: row.logs as any,
+                   logs: row.logs,
                  }}
                  matchingScore={scoredIds.has(row.id) ? getMatchingScoreForRow(row, selectedJd?.id, selectedJd ? { jd: selectedJd } : undefined) : undefined}
                  barScores={scoredIds.has(row.id) ? buildBarScores(row, selectedJd ? {
