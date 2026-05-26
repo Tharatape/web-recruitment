@@ -271,7 +271,7 @@ const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
           </CardContent>
         </Card>
 
-<Card className="mb-6">
+        <Card className="mb-6">
             <CardContent className="!p-5">
               <div className="flex flex-col sm:flex-row sm:items-end gap-4">
                 <div className="flex-1 min-w-64">
@@ -304,13 +304,13 @@ const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
                         selectedAiJd ? { jd: selectedAiJd } : undefined
                       );
                       
-const results = topCandidates.map(tc => ({
-                         name: tc.candidate.name,
-                         score: tc.score,
-                         reasoning: `${tc.candidate.name} has the strongest profile with ${tc.candidate.experience} years of experience and a ${tc.candidate.status?.toLowerCase()} status. Their background aligns well with typical role requirements.`
-                       }));
-                       
-                       setAiOpinionResults(results);
+                      const results = topCandidates.map(tc => ({
+                        name: tc.candidate.name,
+                        score: tc.score,
+                        reasoning: `${tc.candidate.name} has the strongest profile with ${tc.candidate.experience} years of experience and a ${tc.candidate.status?.toLowerCase()} status. Their background aligns well with typical role requirements.`
+                      }));
+                      
+                      setAiOpinionResults(results);
                       
                       const best = topCandidates[0]?.candidate;
                       if (best) {
