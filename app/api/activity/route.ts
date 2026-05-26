@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
       SELECT 
         al.id,
         c.id as candidate_id,
+        c.unique_id as candidate_unique_id,
         c.name as candidate_name,
         al.date,
         al.time,
@@ -63,9 +64,9 @@ export async function GET(request: NextRequest) {
     }
 
     if (searchFilter) {
-      conditions.push('(c.name LIKE ? OR c.email LIKE ? OR al.note LIKE ?)');
+      conditions.push('(c.name LIKE ? OR c.email LIKE ? OR c.unique_id LIKE ? OR al.note LIKE ?)');
       const searchPattern = `%${searchFilter}%`;
-      params.push(searchPattern, searchPattern, searchPattern);
+      params.push(searchPattern, searchPattern, searchPattern, searchPattern);
     }
 
     if (conditions.length > 0) {

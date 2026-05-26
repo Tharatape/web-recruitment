@@ -21,6 +21,7 @@ interface Activity {
 interface ApiActivityItem {
   id: number;
   candidate_id: string;
+  candidate_unique_id: string;
   candidate_name: string;
   date: string;
   time: string;
@@ -49,19 +50,19 @@ export default function AdminActivityPage() {
 
       fetch(`/api/activity?${params.toString()}`)
         .then((res) => res.json())
-        .then((data) => {
-          const mappedActivities: Activity[] = data.map((item: ApiActivityItem) => ({
-            id: String(item.id),
-            timestamp: `${item.date} ${item.time}`,
-            action: item.action_type || "Matching",
-            recruiter: item.recruiter || "Unknown",
-            candidate: item.candidate_name || "Unknown",
-            candidateId: item.candidate_id || "",
-            status: item.status || "",
-            actionDetail: item.note || "",
-          }));
-          setActivities(mappedActivities);
-        });
+.then((data) => {
+           const mappedActivities: Activity[] = data.map((item: ApiActivityItem) => ({
+             id: String(item.id),
+             timestamp: `${item.date} ${item.time}`,
+             action: item.action_type || "Matching",
+             recruiter: item.recruiter || "Unknown",
+             candidate: item.candidate_name || "Unknown",
+             candidateId: item.candidate_unique_id || item.candidate_id || "",
+             status: item.status || "",
+             actionDetail: item.note || "",
+           }));
+           setActivities(mappedActivities);
+         });
     };
     fetchData();
   }, [datePeriod, status, action, recruiter, search]);
