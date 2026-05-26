@@ -204,40 +204,63 @@ export function getMatchingScoreForRow(row: {
 
 /** Return all raw sub-scores and derived points needed by CandidateExpandedView barScores. */
 export function buildBarScores(row: {
-  id: string;
-  experience: number;
-  education?: string;
-  language?: string;
-}, jdChecklists?: {
-  experienceChecklist?: string[];
-  educationChecklist?: string[];
-  languageChecklist?: string[];
-  technicalChecklist?: string[];
-}) {
-  const w = CATEGORY_WEIGHTS;
+   id: string;
+   experience: number;
+   education?: string;
+   language?: string;
+ }, jdChecklists?: {
+   experienceChecklist?: string[];
+   educationChecklist?: string[];
+   languageChecklist?: string[];
+   technicalChecklist?: string[];
+ }) {
+   const w = CATEGORY_WEIGHTS;
 
-  const expScore  = getExperienceScore(row.experience);
-  const eduScore  = getEducationScore(row.education);
-  const langScore = getLanguageScore(row.language);
-  const techScore = getTechnicalScore(row.experience);
+   const expScore  = getExperienceScore(row.experience);
+   const eduScore  = getEducationScore(row.education);
+   const langScore = getLanguageScore(row.language);
+   const techScore = getTechnicalScore(row.experience);
 
-  const expPass  = Math.max(1, Math.round((expScore  / 100) * w.experience.itemCount));
-  const eduPass  = Math.max(1, Math.round((eduScore  / 100) * w.education.itemCount));
-  const langPass = Math.max(1, Math.round((langScore / 100) * w.language.itemCount));
-  const techPass = Math.max(1, Math.round((techScore / 100) * w.technical.itemCount));
+   const expPass  = Math.max(1, Math.round((expScore  / 100) * w.experience.itemCount));
+   const eduPass  = Math.max(1, Math.round((eduScore  / 100) * w.education.itemCount));
+   const langPass = Math.max(1, Math.round((langScore / 100) * w.language.itemCount));
+   const techPass = Math.max(1, Math.round((techScore / 100) * w.technical.itemCount));
 
-  return {
-    experience: expScore,
-    education: eduScore,
-    language: langScore,
-    technical: techScore,
-    experienceChecklist: jdChecklists?.experienceChecklist,
-    educationChecklist:  jdChecklists?.educationChecklist,
-    languageChecklist:   jdChecklists?.languageChecklist,
-    technicalChecklist:  jdChecklists?.technicalChecklist,
-    experiencePoints:  calculatePoints(expPass,  w.experience.itemCount, w.experience.maxPoints),
-    educationPoints:   calculatePoints(eduPass,  w.education.itemCount,  w.education.maxPoints),
-    languagePoints:    calculatePoints(langPass, w.language.itemCount,   w.language.maxPoints),
-    technicalPoints:   calculatePoints(techPass, w.technical.itemCount,  w.technical.maxPoints),
-  };
+   return {
+     experience: expScore,
+     education: eduScore,
+     language: langScore,
+     technical: techScore,
+     experienceChecklist: jdChecklists?.experienceChecklist,
+     educationChecklist:  jdChecklists?.educationChecklist,
+     languageChecklist:   jdChecklists?.languageChecklist,
+     technicalChecklist:  jdChecklists?.technicalChecklist,
+     experiencePoints:  calculatePoints(expPass,  w.experience.itemCount, w.experience.maxPoints),
+     educationPoints:   calculatePoints(eduPass,  w.education.itemCount,  w.education.maxPoints),
+     languagePoints:    calculatePoints(langPass, w.language.itemCount,   w.language.maxPoints),
+     technicalPoints:   calculatePoints(techPass, w.technical.itemCount,  w.technical.maxPoints),
+   };
+ }
+
+export interface ScoredCandidate<T extends { id: string }> {
+  candidate: T;
+  score: number;
+}
+
+export function getTopCandidates<T extends { id: string; experience: number; education?: string; language?: string; position?: string }>(
+  count: number,
+  candidates: T[],
+  jdId?: string,
+  jdChecklists?: { jd?: { position?: string } }
+): ScoredCandidate<T>[] {
+  if (count <= 0 || candidates.length === 0) return [];
+
+  const scored = candidates.map(c => ({
+    candidate: c,
+    score: getMatchingScoreForRow(c, jdId, jdChecklists)
+  }));
+
+  scored.sort((a, b) => b.score - a.score);
+
+  return scored.slice(0, Math.min(count, scored.length));
 }

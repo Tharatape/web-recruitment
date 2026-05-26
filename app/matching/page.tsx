@@ -12,7 +12,7 @@ import { CandidateExpandedView } from "@/components/CandidateExpandedView";
 
 import { getExperienceLabel } from "@/data/types";
 import { STATUS_CLASS_MAP } from "@/data/colors";
-import { getMatchingScoreForRow, buildBarScores, clearScoreCache } from "@/data/scoring";
+import { getMatchingScoreForRow, buildBarScores, clearScoreCache, getTopCandidates } from "@/data/scoring";
 import type { DbCandidate } from "@/data/repositories/candidateRepository";
 
 function ScoringBadge({ score }: { score: number }) {
@@ -42,17 +42,19 @@ export default function MatchingPage() {
    const [pageSize, setPageSize] = useState(25);
    const [page, setPage] = useState(1);
    const [expandedId, setExpandedId] = useState<string | null>(null);
-   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-   const [scoredIds, setScoredIds] = useState<Set<string>>(new Set());
-   const [selectedJdId, setSelectedJdId] = useState<string>("");
-   const [selectedAiJdId, setSelectedAiJdId] = useState<string>("");
-   const [candidates, setCandidates] = useState<DbCandidate[]>([]);
-   const [allPositions, setAllPositions] = useState<string[]>([]);
-   const [jds, setJds] = useState<any[]>([]);
-   const [aiOpinion, setAiOpinion] = useState<{name: string; reasoning: string} | null>(null);
-   const [sortKey, setSortKey] = useState<string>("");
-   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
-   const [loading, setLoading] = useState(true);
+const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [scoredIds, setScoredIds] = useState<Set<string>>(new Set());
+    const [selectedJdId, setSelectedJdId] = useState<string>("");
+    const [selectedAiJdId, setSelectedAiJdId] = useState<string>("");
+    const [aiOpinionCount, setAiOpinionCount] = useState<number>(2);
+    const [candidates, setCandidates] = useState<DbCandidate[]>([]);
+    const [allPositions, setAllPositions] = useState<string[]>([]);
+    const [jds, setJds] = useState<any[]>([]);
+    const [aiOpinion, setAiOpinion] = useState<{name: string; reasoning: string} | null>(null);
+    const [aiOpinionResults, setAiOpinionResults] = useState<Array<{name: string; score: number; reasoning: string}> | null>(null);
+    const [sortKey, setSortKey] = useState<string>("");
+    const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+    const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -73,6 +75,7 @@ export default function MatchingPage() {
   }, []);
 
   const selectedJd = jds.find((j: any) => j.id === selectedJdId) || null;
+   const selectedAiJd = jds.find((j: any) => j.id === selectedAiJdId) || null;
 
   const toggleId = (id: string) =>
     setSelectedIds((prev) => {
@@ -269,50 +272,76 @@ export default function MatchingPage() {
         </Card>
 
 <Card className="mb-6">
-           <CardContent className="!p-5">
-             <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-               <div className="flex-1 min-w-64">
-                 <ComboBox
-                   label="AI Opinion"
-                   placeholder="Select JD..."
-                   options={jds.filter((j: any) => !j.disabled).map((j: any) => ({ label: `${j.name} - ${j.position}`, value: j.id }))}
-                   value={selectedAiJdId}
-                   onChange={(v) => setSelectedAiJdId(v)}
-                 />
-               </div>
-               <button
-                 onClick={() => {
-                   const selected = candidates.filter(c => selectedIds.has(c.id));
-                   if (selected.length >= 2) {
-                     let best = selected[0];
-                     let bestScore = selected[0].experience * 10 + (selected[0].status === 'Qualified' ? 50 : 0) + (selected[0].status === 'Suitable' ? 30 : 0);
-                     for (let i = 1; i < selected.length; i++) {
-                       const score = selected[i].experience * 10 + (selected[i].status === 'Qualified' ? 50 : 0) + (selected[i].status === 'Suitable' ? 30 : 0);
-                       if (score > bestScore) {
-                         best = selected[i];
-                         bestScore = score;
-                       }
-                     }
-                     setAiOpinion({
-                       name: best.name,
-                       reasoning: `${best.name} has the strongest profile with ${best.experience} years of experience and a ${best.status?.toLowerCase()} status. Their background aligns well with typical role requirements, making them the most suitable candidate for recruitment.`
-                     });
-                   }
-                 }}
-                 disabled={selectedIds.size < 2}
-                 className="px-6 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-               >
-                 AI Opinion
-               </button>
-             </div>
-             {aiOpinion && (
-               <div className="mt-4 p-4 bg-[var(--primary-light)] rounded-lg">
-                 <p className="font-semibold text-[var(--foreground)]">Recommended: {aiOpinion.name}</p>
-                 <p className="text-sm text-[var(--text-secondary)] mt-1">{aiOpinion.reasoning}</p>
-               </div>
-             )}
-           </CardContent>
-         </Card>
+            <CardContent className="!p-5">
+              <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+                <div className="flex-1 min-w-64">
+                  <ComboBox
+                    label="AI Opinion"
+                    placeholder="Select JD..."
+                    options={jds.filter((j: any) => !j.disabled).map((j: any) => ({ label: `${j.name} - ${j.position}`, value: j.id }))}
+                    value={selectedAiJdId}
+                    onChange={(v) => setSelectedAiJdId(v)}
+                  />
+                </div>
+                <div className="w-24">
+                  <Input
+                    label="Number of selections"
+                    type="number"
+                    min="2"
+                    max="10"
+                    value={aiOpinionCount}
+                    onChange={(e) => setAiOpinionCount(Math.max(2, Math.min(10, Number(e.target.value))))}
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    const selected = candidates.filter(c => selectedIds.has(c.id));
+                    if (selected.length >= aiOpinionCount) {
+                      const topCandidates = getTopCandidates(
+                        aiOpinionCount,
+                        selected,
+                        selectedAiJdId,
+                        selectedAiJd ? { jd: selectedAiJd } : undefined
+                      );
+                      
+const results = topCandidates.map(tc => ({
+                         name: tc.candidate.name,
+                         score: tc.score,
+                         reasoning: `${tc.candidate.name} has the strongest profile with ${tc.candidate.experience} years of experience and a ${tc.candidate.status?.toLowerCase()} status. Their background aligns well with typical role requirements.`
+                       }));
+                       
+                       setAiOpinionResults(results);
+                      
+                      const best = topCandidates[0]?.candidate;
+                      if (best) {
+                        setAiOpinion({
+                          name: best.name,
+                          reasoning: `${best.name} has the strongest profile with ${best.experience} years of experience and a ${best.status?.toLowerCase()} status. Their background aligns well with typical role requirements, making them the most suitable candidate for recruitment.`
+                        });
+                      }
+                    }
+                  }}
+                  disabled={!selectedAiJdId || selectedIds.size < aiOpinionCount}
+                  className="px-6 py-2.5 text-sm font-semibold text-white bg-[var(--primary)] rounded-lg hover:bg-[var(--primary-hover)] transition-colors cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  AI Opinion
+                </button>
+              </div>
+              {aiOpinionResults && (
+                <div className="mt-4 p-4 bg-[var(--primary-light)] rounded-lg">
+                  <p className="font-semibold text-[var(--foreground)] mb-2">Top {aiOpinionResults.length} Candidates:</p>
+                  <ul className="space-y-3">
+                    {aiOpinionResults.map((r, i) => (
+                      <li key={i} className="text-sm">
+                        <span className="font-semibold text-[var(--foreground)]">{i + 1}. {r.name} - {r.score}% match</span>
+                        <p className="text-[var(--text-secondary)] mt-1">{r.reasoning}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-[var(--text-secondary)]">
