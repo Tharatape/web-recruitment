@@ -3,82 +3,38 @@
  * All values represent agreed business rules for the candidate-to-JD matching engine.
  */
 
-// ── Raw score derivation ──────────────────────────────────────────────────
-
-/** Multiply years of experience by this to get a 0–100 experience score */
-export const EXPERIENCE_MULTIPLIER = 13;
-
-/** Multiply years of experience by this to get a 0–100 technical score */
-export const TECHNICAL_MULTIPLIER = 12;
-
-/** Score assigned when the education string mentions Bachelor's or Master's */
-export const EDUCATION_BACHELOR_OR_MASTER = 85;
-
-/** Score assigned when education mentions a general Degree */
-export const EDUCATION_DEGREE = 70;
-
-/** Default education score when none of the above match */
-export const EDUCATION_DEFAULT = 55;
-
-/** Score for Fluent language proficiency */
-export const LANGUAGE_FLUENT = 95;
-
-/** Score for Conversational language proficiency */
-export const LANGUAGE_CONVERSATIONAL = 70;
-
-/** Default language score (Basic / unlisted) */
-export const LANGUAGE_DEFAULT = 50;
-
 // ── Weighted pass-to-points conversion ───────────────────────────────────
 
-export interface CategoryWeight {
-  /** Number of criteria / check items in this category */
-  itemCount: number;
-  /** Maximum points this category can contribute to the overall score */
-  maxPoints: number;
-}
-
-export const CATEGORY_WEIGHTS: Record<string, CategoryWeight> = {
+const CATEGORY_WEIGHTS: Record<string, { itemCount: number; maxPoints: number }> = {
   experience: { itemCount: 5, maxPoints: 40 },
   education:  { itemCount: 3, maxPoints: 20 },
   language:   { itemCount: 2, maxPoints: 10 },
   technical:  { itemCount: 5, maxPoints: 30 },
 };
 
-/** Calculate category points from passed-items count using the weight rules. */
-export function calculatePoints(passedCount: number, totalItems: number, maxPoints: number): number {
+function calculatePoints(passedCount: number, totalItems: number, maxPoints: number): number {
   return Math.round((passedCount / totalItems) * maxPoints);
 }
 
-export function getWeightedMatchingScore(
-  experiencePoints: number,
-  educationPoints: number,
-  languagePoints: number,
-  technicalPoints: number
-): number {
-  return experiencePoints + educationPoints + languagePoints + technicalPoints;
+function getExperienceScore(experience: number): number {
+  return Math.min(100, Math.round(experience * 13));
 }
 
-// Helper: derive the raw 0–100 component score for a candidate row
-export function getExperienceScore(experience: number): number {
-  return Math.min(100, Math.round(experience * EXPERIENCE_MULTIPLIER));
+function getTechnicalScore(experience: number): number {
+  return Math.min(100, Math.round(experience * 12));
 }
 
-export function getTechnicalScore(experience: number): number {
-  return Math.min(100, Math.round(experience * TECHNICAL_MULTIPLIER));
-}
-
-export function getEducationScore(education?: string): number {
+function getEducationScore(education?: string): number {
   const e = education ?? "";
-  if (e.includes("Bachelor") || e.includes("Master")) return EDUCATION_BACHELOR_OR_MASTER;
-  if (e.includes("Degree")) return EDUCATION_DEGREE;
-  return EDUCATION_DEFAULT;
+  if (e.includes("Bachelor") || e.includes("Master")) return 85;
+  if (e.includes("Degree")) return 70;
+  return 55;
 }
 
-export function getLanguageScore(language?: string): number {
-  if (language === "Fluent") return LANGUAGE_FLUENT;
-  if (language === "Conversational") return LANGUAGE_CONVERSATIONAL;
-  return LANGUAGE_DEFAULT;
+function getLanguageScore(language?: string): number {
+  if (language === "Fluent") return 95;
+  if (language === "Conversational") return 70;
+  return 50;
 }
 
 // ── Cached full-score builder ────────────────────────────────────────────
@@ -111,12 +67,7 @@ const JD_SCORING_PROFILES: Record<string, {
   operations: { expFactor: 1.35, eduFactor: 1.0, langFactor: 1.15, techFactor: 0.85 },
 };
 
-/**
- * Compute and cache the weighted matching score for a candidate row against a specific JD.
- * The result is cached per `row.id` + `jdId` combination for the lifetime of the page session.
- * Scoring varies based on JD position alignment with candidate position.
- */
-export function getMatchingScoreForRow(row: {
+function getMatchingScoreForRow(row: {
   id: string;
   experience: number;
   education?: string;
@@ -196,13 +147,32 @@ export function getMatchingScoreForRow(row: {
     }
   }
 
-  const score = getWeightedMatchingScore(expPoints, eduPoints, langPoints, techPoints);
+  const score = expPoints + eduPoints + langPoints + techPoints;
 
   _scoreCache.set(cacheKey, score);
   return score;
 }
 
-/** Return all raw sub-scores and derived points needed by CandidateExpandedView barScores. */
+export { getMatchingScoreForRow };
+
+export function getTopCandidates<T extends { id: string; experience: number; education?: string; language?: string; position?: string }>(
+  count: number,
+  candidates: T[],
+  jdId?: string,
+  jdChecklists?: { jd?: { position?: string } }
+): { candidate: T; score: number }[] {
+  if (count <= 0 || candidates.length === 0) return [];
+
+  const scored = candidates.map(c => ({
+    candidate: c,
+    score: getMatchingScoreForRow(c, jdId, jdChecklists)
+  }));
+
+  scored.sort((a, b) => b.score - a.score);
+
+  return scored.slice(0, Math.min(count, scored.length));
+}
+
 export function buildBarScores(row: {
    id: string;
    experience: number;
@@ -241,26 +211,3 @@ export function buildBarScores(row: {
      technicalPoints:   calculatePoints(techPass, w.technical.itemCount,  w.technical.maxPoints),
    };
  }
-
-export interface ScoredCandidate<T extends { id: string }> {
-  candidate: T;
-  score: number;
-}
-
-export function getTopCandidates<T extends { id: string; experience: number; education?: string; language?: string; position?: string }>(
-  count: number,
-  candidates: T[],
-  jdId?: string,
-  jdChecklists?: { jd?: { position?: string } }
-): ScoredCandidate<T>[] {
-  if (count <= 0 || candidates.length === 0) return [];
-
-  const scored = candidates.map(c => ({
-    candidate: c,
-    score: getMatchingScoreForRow(c, jdId, jdChecklists)
-  }));
-
-  scored.sort((a, b) => b.score - a.score);
-
-  return scored.slice(0, Math.min(count, scored.length));
-}

@@ -1,6 +1,6 @@
 import { db } from './index';
 import { STATUSES, OWNERS, POSITIONS } from '../types';
-import type { Candidate, CandidateWithLogs, LogEntry, Status, Owner, ActionType } from '../types';
+import type { Candidate, CandidateWithLogs, LogEntry, Status, Owner } from '../types';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Deterministic PRNG (sfc32)
@@ -19,7 +19,7 @@ function makeRng(seed: number) {
   };
 }
 
-export const REF_DATE_2026_05_20 = "2026-05-20";
+const REF_DATE_2026_05_20 = "2026-05-20";
 
 function daysBeforeRef(r: () => number, daysBefore: number, scatter = 0): string {
   const offset = scatter === 0 ? 0 : Math.round(r() * scatter * 2 - scatter);
@@ -29,7 +29,7 @@ function daysBeforeRef(r: () => number, daysBefore: number, scatter = 0): string
 }
 
 // ─── Reference data pools ────────────────────────────────────────────────────
-export const NAMES: string[] = (() => {
+const NAMES: string[] = (() => {
   const FIRST_NAMES = [
     "Emma","Liam","Sophia","Noah","Ava","William","Isabella","James","Mia","Benjamin",
     "Charlotte","Lucas","Amelia","Henry","Harper","Alexander","Evelyn","Sebastian","Abigail","Jack",
@@ -182,45 +182,31 @@ const NOTES: Partial<Record<Status, string>> = {
   "Not Hired":       "Offer rescinded. Candidate did not complete background verification within the required timeframe.",
 };
 
-function determineActionType(status: Status): ActionType {
-  if (status === "Applied") return "Matching";
-  if (status === "Not Suitable" || status === "Shortlisted" || status === "1st Interview" ||
-      status === "2nd Interview" || status === "Not Selected" || status === "Selected" ||
-      status === "Offer Accepted" || status === "Offer Declined" || status === "Hired" ||
-      status === "Not Hired") {
-    return "Change Status";
-  }
-  return "Change Status";
-}
-
-function buildLogs(status: Status, r: () => number, recruiter: Owner): LogEntry[] {
+function buildLogs(status: Status, r: () => number, recruiter: Owner | ""): LogEntry[] {
   const logs: LogEntry[] = [];
-
-  const appDate = daysBeforeRef(r, 0, 365);
-  logs.push({ 
-    date: appDate, 
-    time: "09:00", 
-    recruiter, 
-    status: "Applied", 
-    note: "Candidate submitted application via online portal.",
-    action_type: "Matching"
-  });
+  const actionTypes = ["Change Status", "Matching", "Create/Edit JD", "AI Opinion"] as const;
 
   const idx = FUNNEL.indexOf(status);
 
-  for (let i = 1; i <= idx; i++) {
+  for (let i = 0; i <= idx; i++) {
     const stage = FUNNEL[i];
     const logDate = daysBeforeRef(r, randInt(r, 5) + 2, 10);
     const hour   = Math.round(r() * 9 + 9);
     const minute = String(randInt(r, 60)).padStart(2, "0");
-    const note   = NOTES[stage] ?? `Status updated to ${stage}.`;
+    const actionType = actionTypes[i % actionTypes.length];
+    
+    // Only "Change Status" gets populated note; others have empty notes
+    const note = actionType === "Change Status" 
+      ? (NOTES[stage] ?? `Status updated to ${stage}.`)
+      : "";
+    
     logs.push({ 
       date: logDate, 
       time: `${hour}:${minute}`, 
       recruiter, 
       status: stage, 
       note,
-      action_type: determineActionType(stage)
+      action_type: actionType
     });
   }
 
@@ -292,10 +278,10 @@ export function generateCandidates(): CandidateWithLogs[] {
              : exp < 5  ? "Mid"
              : exp < 9  ? "Senior"
              :             "Lead";
-      })(),
+})(),
       dateApplied:        pickDateApplied(rRow, i),
       status:             STATUS_WEIGHTS[i],
-      recruiter:          OWNERS[i % OWNERS.length],
+      recruiter:          i < 100 ? "" : OWNERS[i % OWNERS.length],
       age:                Math.round(22 + randFloat(rRow, 18)),
       height:             Math.round(155 + randFloat(rRow, 30)),
       weight:             Math.round(55 + randFloat(rRow, 55)),
@@ -338,7 +324,7 @@ export function seedCandidates(candidates: CandidateWithLogs[]) {
       (SELECT id FROM positions WHERE name = @position),
       @experience, @experienceLevel, @dateApplied,
       (SELECT id FROM statuses WHERE name = @status),
-      (SELECT id FROM owners WHERE name = @recruiter),
+      CASE WHEN @recruiter IS NOT NULL AND @recruiter != '' THEN (SELECT id FROM owners WHERE name = @recruiter) END,
       @age, @weight, @height, @bmi,
       @expectedSalary, @education, @address, @language, @license,
       @previousEmployment, @aiSummary
@@ -350,7 +336,7 @@ export function seedCandidates(candidates: CandidateWithLogs[]) {
       candidate_id, date, time, recruiter_id, status_id, note, action_type
     ) VALUES (
       @candidateId, @date, @time,
-      (SELECT id FROM owners WHERE name = @recruiter),
+      CASE WHEN @recruiter IS NOT NULL AND @recruiter != '' THEN (SELECT id FROM owners WHERE name = @recruiter) END,
       (SELECT id FROM statuses WHERE name = @status),
       @note, @action_type
     )
@@ -358,9 +344,9 @@ export function seedCandidates(candidates: CandidateWithLogs[]) {
 
   const tx = db.transaction((candidatesToInsert: CandidateWithLogs[]) => {
     for (const c of candidatesToInsert) {
-      // Ensure uniqueId is generated if not present (for backwards compatibility)
       const uniqueIdValue = c.uniqueId || String(Date.now()).slice(-5).padStart(5, '0');
-      insertCandidate.run({ ...c, uniqueId: uniqueIdValue });
+      const recruiterValue = c.recruiter || null;
+      insertCandidate.run({ ...c, uniqueId: uniqueIdValue, recruiter: recruiterValue as typeof c.recruiter | null });
       for (const log of c.logs) {
         insertLog.run({ ...log, candidateId: c.id });
       }

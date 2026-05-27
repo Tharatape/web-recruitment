@@ -64,7 +64,8 @@ export default function ApplicationsPage() {
       data = data.filter((c) => c.date_applied >= cutoff.toISOString().split("T")[0]);
     }
     if (status.length > 0) data = data.filter((c) => status.includes(c.status));
-    if (recruiter) data = data.filter((c) => c.recruiter === recruiter);
+    if (recruiter === "no-owner") data = data.filter((c) => !c.recruiter || c.recruiter === "");
+    else if (recruiter) data = data.filter((c) => c.recruiter === recruiter);
 
     return data;
   }, [candidates, search, position, expMin, expMax, dateRange, status, recruiter]);
@@ -150,11 +151,11 @@ export default function ApplicationsPage() {
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Recruiter</label>
                 <Dropdown
-                   placeholder="All Recruiters"
-                   options={OWNERS.map((r) => ({ label: r, value: r }))}
-                   value={recruiter}
-                   onChange={setRecruiter}
-                 />
+                  placeholder="All Recruiters"
+                  options={[{ label: "No Owner", value: "no-owner" }, ...OWNERS.map((r) => ({ label: r, value: r }))]}
+                  value={recruiter}
+                  onChange={setRecruiter}
+                />
               </div>
             </div>
             {(search || position.length > 0 || status.length > 0 || recruiter || dateRange !== "all") && (

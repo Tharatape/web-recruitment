@@ -51,18 +51,18 @@ export default function AdminActivityPage() {
       fetch(`/api/activity?${params.toString()}`)
         .then((res) => res.json())
 .then((data) => {
-           const mappedActivities: Activity[] = data.map((item: ApiActivityItem) => ({
-             id: String(item.id),
-             timestamp: `${item.date} ${item.time}`,
-             action: item.action_type || "Matching",
-             recruiter: item.recruiter || "Unknown",
-             candidate: item.candidate_name || "Unknown",
-             candidateId: item.candidate_unique_id || item.candidate_id || "",
-             status: item.status || "",
-             actionDetail: item.note || "",
-           }));
-           setActivities(mappedActivities);
-         });
+            const mappedActivities: Activity[] = data.map((item: ApiActivityItem) => ({
+              id: String(item.id),
+              timestamp: `${item.date} ${item.time}`,
+              action: item.action_type || "Matching",
+              recruiter: item.recruiter || "Unknown",
+              candidate: item.candidate_name || "Unknown",
+              candidateId: item.candidate_unique_id || item.candidate_id || "",
+              status: item.status || "",
+              actionDetail: item.note || "",
+            }));
+            setActivities(mappedActivities);
+          });
     };
     fetchData();
   }, [datePeriod, status, action, recruiter, search]);
@@ -113,23 +113,23 @@ export default function AdminActivityPage() {
                   { label: "Not Hired", value: "Not Hired" },
                 ]}
                 value={status}
-                onChange={setStatus}
+onChange={setStatus}
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-[var(--foreground)]">Action</label>
-              <Dropdown
-                placeholder="All Actions"
-                options={[
-                  { label: "Change Status", value: "Change Status" },
-                  { label: "Matching", value: "Matching" },
-                  { label: "Create/Edit JD", value: "Create/Edit JD" },
-                  { label: "AI Opinion", value: "AI Opinion" },
-                ]}
-                value={action}
-                onChange={setAction}
-              />
-            </div>
+               <label className="text-sm font-semibold text-[var(--foreground)]">Action</label>
+               <Dropdown
+                 placeholder="All Actions"
+                 options={[
+                   { label: "Change Status", value: "Change Status" },
+                   { label: "Matching", value: "Matching" },
+                   { label: "Create/Edit JD", value: "Create/Edit JD" },
+                   { label: "AI Opinion", value: "AI Opinion" },
+                 ]}
+                 value={action}
+                 onChange={setAction}
+               />
+             </div>
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-[var(--foreground)]">Recruiter</label>
               <Dropdown

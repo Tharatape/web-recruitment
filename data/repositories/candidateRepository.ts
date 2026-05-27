@@ -38,21 +38,21 @@ export interface DbLog {
 }
 
 export function getCandidatesWithFilters(filters: {
-  startDate?: string;
-  endDate?: string;
-  owner?: string;
-  search?: string;
-  position?: string[];
-  status?: string[];
-  limit?: number;
-  offset?: number;
-  includeLogs?: boolean;
+   startDate?: string;
+   endDate?: string;
+   owner?: string | null;
+   search?: string;
+   position?: string[];
+   status?: string[];
+   limit?: number;
+   offset?: number;
+   includeLogs?: boolean;
 }): DbCandidate[] {
   let query = `
     SELECT c.*, s.name as status, o.name as recruiter, p.name as position
     FROM candidates c
     JOIN statuses s ON c.status_id = s.id
-    JOIN owners o ON c.recruiter_id = o.id
+    LEFT JOIN owners o ON c.recruiter_id = o.id
     JOIN positions p ON c.position_id = p.id
     WHERE 1=1
   `;
@@ -67,9 +67,13 @@ export function getCandidatesWithFilters(filters: {
     params.push(filters.endDate);
     query += ` AND c.date_applied <= ?`;
   }
-  if (filters.owner) {
-    params.push(filters.owner);
-    query += ` AND o.name = ?`;
+  if (filters.owner !== undefined) {
+    if (filters.owner === null) {
+      query += ` AND c.recruiter_id IS NULL`;
+    } else {
+      params.push(filters.owner);
+      query += ` AND o.name = ?`;
+    }
   }
   if (filters.status?.length) {
     query += ` AND s.name IN (${filters.status.map(() => '?').join(',')})`;
@@ -100,7 +104,7 @@ export function getCandidatesWithFilters(filters: {
         SELECT al.*, s.name as status, o.name as recruiter
         FROM activity_logs al
         JOIN statuses s ON al.status_id = s.id
-        JOIN owners o ON al.recruiter_id = o.id
+        LEFT JOIN owners o ON al.recruiter_id = o.id
         WHERE al.candidate_id IN (${candidateIds.map(() => '?').join(',')})
         ORDER BY al.candidate_id, al.date DESC, al.time DESC
       `;
@@ -128,7 +132,7 @@ export function getCandidateLogs(candidateId: string): DbLog[] {
     SELECT al.*, s.name as status, o.name as recruiter
     FROM activity_logs al
     JOIN statuses s ON al.status_id = s.id
-    JOIN owners o ON al.recruiter_id = o.id
+    LEFT JOIN owners o ON al.recruiter_id = o.id
     WHERE al.candidate_id = ?
     ORDER BY al.date DESC, al.time DESC
   `).all(candidateId) as DbLog[];
@@ -138,27 +142,12 @@ export function getUniqueRecruiters(): { name: string }[] {
   return db.prepare('SELECT name FROM owners ORDER BY name').all() as { name: string }[];
 }
 
-export function getUniquePositions(): { name: string }[] {
-  return db.prepare('SELECT DISTINCT name FROM positions ORDER BY name').all() as { name: string }[];
-}
-
-export function getCandidateById(id: string): DbCandidate | undefined {
-  return db.prepare(`
-    SELECT c.*, s.name as status, o.name as recruiter, p.name as position
-    FROM candidates c
-    JOIN statuses s ON c.status_id = s.id
-    JOIN owners o ON c.recruiter_id = o.id
-    JOIN positions p ON c.position_id = p.id
-    WHERE c.id = ?
-  `).get(id) as DbCandidate | undefined;
-}
-
 export function getCandidateByUniqueId(uniqueId: string): DbCandidate | undefined {
   return db.prepare(`
     SELECT c.*, s.name as status, o.name as recruiter, p.name as position
     FROM candidates c
     JOIN statuses s ON c.status_id = s.id
-    JOIN owners o ON c.recruiter_id = o.id
+    LEFT JOIN owners o ON c.recruiter_id = o.id
     JOIN positions p ON c.position_id = p.id
     WHERE c.unique_id = ?
   `).get(uniqueId) as DbCandidate | undefined;

@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   const filters = {
     startDate: searchParams.get('startDate') || undefined,
     endDate: searchParams.get('endDate') || undefined,
-    owner: searchParams.get('owner') || undefined,
+    owner: searchParams.get('owner') === 'no-owner' ? null : (searchParams.get('owner') || undefined),
     search: searchParams.get('search') || undefined,
     status: searchParams.getAll('status'),
     position: searchParams.getAll('position'),

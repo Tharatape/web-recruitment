@@ -58,7 +58,7 @@ export interface Candidate {
   experienceLevel: string;
   dateApplied: string;
   status: Status;
-  recruiter: Owner;
+  recruiter: Owner | "";
   age: number;
   weight: number; // kg
   height: number; // cm
@@ -72,17 +72,13 @@ export interface Candidate {
   aiSummary: string;
 }
 
-export const ACTION_TYPES = ["Change Status", "Matching", "Create/Edit JD", "AI Opinion"] as const;
-
-export type ActionType = (typeof ACTION_TYPES)[number];
-
 export type LogEntry = {
   date: string;
   time: string;
-  recruiter: Owner;
+  recruiter: Owner | "";
   status: Status;
   note: string;
-  action_type?: ActionType;
+  action_type: string;
 };
 
 export interface CandidateWithLogs extends Candidate {

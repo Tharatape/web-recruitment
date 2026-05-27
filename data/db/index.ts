@@ -41,6 +41,10 @@ let schemaInitialized = false;
 export function initializeDatabase() {
   if (schemaInitialized) return;
   
+  // Clean up any leftover temp tables from failed migrations
+  db.exec('DROP TABLE IF EXISTS candidates_new');
+  db.exec('DROP TABLE IF EXISTS activity_logs_new');
+  
   // Check if candidates table exists - if not, run full schema
   if (!tableExists('candidates')) {
     const schema = readFileSync(
@@ -56,6 +60,26 @@ export function initializeDatabase() {
     
     if (!columnExists('candidates', 'unique_id')) {
       db.exec('ALTER TABLE candidates ADD COLUMN unique_id TEXT');
+    }
+
+    // Make recruiter_id nullable in candidates if needed
+    const candCols = db.prepare('PRAGMA table_info(candidates)').all() as { name: string; notnull: number }[];
+    const candRecruiterCol = candCols.find(c => c.name === 'recruiter_id');
+    if (candRecruiterCol && candRecruiterCol.notnull === 1) {
+      db.exec('CREATE TABLE candidates_new (id TEXT PRIMARY KEY, unique_id TEXT UNIQUE, name TEXT NOT NULL, phone TEXT NOT NULL, nid TEXT NOT NULL, email TEXT NOT NULL, position_id INTEGER NOT NULL, experience REAL NOT NULL, experience_level TEXT NOT NULL, date_applied TEXT NOT NULL, status_id INTEGER NOT NULL, recruiter_id INTEGER, age INTEGER NOT NULL, weight INTEGER NOT NULL, height INTEGER NOT NULL, bmi REAL NOT NULL, expected_salary TEXT NOT NULL, education TEXT NOT NULL, address TEXT NOT NULL, language TEXT NOT NULL, license TEXT NOT NULL, previous_employment TEXT NOT NULL, ai_summary TEXT NOT NULL, FOREIGN KEY (position_id) REFERENCES positions(id), FOREIGN KEY (status_id) REFERENCES statuses(id), FOREIGN KEY (recruiter_id) REFERENCES owners(id))');
+      db.exec('INSERT INTO candidates_new SELECT * FROM candidates');
+      db.exec('DROP TABLE candidates');
+      db.exec('ALTER TABLE candidates_new RENAME TO candidates');
+    }
+
+    // Make recruiter_id nullable in activity_logs if needed
+    const logCols = db.prepare('PRAGMA table_info(activity_logs)').all() as { name: string; notnull: number }[];
+    const logRecruiterCol = logCols.find(c => c.name === 'recruiter_id');
+    if (logRecruiterCol && logRecruiterCol.notnull === 1) {
+      db.exec('CREATE TABLE activity_logs_new (id INTEGER PRIMARY KEY AUTOINCREMENT, candidate_id TEXT NOT NULL, date TEXT NOT NULL, time TEXT NOT NULL, recruiter_id INTEGER, status_id INTEGER NOT NULL, note TEXT, action_type TEXT, FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE, FOREIGN KEY (recruiter_id) REFERENCES owners(id), FOREIGN KEY (status_id) REFERENCES statuses(id))');
+      db.exec('INSERT INTO activity_logs_new SELECT * FROM activity_logs');
+      db.exec('DROP TABLE activity_logs');
+      db.exec('ALTER TABLE activity_logs_new RENAME TO activity_logs');
     }
   }
   
