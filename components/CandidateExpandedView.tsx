@@ -83,8 +83,8 @@ function SectionCard({ title, variant, children }: { title: string; variant?: "n
 }
 
 function Checklist({ items, score }: { items: string[]; score: number }) {
-  const passCount = Math.max(1, Math.round((score / 100) * items.length));
-  return (
+   const passCount = Math.max(0, Math.round((score / 100) * items.length));
+   return (
     <div className="mt-2 p-2.5 border border-[var(--border)] rounded-lg bg-white">
       {items.map((item, i) => {
         const isPass = i < passCount;
@@ -110,8 +110,11 @@ interface ScoreBarProps {
 }
 
 function ScoreBar({ label, score, checklist, totalPassed, maxPoints }: ScoreBarProps) {
-  const color = score >= 80 ? "#22c55e" : score >= 50 ? "#f59e0b" : "#ef4444";
-  const pointsDisplay = maxPoints !== undefined ? `${maxPoints} pts` : `${score}%`;
+  const barWidth = checklist && totalPassed !== undefined 
+    ? Math.max(0, (totalPassed / checklist.length) * 100) 
+    : score;
+  const color = barWidth >= 80 ? "#22c55e" : barWidth >= 50 ? "#f59e0b" : "#ef4444";
+  const pointsDisplay = maxPoints !== undefined ? `${maxPoints} pts` : `${Math.round(barWidth)}%`;
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
@@ -121,10 +124,10 @@ function ScoreBar({ label, score, checklist, totalPassed, maxPoints }: ScoreBarP
       <div className="h-2 rounded-full bg-[#e2e8f0] overflow-hidden">
         <div
           className="h-full rounded-full transition-all"
-          style={{ width: `${score}%`, backgroundColor: color }}
+          style={{ width: `${barWidth}%`, backgroundColor: color }}
         />
       </div>
-      {checklist && <Checklist items={checklist} score={score} />}
+      {checklist && <Checklist items={checklist} score={(totalPassed ?? 0) / checklist.length * 100} />}
     </div>
   );
 }
@@ -270,8 +273,8 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
                       ["Language", barScores.language, barScores.languageChecklist, barScores.languagePoints],
                       ["Skill", barScores.technical, barScores.technicalChecklist, barScores.technicalPoints],
                     ] as [string, number, string[] | undefined, number | undefined][])
-                      .map(([lbl, sc, checklist, pts]) => {
-                        const passCount = checklist ? Math.max(1, Math.round((sc / 100) * checklist.length)) : undefined;
+.map(([lbl, sc, checklist, pts]) => {
+                        const passCount = checklist ? Math.max(0, Math.round((sc / 100) * checklist.length)) : undefined;
                         return <ScoreBar key={lbl} label={lbl} score={sc} checklist={checklist} totalPassed={passCount} maxPoints={pts} />;
                       })}
                   </div>

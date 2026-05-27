@@ -191,10 +191,10 @@ export function buildBarScores(row: {
    const langScore = getLanguageScore(row.language);
    const techScore = getTechnicalScore(row.experience);
 
-   const expPass  = Math.max(1, Math.round((expScore  / 100) * w.experience.itemCount));
-   const eduPass  = Math.max(1, Math.round((eduScore  / 100) * w.education.itemCount));
-   const langPass = Math.max(1, Math.round((langScore / 100) * w.language.itemCount));
-   const techPass = Math.max(1, Math.round((techScore / 100) * w.technical.itemCount));
+const expPass  = Math.max(0, Math.round((expScore  / 100) * w.experience.itemCount));
+    const eduPass  = Math.max(0, Math.round((eduScore  / 100) * w.education.itemCount));
+    const langPass = Math.max(0, Math.round((langScore / 100) * w.language.itemCount));
+    const techPass = Math.max(0, Math.round((techScore / 100) * w.technical.itemCount));
 
    return {
      experience: expScore,
