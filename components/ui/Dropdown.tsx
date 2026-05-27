@@ -10,13 +10,13 @@ interface DropdownProps {
 }
 
 export function Dropdown({
-  options,
-  placeholder = "Select...",
-  value,
-  onChange,
-  className = "",
-  label,
-}: DropdownProps) {
+   options,
+   placeholder = "Select...",
+   value,
+   onChange,
+   className = "",
+   label,
+ }: DropdownProps) {
   return (
     <div className="flex flex-col gap-1">
       {label && (

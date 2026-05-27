@@ -166,20 +166,20 @@ export default function ApplicationsPage() {
                   />
                 </div>
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold text-[var(--foreground)]">Date Applied</label>
-                <Dropdown
-                  placeholder="All Time"
-                  options={[
-                    { label: "All Time", value: "all" },
-                    { label: "Last 7 days", value: "7" },
-                    { label: "Last 14 days", value: "14" },
-                    { label: "Last 30 days", value: "30" },
-                    { label: "Last 90 days", value: "90" },
-                  ]}
-                  value={dateRange}
-                  onChange={setDateRange}
-                />
+<div className="flex flex-col gap-1">
+                 <label className="text-sm font-semibold text-[var(--foreground)]">Date Applied</label>
+                 <Dropdown
+                   placeholder=""
+                   options={[
+                     { label: "All Time", value: "all" },
+                     { label: "Last 7 days", value: "7" },
+                     { label: "Last 14 days", value: "14" },
+                     { label: "Last 30 days", value: "30" },
+                     { label: "Last 90 days", value: "90" },
+                   ]}
+                   value={dateRange}
+                   onChange={setDateRange}
+                 />
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Status</label>
