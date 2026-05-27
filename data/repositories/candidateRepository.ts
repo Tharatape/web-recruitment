@@ -163,3 +163,8 @@ export function getCandidateByUniqueId(uniqueId: string): DbCandidate | undefine
     WHERE c.unique_id = ?
   `).get(uniqueId) as DbCandidate | undefined;
 }
+
+export function getCandidateCount(): number {
+  const result = db.prepare('SELECT COUNT(*) as count FROM candidates').get() as { count: number };
+  return result.count;
+}
