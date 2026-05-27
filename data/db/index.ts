@@ -5,39 +5,46 @@ import { mkdirSync, existsSync, readFileSync } from 'fs';
 function getDbPath() {
   if (process.env.NODE_ENV === 'production') {
     const customPath = process.env.DATABASE_PATH;
-    if (customPath) {
-      const dir = customPath.substring(0, customPath.lastIndexOf('/'));
-      try {
-        if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-      } catch {}
-      return customPath;
-    }
-    try {
-      if (!existsSync('/var/data/mockup')) mkdirSync('/var/data/mockup', { recursive: true });
-    } catch {}
+    if (customPath) return customPath;
     return '/var/data/mockup/mockup.db';
   }
   return join(process.cwd(), 'data', 'db', 'mockup.db');
+}
+
+function ensureDirectory() {
+  const dbPath = getDbPath();
+  const dbDir = dbPath.substring(0, dbPath.lastIndexOf('/'));
+  try {
+    if (!existsSync(dbDir)) mkdirSync(dbDir, { recursive: true });
+  } catch {
+    // Directory may not exist during build on non-prod systems
+  }
 }
 
 let dbInstance: Database.Database | null = null;
 
 export function getDb(): Database.Database {
   if (!dbInstance) {
+    ensureDirectory();
     dbInstance = new Database(getDbPath());
     dbInstance.pragma('foreign_keys = ON');
   }
   return dbInstance;
 }
 
-export const db: Database.Database = new Proxy({} as Database.Database, {
+export const db = new Proxy({} as Database.Database, {
   get(target, prop) {
-    const instance = getDb();
-    const value = (instance as unknown as Record<string, unknown>)[prop as string];
-    if (typeof value === 'function') {
-      return (...args: unknown[]) => (value as (...args: unknown[]) => unknown).apply(instance, args);
+    try {
+      const instance = getDb();
+      const value = (instance as unknown as Record<string, unknown>)[prop as string];
+      if (typeof value === 'function') {
+        return (...args: unknown[]) => (value as (...args: unknown[]) => unknown).apply(instance, args);
+      }
+      return value;
+    } catch {
+      // Return empty/no-op for build-time or error scenarios
+      return undefined;
     }
-    return value;
   }
 });
 
