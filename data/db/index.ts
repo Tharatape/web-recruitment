@@ -3,7 +3,7 @@ import { join } from 'path';
 import { readFileSync, mkdirSync, existsSync } from 'fs';
 
 const dbPath = process.env.NODE_ENV === 'production'
-  ? '/tmp/mockup.db'
+  ? process.env.DATABASE_PATH || '/var/data/mockup/mockup.db'
   : join(process.cwd(), 'data', 'db', 'mockup.db');
 
 const dbDir = process.env.NODE_ENV === 'production' ? '/tmp' : join(process.cwd(), 'data', 'db');

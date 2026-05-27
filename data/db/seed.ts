@@ -7,9 +7,9 @@ import { join } from 'path';
 let seedingLock: string | null = null;
 function acquireSeedLock(): boolean {
   if (seedingLock) return false;
-  const lockPath = process.env.NODE_ENV === 'production'
-    ? '/tmp/mockup-seed.lock'
-    : join(process.cwd(), 'data', 'db', 'seed.lock');
+const lockPath = process.env.NODE_ENV === 'production'
+      ? process.env.SEED_LOCK_PATH || '/var/data/mockup/seed.lock'
+      : join(process.cwd(), 'data', 'db', 'seed.lock');
   try {
     if (existsSync(lockPath)) return false;
     writeFileSync(lockPath, '1');
