@@ -242,7 +242,7 @@ export default function JdLibraryPage() {
                               <div className="flex items-center gap-3">
                                 <span className={`font-medium text-sm ${jd.disabled ? "line-through text-[var(--text-muted)]" : ""}`}>{jd.name}</span>
                                 <span className={`text-xs ${jd.disabled ? "line-through text-[var(--text-muted)]" : "text-[var(--text-secondary)] bg-[var(--primary-light)]"} px-2 py-0.5 rounded`}>{jd.position}</span>
-                                {jd.disabled && (
+                                {!!jd.disabled && (
                                   <span className="text-xs text-[var(--text-muted)] bg-[var(--border)] px-2 py-0.5 rounded">Disabled</span>
                                 )}
                               </div>
