@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardHeader,
@@ -13,172 +13,59 @@ import { StageBar } from "@/components/charts/StageBar";
 import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { STATUSES } from "@/data/types";
-import type { DbCandidate } from "@/data/repositories/candidateRepository";
+import type { DashboardStats } from "@/data/db/stats";
 
 export default function DashboardPage() {
-const [startDate, setStartDate] = useState("");
-   const [endDate, setEndDate] = useState("");
-   const [owner, setOwner] = useState("");
-   const [candidates, setCandidates] = useState<DbCandidate[]>([]);
-   const [recruiters, setRecruiters] = useState<string[]>([]);
-   const [loading, setLoading] = useState(true);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [owner, setOwner] = useState("");
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recruiters, setRecruiters] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
-   useEffect(() => {
-     const fetchData = async () => {
-       setLoading(true);
-       const params = new URLSearchParams();
-       if (startDate) params.set('startDate', startDate);
-       if (endDate) params.set('endDate', endDate);
-       if (owner) params.set('owner', owner);
-       params.set('includeLogs', 'true');
-       
-       const [candRes, recRes] = await Promise.all([
-         fetch(`/api/candidates?${params}`),
-         fetch('/api/candidates', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'getRecruiters' }) })
-       ]);
-       
-       const cands = await candRes.json();
-       const recs = await recRes.json();
-       setCandidates(cands);
-       setRecruiters(recs.map((r: { name: string }) => r.name));
-       setLoading(false);
-     };
-     fetchData();
-   }, [startDate, endDate, owner]);
-
-   const filtered = useMemo(() => {
-     return candidates.filter((c) => {
-       if (startDate && c.date_applied < startDate) return false;
-       if (endDate && c.date_applied > endDate) return false;
-       if (owner && c.recruiter !== owner) return false;
-       return true;
-     });
-   }, [candidates, startDate, endDate, owner]);
-
-   const total = filtered.length;
-   const today = useMemo(() => {
-     const todayStr = new Date().toISOString().split("T")[0];
-     return filtered.filter((c) => c.date_applied === todayStr).length;
-   }, [filtered]);
-   const lastWeek = useMemo(() => {
-     const weekAgo = new Date();
-     weekAgo.setDate(weekAgo.getDate() - 7);
-     return filtered.filter((c) => new Date(c.date_applied) >= weekAgo).length;
-   }, [filtered]);
-   const lastMonth = useMemo(() => {
-     const monthAgo = new Date();
-     monthAgo.setMonth(monthAgo.getMonth() - 1);
-     return filtered.filter((c) => new Date(c.date_applied) >= monthAgo).length;
-   }, [filtered]);
-
-  const fullStatusCounts = useMemo(() => {
-    const map: Record<string, number> = {};
-    STATUSES.forEach((s) => (map[s] = 0));
-    filtered.forEach((c) => map[c.status]++);
-    return map;
-  }, [filtered]);
-
-  const statusBarData = useMemo(
-    () =>
-      STATUSES.map((s) => ({
-        name: s,
-        value: fullStatusCounts[s] || 0,
-        color: "#2563eb",
-        percentage: total > 0 ? ((fullStatusCounts[s] || 0) / total * 100).toFixed(1) + "%" : "0%",
-      })),
-    [fullStatusCounts, total]
-  );
-
-  const { stageData, maxTotal, stageTotals } = useMemo(() => {
-    const candidateStages = filtered.map((c) => {
-      const s = new Set<string>();
-      (c.logs || []).forEach((l) => s.add(l.status));
-      return s;
-    });
-
-    const appliedCount = candidateStages.filter(
-      (stages) => stages.has("Applied") && !stages.has("Shortlisted") && !stages.has("Not Suitable")
-    ).length;
-    const shortlistedCount = candidateStages.filter((stages) => stages.has("Shortlisted")).length;
-    const notSuitableCount = candidateStages.filter(
-      (stages) => stages.has("Not Suitable") && !stages.has("Shortlisted")
-    ).length;
-
-    const selectedCount = candidateStages.filter(
-      (stages) => stages.has("Selected")
-    ).length;
-    const notSelectedCount =
-      candidateStages.filter(
-        (stages) => stages.has("Shortlisted") && !stages.has("Selected")
-      ).length;
-
-    const offerAcceptedCount = candidateStages.filter(
-      (stages) => stages.has("Offer Accepted")
-    ).length;
-    const offerDeclinedCount =
-      candidateStages.filter(
-        (stages) => stages.has("Selected") && !stages.has("Offer Accepted")
-      ).length;
-
-    const hiredHiredCount = candidateStages.filter(
-      (stages) => stages.has("Hired")
-    ).length;
-    const notHiredCount =
-      candidateStages.filter(
-        (stages) => stages.has("Offer Accepted") && !stages.has("Hired")
-      ).length;
-
-    const stageTotals: Record<string, number> = {
-      "Application Stage": shortlistedCount + notSuitableCount + appliedCount,
-      "Interview Stage": shortlistedCount,
-      "Offer Stage": selectedCount,
-      "Hired Stage": offerAcceptedCount,
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      
+      const [statsRes, recRes] = await Promise.all([
+        fetch(`/api/dashboard/stats?${new URLSearchParams({ startDate, endDate, owner })}`),
+        fetch('/api/dashboard/stats', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'getRecruiters' }) })
+      ]);
+      
+      const statsData = await statsRes.json();
+      const recs = await recRes.json();
+      setStats(statsData);
+      setRecruiters(recs.map((r: { name: string }) => r.name));
+      setLoading(false);
     };
+    fetchData();
+  }, [startDate, endDate, owner]);
 
-    const data = [
-      {
-        name: "Application Stage",
-        segments: [
-          { name: "Shortlisted", value: shortlistedCount, color: "#22c55e" },
-          { name: "Not Suitable", value: notSuitableCount, color: "#ef4444" },
-          { name: "Applied", value: appliedCount, color: "#9ca3af" },
-        ],
-      },
-      {
-        name: "Interview Stage",
-        segments: [
-          { name: "Selected", value: selectedCount, color: "#22c55e" },
-          { name: "Not Selected", value: notSelectedCount, color: "#ef4444" },
-        ],
-      },
-      {
-        name: "Offer Stage",
-        segments: [
-          { name: "Accepted", value: offerAcceptedCount, color: "#22c55e" },
-          { name: "Decline", value: offerDeclinedCount, color: "#ef4444" },
-        ],
-      },
-      {
-        name: "Hired Stage",
-        segments: [
-          { name: "Hires", value: hiredHiredCount, color: "#22c55e" },
-          { name: "Not Hired", value: notHiredCount, color: "#ef4444" },
-        ],
-      },
-    ];
+  const total = stats?.total || 0;
+  const today = stats?.today || 0;
+  const lastWeek = stats?.lastWeek || 0;
+  const lastMonth = stats?.lastMonth || 0;
 
-    const maxTotal = Math.max(...Object.values(stageTotals));
-    return { stageData: data, maxTotal, stageTotals };
-  }, [filtered]);
+  const fullStatusCounts = stats?.statusCounts || {};
 
-  const positionDist = useMemo(() => {
-    const map: Record<string, number> = {};
-    filtered.forEach((c) => (map[c.position] = (map[c.position] || 0) + 1));
-    return Object.entries(map)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 8);
-  }, [filtered]);
+  const statusBarData = STATUSES.map((s) => ({
+    name: s,
+    value: fullStatusCounts[s] || 0,
+    color: "#2563eb",
+    percentage: total > 0 ? ((fullStatusCounts[s] || 0) / total * 100).toFixed(1) + "%" : "0%",
+  }));
+
+  const stageTotalsValue = stats?.stageTotals || {};
+  const stageTotals: Record<string, number> = {
+    "Application Stage": stageTotalsValue["Application Stage"] || 0,
+    "Interview Stage": stageTotalsValue["Interview Stage"] || 0,
+    "Offer Stage": stageTotalsValue["Offer Stage"] || 0,
+    "Hired Stage": stageTotalsValue["Hired Stage"] || 0,
+  };
+  const stageData = stats?.stageData || [];
+  const maxTotal = Math.max(...Object.values(stageTotals));
+
+  const positionDist = stats?.positionDistribution || [];
 
   if (loading) {
     return (
@@ -350,5 +237,5 @@ const [startDate, setStartDate] = useState("");
           </CardContent>
         </Card>
      </main>
-  );
+   );
 }
