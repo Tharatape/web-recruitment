@@ -92,7 +92,7 @@ export function getDashboardStats(filters?: {
       MAX(CASE WHEN s.name = 'Selected' THEN 1 ELSE 0 END) as has_selected,
       MAX(CASE WHEN s.name = 'Offer Accepted' THEN 1 ELSE 0 END) as has_offer_accepted,
       MAX(CASE WHEN s.name = 'Hired' THEN 1 ELSE 0 END) as has_hired,
-      MAX(CASE WHEN al.status_id IS NOT NULL THEN 1 ELSE 0 END) as has_logs
+      MAX(CASE WHEN s.name = 'Applied' THEN 1 ELSE 0 END) as has_applied
     FROM candidates c
     LEFT JOIN owners o ON c.recruiter_id = o.id
     LEFT JOIN activity_logs al ON c.id = al.candidate_id
@@ -106,7 +106,7 @@ export function getDashboardStats(filters?: {
     has_selected: number;
     has_offer_accepted: number;
     has_hired: number;
-    has_logs: number;
+    has_applied: number;
   }>;
 
   let appliedCount = 0;
@@ -144,7 +144,7 @@ export function getDashboardStats(filters?: {
     if (row.has_offer_accepted && !row.has_hired) {
       notHiredCount++;
     }
-    if (row.has_logs && !row.has_shortlisted && !row.has_not_suitable) {
+    if (row.has_applied && !row.has_shortlisted && !row.has_not_suitable) {
       appliedCount++;
     }
   }
