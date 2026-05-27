@@ -314,7 +314,7 @@ export function seedReferenceData() {
 
 export function seedCandidates(candidates: CandidateWithLogs[]) {
   const insertCandidate = db.prepare(`
-    INSERT INTO candidates (
+    INSERT OR REPLACE INTO candidates (
       id, unique_id, name, phone, nid, email, position_id, experience, experience_level,
       date_applied, status_id, recruiter_id, age, weight, height, bmi,
       expected_salary, education, address, language, license,
@@ -332,7 +332,7 @@ export function seedCandidates(candidates: CandidateWithLogs[]) {
   `);
 
   const insertLog = db.prepare(`
-    INSERT INTO activity_logs (
+    INSERT OR REPLACE INTO activity_logs (
       candidate_id, date, time, recruiter_id, status_id, note, action_type
     ) VALUES (
       @candidateId, @date, @time,
@@ -506,11 +506,11 @@ export function seedJDs() {
   ];
 
   const insertJD = db.prepare(`
-    INSERT INTO jds (id, name, position, created_at) VALUES (?, ?, ?, ?)
+    INSERT OR REPLACE INTO jds (id, name, position, created_at) VALUES (?, ?, ?, ?)
   `);
 
   const insertChecklist = db.prepare(`
-    INSERT INTO jd_checklists (jd_id, category, criterion_order, criterion_text) VALUES (?, ?, ?, ?)
+    INSERT OR REPLACE INTO jd_checklists (jd_id, category, criterion_order, criterion_text) VALUES (?, ?, ?, ?)
   `);
 
   const tx = db.transaction(() => {

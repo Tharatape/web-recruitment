@@ -33,11 +33,15 @@ function seedDatabaseIfNeeded() {
     
     const candidateCount = getCandidateCount();
     
-    if (candidateCount === 0) {
-      seedReferenceData();
-      seedCandidates(generateCandidates());
-      seedJDs();
+    // If database already has candidate data, don't re-seed
+    if (candidateCount > 0) {
+      seeded = true;
+      return;
     }
+    
+    seedReferenceData();
+    seedCandidates(generateCandidates());
+    seedJDs();
   } catch (error) {
     console.error('Database seeding error:', error);
   }
