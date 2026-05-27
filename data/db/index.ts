@@ -65,9 +65,10 @@ export function initializeDatabase() {
     // Make recruiter_id nullable in candidates if needed
     const candCols = db.prepare('PRAGMA table_info(candidates)').all() as { name: string; notnull: number }[];
     const candRecruiterCol = candCols.find(c => c.name === 'recruiter_id');
-    if (candRecruiterCol && candRecruiterCol.notnull === 1) {
+    // Only migrate if recruiter_id is NOT NULL AND unique_id doesn't exist (old schema without unique_id)
+    if (candRecruiterCol && candRecruiterCol.notnull === 1 && !columnExists('candidates', 'unique_id')) {
       db.exec('CREATE TABLE candidates_new (id TEXT PRIMARY KEY, unique_id TEXT UNIQUE, name TEXT NOT NULL, phone TEXT NOT NULL, nid TEXT NOT NULL, email TEXT NOT NULL, position_id INTEGER NOT NULL, experience REAL NOT NULL, experience_level TEXT NOT NULL, date_applied TEXT NOT NULL, status_id INTEGER NOT NULL, recruiter_id INTEGER, age INTEGER NOT NULL, weight INTEGER NOT NULL, height INTEGER NOT NULL, bmi REAL NOT NULL, expected_salary TEXT NOT NULL, education TEXT NOT NULL, address TEXT NOT NULL, language TEXT NOT NULL, license TEXT NOT NULL, previous_employment TEXT NOT NULL, ai_summary TEXT NOT NULL, FOREIGN KEY (position_id) REFERENCES positions(id), FOREIGN KEY (status_id) REFERENCES statuses(id), FOREIGN KEY (recruiter_id) REFERENCES owners(id))');
-      db.exec('INSERT INTO candidates_new SELECT * FROM candidates');
+      db.exec('INSERT INTO candidates_new SELECT *, NULL FROM candidates');
       db.exec('DROP TABLE candidates');
       db.exec('ALTER TABLE candidates_new RENAME TO candidates');
     }

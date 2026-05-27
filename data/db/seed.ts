@@ -1,6 +1,31 @@
 import { db } from './index';
 import { STATUSES, OWNERS, POSITIONS } from '../types';
 import type { Candidate, CandidateWithLogs, LogEntry, Status, Owner } from '../types';
+import { existsSync, writeFileSync, unlinkSync } from 'fs';
+import { join } from 'path';
+
+let seedingLock: string | null = null;
+function acquireSeedLock(): boolean {
+  if (seedingLock) return false;
+  const lockPath = process.env.NODE_ENV === 'production'
+    ? '/tmp/mockup-seed.lock'
+    : join(process.cwd(), 'data', 'db', 'seed.lock');
+  try {
+    if (existsSync(lockPath)) return false;
+    writeFileSync(lockPath, '1');
+    seedingLock = lockPath;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function releaseSeedLock() {
+  if (seedingLock && existsSync(seedingLock)) {
+    try { unlinkSync(seedingLock); } catch {}
+    seedingLock = null;
+  }
+}
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Deterministic PRNG (sfc32)
@@ -313,8 +338,14 @@ export function seedReferenceData() {
 }
 
 export function seedCandidates(candidates: CandidateWithLogs[]) {
+  if (!acquireSeedLock()) return;
+  
+  const candidateCount = db.prepare('SELECT COUNT(*) as count FROM candidates').get() as { count: number };
+  releaseSeedLock();
+  if (candidateCount.count > 0) return;
+
   const insertCandidate = db.prepare(`
-    INSERT OR REPLACE INTO candidates (
+    INSERT INTO candidates (
       id, unique_id, name, phone, nid, email, position_id, experience, experience_level,
       date_applied, status_id, recruiter_id, age, weight, height, bmi,
       expected_salary, education, address, language, license,
@@ -332,7 +363,7 @@ export function seedCandidates(candidates: CandidateWithLogs[]) {
   `);
 
   const insertLog = db.prepare(`
-    INSERT OR REPLACE INTO activity_logs (
+    INSERT INTO activity_logs (
       candidate_id, date, time, recruiter_id, status_id, note, action_type
     ) VALUES (
       @candidateId, @date, @time,
@@ -505,12 +536,18 @@ export function seedJDs() {
     { id: "JD-0010", name: "Operations Manager JD", position: "Operations Manager", checklists: { experience: defaultExperienceChecklist, education: defaultEducationChecklist, language: defaultLanguageChecklist, technical: defaultTechnicalChecklist } },
   ];
 
+  if (!acquireSeedLock()) return;
+  
+  const jdCount = db.prepare('SELECT COUNT(*) as count FROM jds').get() as { count: number };
+  releaseSeedLock();
+  if (jdCount.count > 0) return;
+
   const insertJD = db.prepare(`
-    INSERT OR REPLACE INTO jds (id, name, position, created_at) VALUES (?, ?, ?, ?)
+    INSERT OR IGNORE INTO jds (id, name, position, created_at) VALUES (?, ?, ?, ?)
   `);
 
   const insertChecklist = db.prepare(`
-    INSERT OR REPLACE INTO jd_checklists (jd_id, category, criterion_order, criterion_text) VALUES (?, ?, ?, ?)
+    INSERT OR IGNORE INTO jd_checklists (jd_id, category, criterion_order, criterion_text) VALUES (?, ?, ?, ?)
   `);
 
   const tx = db.transaction(() => {

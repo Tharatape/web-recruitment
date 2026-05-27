@@ -5,11 +5,40 @@ import Sidebar from "@/components/Sidebar";
 import { initializeDatabase, db } from '@/data/db';
 import { seedReferenceData, seedCandidates, seedJDs, generateCandidates } from '@/data/db/seed';
 import { getCandidateCount } from '@/data/repositories/candidateRepository';
+import { existsSync, writeFileSync, unlinkSync } from 'fs';
+import { join } from 'path';
+
+// File-based lock for seeding to prevent race conditions during concurrent builds
+let seedingLockAcquired = false;
+function acquireSeedLock(): boolean {
+  if (seedingLockAcquired) return false;
+  const lockPath = process.env.NODE_ENV === 'production'
+    ? '/tmp/mockup-seed.lock'
+    : join(process.cwd(), 'data', 'db', 'seed.lock');
+  try {
+    if (existsSync(lockPath)) return false;
+    writeFileSync(lockPath, Date.now().toString());
+    seedingLockAcquired = true;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function releaseSeedLock() {
+  const lockPath = process.env.NODE_ENV === 'production'
+    ? '/tmp/mockup-seed.lock'
+    : join(process.cwd(), 'data', 'db', 'seed.lock');
+  if (seedingLockAcquired && existsSync(lockPath)) {
+    try { unlinkSync(lockPath); } catch {}
+    seedingLockAcquired = false;
+  }
+}
 
 // Auto-seed database on startup if empty
 let seeded = false;
 function seedDatabaseIfNeeded() {
-  if (seeded) return;
+  if (seeded || !acquireSeedLock()) return;
   try {
     initializeDatabase();
     
@@ -36,6 +65,7 @@ function seedDatabaseIfNeeded() {
     // If database already has candidate data, don't re-seed
     if (candidateCount > 0) {
       seeded = true;
+      releaseSeedLock();
       return;
     }
     
@@ -46,6 +76,7 @@ function seedDatabaseIfNeeded() {
     console.error('Database seeding error:', error);
   }
   seeded = true;
+  releaseSeedLock();
 }
 
 seedDatabaseIfNeeded();
