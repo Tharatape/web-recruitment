@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initializeDatabase } from '@/data/db';
 import { getAllJDs, getJDById, createJD, deleteJD, toggleJDDisabled } from '@/data/repositories/jdRepository';
 
-initializeDatabase();
-
 export async function GET(request: NextRequest) {
+  initializeDatabase();
   const searchParams = request.nextUrl.searchParams;
   const id = searchParams.get('id');
 

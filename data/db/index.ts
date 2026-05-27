@@ -11,13 +11,14 @@ function getDbPath() {
   return join(process.cwd(), 'data', 'db', 'mockup.db');
 }
 
-function ensureDirectory() {
+function ensureDirectory(): boolean {
   const dbPath = getDbPath();
   const dbDir = dbPath.substring(0, dbPath.lastIndexOf('/'));
   try {
     if (!existsSync(dbDir)) mkdirSync(dbDir, { recursive: true });
+    return true;
   } catch {
-    // Directory may not exist during build on non-prod systems
+    return false;
   }
 }
 
@@ -25,11 +26,25 @@ let dbInstance: Database.Database | null = null;
 
 export function getDb(): Database.Database {
   if (!dbInstance) {
-    ensureDirectory();
+    if (!ensureDirectory()) {
+      throw new Error('Cannot open database - directory does not exist and cannot be created');
+    }
     dbInstance = new Database(getDbPath());
     dbInstance.pragma('foreign_keys = ON');
   }
   return dbInstance;
+}
+
+function createBuildTimeDb() {
+  return {
+    prepare: () => ({
+      all: () => [],
+      get: () => null,
+      run: () => ({ changes: 0, lastInsertRowid: 0 }),
+    }),
+    exec: () => {},
+    pragma: () => {},
+  } as unknown as Database.Database;
 }
 
 export const db = new Proxy({} as Database.Database, {
@@ -42,8 +57,12 @@ export const db = new Proxy({} as Database.Database, {
       }
       return value;
     } catch {
-      // Return empty/no-op for build-time or error scenarios
-      return undefined;
+      const buildDb = createBuildTimeDb();
+      const value = (buildDb as unknown as Record<string, unknown>)[prop as string];
+      if (typeof value === 'function') {
+        return (...args: unknown[]) => (value as (...args: unknown[]) => unknown).apply(buildDb, args);
+      }
+      return value;
     }
   }
 });

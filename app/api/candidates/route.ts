@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initializeDatabase } from '@/data/db';
 import { getCandidatesWithFilters, getCandidateLogs, getUniqueRecruiters, getCandidateByUniqueId, getCandidateFullById } from '@/data/repositories/candidateRepository';
 
-initializeDatabase();
-
 export async function GET(request: NextRequest) {
+  initializeDatabase();
   const searchParams = request.nextUrl.searchParams;
   const limitParam = searchParams.get('limit');
   const uniqueId = searchParams.get('uniqueId');

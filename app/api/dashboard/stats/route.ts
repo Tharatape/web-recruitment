@@ -3,9 +3,8 @@ import { initializeDatabase } from '@/data/db';
 import { getDashboardStats } from '@/data/db/stats';
 import { getUniqueRecruiters } from '@/data/repositories/candidateRepository';
 
-initializeDatabase();
-
 export async function GET(request: NextRequest) {
+  initializeDatabase();
   const searchParams = request.nextUrl.searchParams;
   
   const startDate = searchParams.get('startDate') || undefined;
