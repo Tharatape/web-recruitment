@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { mkdirSync, existsSync, readFileSync } from 'fs';
 
 function getDbPath() {
@@ -13,7 +13,7 @@ function getDbPath() {
 
 function ensureDirectory(): boolean {
   const dbPath = getDbPath();
-  const dbDir = dbPath.substring(0, dbPath.lastIndexOf('/'));
+  const dbDir = dirname(dbPath);
   try {
     if (!existsSync(dbDir)) mkdirSync(dbDir, { recursive: true });
     return true;

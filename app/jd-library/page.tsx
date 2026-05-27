@@ -33,10 +33,18 @@ export default function JdLibraryPage() {
   useEffect(() => {
     const fetchJDs = async () => {
       setLoading(true);
-      const res = await fetch('/api/jds');
-      const data = await res.json();
-      setJdList(data);
-      setLoading(false);
+      try {
+        const res = await fetch('/api/jds');
+        if (!res.ok) {
+          throw new Error(`Failed to fetch JDs: ${res.status}`);
+        }
+        const data = await res.json();
+        setJdList(data);
+      } catch (error) {
+        console.error("Failed to fetch JDs:", error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchJDs();
   }, []);
@@ -168,13 +176,13 @@ export default function JdLibraryPage() {
     );
   };
 
-  if (loading) {
-    return (
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <p className="text-center py-8">Loading...</p>
-      </main>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <main className="max-w-7xl mx-auto px-6 py-8">
+  //       <p className="text-center py-8">Loading...</p>
+  //     </main>
+  //   );
+  // }
 
   return (
     <main className="max-w-7xl mx-auto px-6 py-8">

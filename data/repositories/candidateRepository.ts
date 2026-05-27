@@ -123,8 +123,8 @@ export function getCandidatesWithFilters(filters: {
 
 if (filters.countOnly) {
       const countQuery = query.replace(/SELECT c.\*, s\.name as status, o\.name as recruiter, p\.name as position/, 'SELECT COUNT(*) as total');
-      const result = db.prepare(countQuery).get(params) as { total: number };
-      return { total: result.total };
+      const result = db.prepare(countQuery).get(params) as { total: number } | undefined;
+      return { total: result?.total ?? 0 };
     }
 
     if (filters.essential) {

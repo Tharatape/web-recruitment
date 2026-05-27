@@ -39,7 +39,7 @@ export default function AdminActivityPage() {
   const [recruiter, setRecruiter] = useState("");
   const [activities, setActivities] = useState<Activity[]>([]);
 
-  useEffect(() => {
+useEffect(() => {
     const fetchData = () => {
       const params = new URLSearchParams();
       if (datePeriod) params.set("days", datePeriod);
@@ -49,20 +49,29 @@ export default function AdminActivityPage() {
       if (search) params.set("search", search);
 
       fetch(`/api/activity?${params.toString()}`)
-        .then((res) => res.json())
-.then((data) => {
-            const mappedActivities: Activity[] = data.map((item: ApiActivityItem) => ({
-              id: String(item.id),
-              timestamp: `${item.date} ${item.time}`,
-              action: item.action_type || "Matching",
-              recruiter: item.recruiter || "Unknown",
-              candidate: item.candidate_name || "Unknown",
-              candidateId: item.candidate_unique_id || item.candidate_id || "",
-              status: item.status || "",
-              actionDetail: item.note || "",
-            }));
-            setActivities(mappedActivities);
-          });
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`Failed to fetch activities: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then((data) => {
+          const mappedActivities: Activity[] = data.map((item: ApiActivityItem) => ({
+            id: String(item.id),
+            timestamp: `${item.date} ${item.time}`,
+            action: item.action_type || "Matching",
+            recruiter: item.recruiter || "Unknown",
+            candidate: item.candidate_name || "Unknown",
+            candidateId: item.candidate_unique_id || item.candidate_id || "",
+            status: item.status || "",
+            actionDetail: item.note || "",
+          }));
+          setActivities(mappedActivities);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch activities:", error);
+          setActivities([]);
+        });
     };
     fetchData();
   }, [datePeriod, status, action, recruiter, search]);

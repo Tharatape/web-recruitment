@@ -3,17 +3,22 @@ import { initializeDatabase } from '@/data/db';
 import { getAllJDs, getJDById, createJD, deleteJD, toggleJDDisabled } from '@/data/repositories/jdRepository';
 
 export async function GET(request: NextRequest) {
-  initializeDatabase();
-  const searchParams = request.nextUrl.searchParams;
-  const id = searchParams.get('id');
+  try {
+    initializeDatabase();
+    const searchParams = request.nextUrl.searchParams;
+    const id = searchParams.get('id');
 
-  if (id) {
-    const jd = getJDById(id);
-    return NextResponse.json(jd);
+    if (id) {
+      const jd = getJDById(id);
+      return NextResponse.json(jd);
+    }
+
+    const jds = getAllJDs();
+    return NextResponse.json(jds);
+  } catch (error) {
+    console.error("JDs API error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-
-  const jds = getAllJDs();
-  return NextResponse.json(jds);
 }
 
 export async function POST(request: NextRequest) {

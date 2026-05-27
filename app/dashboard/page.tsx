@@ -27,16 +27,28 @@ export default function DashboardPage() {
     const fetchData = async () => {
       setLoading(true);
       
-      const [statsRes, recRes] = await Promise.all([
-        fetch(`/api/dashboard/stats?${new URLSearchParams({ startDate, endDate, owner })}`),
-        fetch('/api/dashboard/stats', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'getRecruiters' }) })
-      ]);
-      
-      const statsData = await statsRes.json();
-      const recs = await recRes.json();
-      setStats(statsData);
-      setRecruiters(recs.map((r: { name: string }) => r.name));
-      setLoading(false);
+      try {
+        const [statsRes, recRes] = await Promise.all([
+          fetch(`/api/dashboard/stats?${new URLSearchParams({ startDate, endDate, owner })}`),
+          fetch('/api/dashboard/stats', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'getRecruiters' }) })
+        ]);
+        
+        if (!statsRes.ok) {
+          throw new Error(`Failed to fetch stats: ${statsRes.status}`);
+        }
+        if (!recRes.ok) {
+          throw new Error(`Failed to fetch recruiters: ${recRes.status}`);
+        }
+
+        const statsData = await statsRes.json();
+        const recs = await recRes.json();
+        setStats(statsData);
+        setRecruiters(recs.map((r: { name: string }) => r.name));
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchData();
   }, [startDate, endDate, owner]);
@@ -67,13 +79,13 @@ export default function DashboardPage() {
 
   const positionDist = stats?.positionDistribution || [];
 
-  if (loading) {
-    return (
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <p className="text-center py-8">Loading...</p>
-      </main>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <main className="max-w-7xl mx-auto px-6 py-8">
+  //       <p className="text-center py-8">Loading...</p>
+  //     </main>
+  //   );
+  // }
 
   return (
     <main className="max-w-7xl mx-auto px-6 py-8">

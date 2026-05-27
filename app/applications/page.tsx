@@ -33,47 +33,59 @@ export default function ApplicationsPage() {
   const fetchPaginatedData = useCallback(async (): Promise<void> => {
     setLoading(true);
     
-    const startDate = dateRange !== "all" ? new Date(Date.now() - Number(dateRange) * 24 * 60 * 60 * 1000).toISOString().split("T")[0] : undefined;
-    
-    const qp = new URLSearchParams({
-      limit: String(pageSize),
-      offset: String((page - 1) * pageSize),
-      essential: "true",
-    });
-    
-    if (search) qp.set("search", search);
-    if (startDate) qp.set("startDate", startDate);
-    position.forEach(p => qp.append("position", p));
-    if (expMin) qp.set("expMin", expMin);
-    if (expMax) qp.set("expMax", expMax);
-    status.forEach(s => qp.append("status", s));
-    if (recruiter === "no-owner") qp.set("owner", "no-owner");
-    else if (recruiter) qp.set("owner", recruiter);
-    
-    const countParams = new URLSearchParams({ countOnly: "true" });
-    if (search) countParams.set("search", search);
-    if (startDate) countParams.set("startDate", startDate);
-    position.forEach(p => countParams.append("position", p));
-    if (expMin) countParams.set("expMin", expMin);
-    if (expMax) countParams.set("expMax", expMax);
-    status.forEach(s => countParams.append("status", s));
-    if (recruiter === "no-owner") countParams.set("owner", "no-owner");
-    else if (recruiter) countParams.set("owner", recruiter);
+    try {
+      const startDate = dateRange !== "all" ? new Date(Date.now() - Number(dateRange) * 24 * 60 * 60 * 1000).toISOString().split("T")[0] : undefined;
+      
+      const qp = new URLSearchParams({
+        limit: String(pageSize),
+        offset: String((page - 1) * pageSize),
+        essential: "true",
+      });
+      
+      if (search) qp.set("search", search);
+      if (startDate) qp.set("startDate", startDate);
+      position.forEach(p => qp.append("position", p));
+      if (expMin) qp.set("expMin", expMin);
+      if (expMax) qp.set("expMax", expMax);
+      status.forEach(s => qp.append("status", s));
+      if (recruiter === "no-owner") qp.set("owner", "no-owner");
+      else if (recruiter) qp.set("owner", recruiter);
+      
+      const countParams = new URLSearchParams({ countOnly: "true" });
+      if (search) countParams.set("search", search);
+      if (startDate) countParams.set("startDate", startDate);
+      position.forEach(p => countParams.append("position", p));
+      if (expMin) countParams.set("expMin", expMin);
+      if (expMax) countParams.set("expMax", expMax);
+      status.forEach(s => countParams.append("status", s));
+      if (recruiter === "no-owner") countParams.set("owner", "no-owner");
+      else if (recruiter) countParams.set("owner", recruiter);
 
-    const [candRes, countRes] = await Promise.all([
-      fetch(`/api/candidates?${qp.toString()}`),
-      fetch(`/api/candidates?${countParams.toString()}`)
-    ]);
-    
-    const cands = await candRes.json();
-    const countData = await countRes.json();
-    
-    setPaginatedCandidates(cands);
-    setTotal(countData.total || 0);
-    
-    const positions = Array.from(new Set(cands.map((c: DbCandidateEssential) => c.position)));
-    setAllPositions(positions as string[]);
-    setLoading(false);
+      const [candRes, countRes] = await Promise.all([
+        fetch(`/api/candidates?${qp.toString()}`),
+        fetch(`/api/candidates?${countParams.toString()}`)
+      ]);
+
+      if (!candRes.ok) {
+        throw new Error(`Failed to fetch candidates: ${candRes.status}`);
+      }
+      if (!countRes.ok) {
+        throw new Error(`Failed to fetch count: ${countRes.status}`);
+      }
+
+      const cands = await candRes.json();
+      const countData = await countRes.json();
+      
+      setPaginatedCandidates(cands);
+      setTotal(countData.total || 0);
+      
+      const positions = Array.from(new Set(cands.map((c: DbCandidateEssential) => c.position)));
+      setAllPositions(positions as string[]);
+    } catch (error) {
+      console.error("Failed to fetch data:", error);
+    } finally {
+      setLoading(false);
+    }
   }, [page, pageSize, search, position, expMin, expMax, dateRange, status, recruiter]);
 
   useEffect(() => {
@@ -85,25 +97,33 @@ export default function ApplicationsPage() {
     setExpandedId(id);
     if (id && !fullCandidates.has(id)) {
       setLoadingExpanded(true);
-      const res = await fetch(`/api/candidates?fullId=${id}`);
-      const fullData = await res.json();
-      if (fullData) {
-        setFullCandidates(prev => new Map(prev).set(id, fullData));
+      try {
+        const res = await fetch(`/api/candidates?fullId=${id}`);
+        if (!res.ok) {
+          return;
+        }
+        const fullData = await res.json();
+        if (fullData) {
+          setFullCandidates(prev => new Map(prev).set(id, fullData));
+        }
+      } catch (error) {
+        console.error("Failed to fetch candidate details:", error);
+      } finally {
+        setLoadingExpanded(false);
       }
-      setLoadingExpanded(false);
     }
   };
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const safePage = Math.min(page, totalPages);
 
-  if (loading) {
-    return (
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <p className="text-center py-8">Loading...</p>
-      </main>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <main className="max-w-7xl mx-auto px-6 py-8">
+  //       <p className="text-center py-8">Loading...</p>
+  //     </main>
+  //   );
+  // }
 
   return (
     <>
