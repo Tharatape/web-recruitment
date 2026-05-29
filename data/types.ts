@@ -70,6 +70,11 @@ export interface Candidate {
   license: string;
   previousEmployment: string;
   aiSummary: string;
+  type: string; // Staff or Contract
+  department: string;
+  degree: string;
+  major: string;
+  toeic: number;
 }
 
 export type LogEntry = {

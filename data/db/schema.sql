@@ -39,6 +39,11 @@ CREATE TABLE IF NOT EXISTS candidates (
   license TEXT NOT NULL,
   previous_employment TEXT NOT NULL,
   ai_summary TEXT NOT NULL,
+  type TEXT NOT NULL,
+  department TEXT NOT NULL,
+  degree TEXT NOT NULL,
+  major TEXT NOT NULL,
+  toeic INTEGER NOT NULL,
   FOREIGN KEY (position_id) REFERENCES positions(id),
   FOREIGN KEY (status_id) REFERENCES statuses(id),
   FOREIGN KEY (recruiter_id) REFERENCES owners(id)

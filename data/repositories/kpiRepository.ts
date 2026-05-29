@@ -11,6 +11,31 @@ interface KpiCandidate {
   age: number | null;
   bmi: number | null;
   height: number | null;
+  weight: number | null;
+  recruiter: string | null;
+  type: string | null;
+  department: string | null;
+  degree: string | null;
+  major: string | null;
+  toeic: number | null;
+  status: string | null;
+}
+
+export interface CandidateDetail {
+  unique_id: string;
+  date_applied: string;
+  position: string;
+  type: string;
+  department: string;
+  experience: number;
+  degree: string;
+  major: string;
+  toeic: number;
+  age: number;
+  bmi: number;
+  weight: number;
+  height: number;
+  status: string;
   recruiter: string | null;
 }
 
@@ -32,10 +57,13 @@ export function getKpiCandidates(filters: {
   owner?: string | null;
 }): KpiCandidate[] {
   let query = `
-    SELECT c.id, c.unique_id, c.date_applied, p.name as position, c.experience, c.education, c.age, c.bmi, c.height, o.name as recruiter
+    SELECT c.id, c.unique_id, c.date_applied, p.name as position, c.experience, c.education, 
+           c.age, c.bmi, c.height, c.weight, o.name as recruiter, c.type, c.department, 
+           c.degree, c.major, c.toeic, s.name as status
     FROM candidates c
     JOIN positions p ON c.position_id = p.id
     LEFT JOIN owners o ON c.recruiter_id = o.id
+    JOIN statuses s ON c.status_id = s.id
     WHERE 1=1
   `;
 
@@ -190,7 +218,7 @@ export function exportKpiToExcel(filters: {
 }): string {
   const candidates = getKpiCandidates(filters);
   
-  const headers = ["Unique ID", "Date Applied", "Position", "Experience", "Education", "Age", "BMI", "Height", "Recruiter"];
+  const headers = ["Unique ID", "Date Applied", "Position", "Type", "Department", "Experience", "Degree", "Major", "TOEIC", "Age", "BMI", "Weight", "Height", "Application Status", "Owner"];
   const csvLines = [headers.join(",")];
   
   for (const c of candidates) {
@@ -198,14 +226,46 @@ export function exportKpiToExcel(filters: {
       c.unique_id,
       c.date_applied,
       c.position,
+      c.type ?? "",
+      c.department ?? "",
       c.experience,
-      c.education,
+      c.degree ?? "",
+      c.major ?? "",
+      c.toeic ?? "",
       c.age ?? "",
       c.bmi?.toFixed(1) ?? "",
+      c.weight ?? "",
       c.height ?? "",
+      c.status ?? "",
       c.recruiter ?? "",
     ].join(","));
   }
   
   return csvLines.join("\n");
+}
+
+export function getKpiCandidateDetails(filters: {
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  owner?: string | null;
+}): CandidateDetail[] {
+  const candidates = getKpiCandidates(filters);
+  return candidates.map(c => ({
+    unique_id: c.unique_id,
+    date_applied: c.date_applied,
+    position: c.position,
+    type: c.type ?? "",
+    department: c.department ?? "",
+    experience: c.experience,
+    degree: c.degree ?? "",
+    major: c.major ?? "",
+    toeic: c.toeic ?? 0,
+    age: c.age ?? 0,
+    bmi: c.bmi ?? 0,
+    weight: c.weight ?? 0,
+    height: c.height ?? 0,
+    status: c.status ?? "",
+    recruiter: c.recruiter,
+  }));
 }

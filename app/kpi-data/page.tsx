@@ -7,6 +7,7 @@ import { Dropdown } from "@/components/ui/Dropdown";
 import { Button } from "@/components/ui/Button";
 import KpiCharts from "@/components/charts/KpiCharts";
 import { OWNERS } from "@/data/types";
+import type { CandidateDetail } from "@/data/repositories/kpiRepository";
 
 type AggregationData = {
   positionDistribution: Array<{ name: string; value: number }>;
@@ -36,6 +37,7 @@ export default function KpiDataPage() {
   const [dateTo, setDateTo] = useState("");
   const [owner, setOwner] = useState("");
   const [aggregations, setAggregations] = useState<AggregationData>(emptyAggregations);
+  const [candidates, setCandidates] = useState<CandidateDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,6 +59,7 @@ export default function KpiDataPage() {
         }
         const data = await res.json();
         setAggregations(data.aggregations);
+        setCandidates(data.candidates);
       } catch (err) {
         setError(String(err));
         console.error("Failed to fetch data:", err);
@@ -191,27 +194,30 @@ export default function KpiDataPage() {
                          <th className="text-left pr-2 pb-2">Owner</th>
                        </tr>
                      </thead>
-                     <tbody>
-                       <tr className="border-b border-[var(--border)]">
-                         <td className="py-2 pr-2">app-00001</td>
-                         <td className="py-2 pr-2"></td>
-                         <td className="py-2 pr-2"></td>
-                         <td className="py-2 pr-2"></td>
-                         <td className="py-2 pr-2"></td>
-                         <td className="py-2 pr-2"></td>
-                         <td className="py-2 pr-2"></td>
-                         <td className="py-2 pr-2"></td>
-                         <td className="py-2 pr-2"></td>
-                         <td className="py-2 pr-2"></td>
-                         <td className="py-2 pr-2"></td>
-                         <td className="py-2 pr-2"></td>
-                         <td className="py-2 pr-2"></td>
-                         <td className="py-2 pr-2"></td>
-                         <td className="py-2 pr-2"></td>
-                         <td className="py-2 pr-2"></td>
-                         <td className="py-2 pr-2"></td>
-                       </tr>
-                     </tbody>
+<tbody>
+                        {candidates.map((c) => (
+                          <tr key={c.unique_id} className="border-b border-[var(--border)]">
+                            <td className="py-2 pr-2">{c.unique_id}</td>
+                            <td className="py-2 pr-2">{c.date_applied}</td>
+                            <td className="py-2 pr-2">{c.position}</td>
+                            <td className="py-2 pr-2">{c.type}</td>
+                            <td className="py-2 pr-2">{c.department}</td>
+                            <td className="py-2 pr-2">{c.experience}</td>
+                            <td className="py-2 pr-2">{c.degree}</td>
+                            <td className="py-2 pr-2">{c.major}</td>
+                            <td className="py-2 pr-2">{c.toeic}</td>
+                            <td className="py-2 pr-2">{c.age}</td>
+                            <td className="py-2 pr-2">{c.bmi}</td>
+                            <td className="py-2 pr-2">{c.weight}</td>
+                            <td className="py-2 pr-2">{c.height}</td>
+                            <td className="py-2 pr-2">{c.status}</td>
+                            <td className="py-2 pr-2"></td>
+                            <td className="py-2 pr-2"></td>
+                            <td className="py-2 pr-2"></td>
+                            <td className="py-2 pr-2">{c.recruiter ?? ""}</td>
+                          </tr>
+                        ))}
+                      </tbody>
                    </table>
                  </div>
                </CardContent>

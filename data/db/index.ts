@@ -106,9 +106,29 @@ export function initializeDatabase() {
       database.exec('ALTER TABLE activity_logs ADD COLUMN action_type TEXT');
     }
 
-    if (!columnExists('candidates', 'unique_id')) {
-      database.exec('ALTER TABLE candidates ADD COLUMN unique_id TEXT');
-    }
+if (!columnExists('candidates', 'unique_id')) {
+       database.exec('ALTER TABLE candidates ADD COLUMN unique_id TEXT');
+     }
+
+     if (!columnExists('candidates', 'type')) {
+       database.exec('ALTER TABLE candidates ADD COLUMN type TEXT');
+     }
+
+     if (!columnExists('candidates', 'department')) {
+       database.exec('ALTER TABLE candidates ADD COLUMN department TEXT');
+     }
+
+     if (!columnExists('candidates', 'degree')) {
+       database.exec('ALTER TABLE candidates ADD COLUMN degree TEXT');
+     }
+
+     if (!columnExists('candidates', 'major')) {
+       database.exec('ALTER TABLE candidates ADD COLUMN major TEXT');
+     }
+
+     if (!columnExists('candidates', 'toeic')) {
+       database.exec('ALTER TABLE candidates ADD COLUMN toeic INTEGER');
+     }
 
     const candCols = database.prepare('PRAGMA table_info(candidates)').all() as { name: string; notnull: number }[];
     const candRecruiterCol = candCols.find(c => c.name === 'recruiter_id');

@@ -114,6 +114,11 @@ const educations = [
   "Bachelor's Degree, Psychology",
 ];
 
+const types = ["Staff", "Contract"];
+const departments = ["Sales", "Marketing", "Engineering", "Analytics", "HR", "Finance", "Operations", "Customer Service"];
+const degrees = ["Bachelor", "Master", "MBA"];
+const majors = ["Business Administration", "Computer Science", "Information Technology", "Human Resource Management", "Finance", "Marketing", "Electrical Engineering", "Communication Arts", "Accounting", "Economics", "Psychology"];
+
 const addresses = [
   "New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX",
   "Phoenix, AZ", "San Francisco, CA", "Seattle, WA", "Boston, MA",
@@ -318,6 +323,11 @@ export function generateCandidates(): CandidateWithLogs[] {
       license:            pickElement(licenses, rRow),
       previousEmployment: pickElement(prevEmployments, rRow),
       aiSummary:          pickElement(summaries, rRow),
+      type:               pickElement(types, rRow),
+      department:         pickElement(departments, rRow),
+      degree:             pickElement(degrees, rRow),
+      major:              pickElement(majors, rRow),
+      toeic:              Math.round(400 + randFloat(rRow, 400)),
     };
   });
 
@@ -349,7 +359,7 @@ export function seedCandidates(candidates: CandidateWithLogs[]) {
       id, unique_id, name, phone, nid, email, position_id, experience, experience_level,
       date_applied, status_id, recruiter_id, age, weight, height, bmi,
       expected_salary, education, address, language, license,
-      previous_employment, ai_summary
+      previous_employment, ai_summary, type, department, degree, major, toeic
     ) VALUES (
       @id, @uniqueId, @name, @phone, @nid, @email, 
       (SELECT id FROM positions WHERE name = @position),
@@ -358,7 +368,7 @@ export function seedCandidates(candidates: CandidateWithLogs[]) {
       CASE WHEN @recruiter IS NOT NULL AND @recruiter != '' THEN (SELECT id FROM owners WHERE name = @recruiter) END,
       @age, @weight, @height, @bmi,
       @expectedSalary, @education, @address, @language, @license,
-      @previousEmployment, @aiSummary
+      @previousEmployment, @aiSummary, @type, @department, @degree, @major, @toeic
     )
   `);
 
