@@ -6,31 +6,10 @@ import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { Table } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
-import KpiCharts from "@/components/charts/KpiCharts";
-import { OWNERS } from "@/data/types";
+import { LazyLoadWrapper } from "@/components/LazyLoadWrapper";
+import { LazyKpiCharts } from "@/components/LazyKpiCharts";
 import type { CandidateDetail } from "@/data/repositories/kpiRepository";
-
-type AggregationData = {
-  positionDistribution: Array<{ name: string; value: number }>;
-  educationDistribution: Array<{ name: string; value: number }>;
-  experienceDistribution: Array<{ name: string; value: number }>;
-  ageDistribution: Array<{ name: string; value: number }>;
-  bmiDistribution: Array<{ name: string; value: number }>;
-  heightDistribution: Array<{ name: string; value: number }>;
-  totalCandidates: number;
-  averageExperience: number;
-};
-
-const emptyAggregations: AggregationData = {
-  positionDistribution: [],
-  educationDistribution: [],
-  experienceDistribution: [],
-  ageDistribution: [],
-  bmiDistribution: [],
-  heightDistribution: [],
-  totalCandidates: 0,
-  averageExperience: 0,
-};
+import { OWNERS } from "@/data/types";
 
 export default function KpiDataPage() {
   const [tableSearch, setTableSearch] = useState("");
@@ -39,12 +18,10 @@ export default function KpiDataPage() {
   const [owner, setOwner] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
-  const [aggregations, setAggregations] = useState<AggregationData>(emptyAggregations);
   const [allCandidates, setAllCandidates] = useState<CandidateDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filter candidates only for table based on tableSearch
   const candidates = tableSearch
     ? allCandidates.filter(c =>
         c.position.toLowerCase().includes(tableSearch.toLowerCase()) ||
@@ -72,7 +49,6 @@ export default function KpiDataPage() {
           throw new Error(`Failed to fetch KPI data: ${res.status}`);
         }
         const data = await res.json();
-        setAggregations(data.aggregations);
         setAllCandidates(data.candidates);
         setPage(1);
       } catch (err) {
@@ -125,12 +101,12 @@ export default function KpiDataPage() {
             <div className="flex flex-wrap gap-4 mb-6 items-end">
               <div className="flex-1 min-w-[200px]">
                 <Input
-                label="Search"
-                type="text"
-                placeholder="Position, Unique ID..."
-                value={tableSearch}
-                onChange={(e) => { setTableSearch(e.target.value); setPage(1); }}
-              />
+                  label="Search"
+                  type="text"
+                  placeholder="Position, Unique ID..."
+                  value={tableSearch}
+                  onChange={(e) => { setTableSearch(e.target.value); setPage(1); }}
+                />
               </div>
               <Input
                 type="date"
@@ -178,7 +154,9 @@ export default function KpiDataPage() {
           <p className="text-center py-8 text-[var(--accent-red)]">Error: {error}</p>
         ) : (
           <>
-            <KpiCharts aggregations={aggregations} />
+            <LazyLoadWrapper>
+              <LazyKpiCharts dateFrom={dateFrom} dateTo={dateTo} owner={owner} />
+            </LazyLoadWrapper>
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-[var(--text-secondary)]">
                 Showing {paginatedCandidates.length} of {candidates.length} candidates
