@@ -59,9 +59,9 @@ export function getKpiCandidates(filters: {
   dateTo?: string;
   owner?: string | null;
 }): KpiCandidate[] {
-let query = `
-    SELECT c.id, c.unique_id, c.date_applied, p.name as position, c.experience, c.education, 
-           c.age, c.bmi, c.height, c.weight, o.name as recruiter, c.type, c.department, 
+  let query = `
+    SELECT c.id, c.unique_id, c.date_applied, p.name as position, c.experience, c.education,
+           c.age, c.bmi, c.height, c.weight, o.name as recruiter, c.type, c.department,
            c.degree, c.major, c.toeic, s.name as status
     FROM candidates c
     JOIN positions p ON c.position_id = p.id
@@ -89,8 +89,8 @@ let query = `
     }
   }
   if (filters.search) {
-    params.push(`%${filters.search}%`, `%${filters.search}%`, `%${filters.search}%`);
-    query += ` AND (p.name LIKE ? OR c.unique_id LIKE ? OR o.name LIKE ?)`;
+    params.push(`%${filters.search}%`, `%${filters.search}%`);
+    query += ` AND (p.name LIKE ? OR c.unique_id LIKE ?)`;
   }
 
   const candidates = db.prepare(query).all(params) as KpiCandidate[];
@@ -105,30 +105,30 @@ export function getKpiAggregations(filters: {
 }): KpiAggregations {
   const candidates = getKpiCandidates(filters);
 
-  const positionDistributionRaw = db.prepare(`
-    SELECT p.name as position, COUNT(*) as count
-    FROM candidates c
-    JOIN positions p ON c.position_id = p.id
-    LEFT JOIN owners o ON c.recruiter_id = o.id
-    WHERE 1=1 ${filters.dateFrom ? ` AND c.date_applied >= ?` : ''} ${filters.dateTo ? ` AND c.date_applied <= ?` : ''} ${filters.owner !== undefined ? filters.owner === null ? ` AND c.recruiter_id IS NULL` : ` AND o.name = ?` : ''} ${filters.search ? ` AND (p.name LIKE ? OR c.unique_id LIKE ? OR o.name LIKE ?)` : ''}
-    GROUP BY p.id
-    ORDER BY count DESC
-  `).all(buildParams(filters)) as Array<{ position: string; count: number }>;
+  // Use the already filtered candidates for aggregations
+  const positionDistributionMap: Record<string, number> = {};
+  for (const c of candidates) {
+    positionDistributionMap[c.position] = (positionDistributionMap[c.position] || 0) + 1;
+  }
+  const positionDistribution = Object.entries(positionDistributionMap)
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value);
 
-  const educationDistributionRaw = db.prepare(`
-    SELECT c.education, COUNT(*) as count
-    FROM candidates c
-    LEFT JOIN owners o ON c.recruiter_id = o.id
-    WHERE 1=1 ${filters.dateFrom ? ` AND c.date_applied >= ?` : ''} ${filters.dateTo ? ` AND c.date_applied <= ?` : ''} ${filters.owner !== undefined ? filters.owner === null ? ` AND c.recruiter_id IS NULL` : ` AND o.name = ?` : ''} ${filters.search ? ` AND (c.education LIKE ? OR c.unique_id LIKE ?)` : ''}
-    GROUP BY c.education
-  `).all(buildParams(filters)) as Array<{ education: string; count: number }>;
+  const educationDistributionMap: Record<string, number> = {};
+  for (const c of candidates) {
+    if (c.education) {
+      educationDistributionMap[c.education] = (educationDistributionMap[c.education] || 0) + 1;
+    }
+  }
+  const educationDistribution = Object.entries(educationDistributionMap)
+    .map(([name, value]) => ({ name, value }));
 
   const totalCandidates = candidates.length;
-  const averageExperience = totalCandidates > 0 
-    ? candidates.reduce((sum, c) => sum + c.experience, 0) / totalCandidates 
+  const averageExperience = totalCandidates > 0
+    ? candidates.reduce((sum, c) => sum + c.experience, 0) / totalCandidates
     : 0;
 
-const experienceDistributionMap: Record<string, number> = {};
+  const experienceDistributionMap: Record<string, number> = {};
   for (const c of candidates) {
     const label = getExperienceLabel(c.experience);
     experienceDistributionMap[label] = (experienceDistributionMap[label] || 0) + 1;
@@ -176,19 +176,7 @@ const experienceDistributionMap: Record<string, number> = {};
   const heightDistribution = Object.entries(heightDistributionMap)
     .map(([name, value]) => ({ name, value }));
 
-  const positionDistribution = positionDistributionRaw.map((row) => ({
-    name: row.position,
-    value: row.count,
-  }));
-
-  const educationDistribution = educationDistributionRaw
-    .filter((row) => row.education)
-    .map((row) => ({
-      name: row.education,
-      value: row.count,
-    }));
-
-  return {
+return {
     positionDistribution,
     educationDistribution,
     experienceDistribution,
@@ -200,19 +188,6 @@ const experienceDistributionMap: Record<string, number> = {};
   };
 }
 
-function buildParams(filters: { search?: string; dateFrom?: string; dateTo?: string; owner?: string | null }) {
-  const params: (string | number | null)[] = [];
-  if (filters.dateFrom) params.push(filters.dateFrom);
-  if (filters.dateTo) params.push(filters.dateTo);
-  if (filters.owner !== undefined) {
-    if (filters.owner !== null) params.push(filters.owner);
-  }
-  if (filters.search) {
-    params.push(`%${filters.search}%`, `%${filters.search}%`, `%${filters.search}%`);
-  }
-  return params;
-}
-
 export function exportKpiToExcel(filters: {
   search?: string;
   dateFrom?: string;
@@ -220,10 +195,10 @@ export function exportKpiToExcel(filters: {
   owner?: string | null;
 }): string {
   const candidates = getKpiCandidates(filters);
-  
+
   const headers = ["Unique ID", "Date Applied", "Position", "Type", "Department", "Experience", "Degree", "Major", "TOEIC", "Age", "BMI", "Weight", "Height", "Application Status", "Owner"];
   const csvLines = [headers.join(",")];
-  
+
   for (const c of candidates) {
     csvLines.push([
       c.unique_id,
@@ -243,35 +218,35 @@ export function exportKpiToExcel(filters: {
       c.recruiter ?? "",
     ].join(","));
   }
-  
+
   return csvLines.join("\n");
 }
 
 export function getKpiCandidateDetails(filters: {
-   search?: string;
-   dateFrom?: string;
-   dateTo?: string;
-   owner?: string | null;
- }): CandidateDetail[] {
-   const candidates = getKpiCandidates(filters);
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  owner?: string | null;
+}): CandidateDetail[] {
+  const candidates = getKpiCandidates(filters);
   return candidates.map(c => ({
-       unique_id: c.unique_id,
-       date_applied: c.date_applied,
-       position: c.position,
-       type: c.type ?? "",
-       department: c.department ?? "",
-       experience: c.experience,
-       degree: c.degree ?? "",
-       major: c.major ?? "",
-       toeic: c.toeic ?? 0,
-       age: c.age ?? 0,
-       bmi: c.bmi ?? 0,
-       weight: c.weight ?? 0,
-       height: c.height ?? 0,
-       status: c.status ?? "",
-       interview: "",
-       offer: "",
-       hired: "",
-       recruiter: c.recruiter,
-     }));
- }
+    unique_id: c.unique_id,
+    date_applied: c.date_applied,
+    position: c.position,
+    type: c.type ?? "",
+    department: c.department ?? "",
+    experience: c.experience,
+    degree: c.degree ?? "",
+    major: c.major ?? "",
+    toeic: c.toeic ?? 0,
+    age: c.age ?? 0,
+    bmi: c.bmi ?? 0,
+    weight: c.weight ?? 0,
+    height: c.height ?? 0,
+    status: c.status ?? "",
+    interview: "",
+    offer: "",
+    hired: "",
+    recruiter: c.recruiter,
+  }));
+}

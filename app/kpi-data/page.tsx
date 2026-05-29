@@ -33,16 +33,24 @@ const emptyAggregations: AggregationData = {
 };
 
 export default function KpiDataPage() {
-  const [search, setSearch] = useState("");
+  const [tableSearch, setTableSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [owner, setOwner] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const [aggregations, setAggregations] = useState<AggregationData>(emptyAggregations);
-  const [candidates, setCandidates] = useState<CandidateDetail[]>([]);
+  const [allCandidates, setAllCandidates] = useState<CandidateDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Filter candidates only for table based on tableSearch
+  const candidates = tableSearch
+    ? allCandidates.filter(c =>
+        c.position.toLowerCase().includes(tableSearch.toLowerCase()) ||
+        c.unique_id.toLowerCase().includes(tableSearch.toLowerCase())
+      )
+    : allCandidates;
 
   const totalPages = Math.max(1, Math.ceil(candidates.length / pageSize));
   const safePage = Math.min(page, totalPages);
@@ -54,7 +62,6 @@ export default function KpiDataPage() {
       setError(null);
       try {
         const qp = new URLSearchParams();
-        if (search) qp.set("search", search);
         if (dateFrom) qp.set("dateFrom", dateFrom);
         if (dateTo) qp.set("dateTo", dateTo);
         if (owner === "no-owner") qp.set("owner", "no-owner");
@@ -66,7 +73,7 @@ export default function KpiDataPage() {
         }
         const data = await res.json();
         setAggregations(data.aggregations);
-        setCandidates(data.candidates);
+        setAllCandidates(data.candidates);
         setPage(1);
       } catch (err) {
         setError(String(err));
@@ -77,13 +84,12 @@ export default function KpiDataPage() {
     };
 
     fetchData();
-  }, [search, dateFrom, dateTo, owner]);
+  }, [dateFrom, dateTo, owner]);
 
-  const hasActiveFilters = search || dateFrom || dateTo || owner;
+  const hasActiveFilters = dateFrom || dateTo || owner;
 
   const handleExport = async () => {
     const qp = new URLSearchParams();
-    if (search) qp.set("search", search);
     if (dateFrom) qp.set("dateFrom", dateFrom);
     if (dateTo) qp.set("dateTo", dateTo);
     if (owner === "no-owner") qp.set("owner", "no-owner");
@@ -103,10 +109,10 @@ export default function KpiDataPage() {
   };
 
   const handleClearFilters = () => {
-    setSearch("");
     setDateFrom("");
     setDateTo("");
     setOwner("");
+    setTableSearch("");
   };
 
   return (
@@ -119,12 +125,12 @@ export default function KpiDataPage() {
             <div className="flex flex-wrap gap-4 mb-6 items-end">
               <div className="flex-1 min-w-[200px]">
                 <Input
-                  label="Search"
-                  type="text"
-                  placeholder="Name, Position, Unique ID..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
+                label="Search"
+                type="text"
+                placeholder="Position, Unique ID..."
+                value={tableSearch}
+                onChange={(e) => { setTableSearch(e.target.value); setPage(1); }}
+              />
               </div>
               <Input
                 type="date"
