@@ -75,8 +75,7 @@ export function getDashboardStats(filters?: {
     LEFT JOIN owners o ON c.recruiter_id = o.id 
     WHERE 1=1 ${whereClause}
     GROUP BY p.id 
-    ORDER BY count DESC 
-    LIMIT 8
+    ORDER BY count DESC
   `).all(params) as Array<{ position: string; count: number }>;
 
   const positionDistribution = positionDistRaw.map((row: { position: string; count: number }) => ({

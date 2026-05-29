@@ -30,6 +30,23 @@ export function PositionDistributionBar({ data }: { data: Array<{ name: string; 
   );
 }
 
+export function PositionDistributionDonut({ data }: { data: Array<{ name: string; value: number }> }) {
+  const total = data.reduce((s, i) => s + i.value, 0);
+  return (
+    <div>
+      <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} />
+      <div className="mt-4 space-y-2">
+        {data.map((p) => (
+          <div key={p.name} className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
+            <span>•</span>
+            <span>{p.name}: {p.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function EducationDegreeDonut({ data, total }: { data: Array<{ name: string; value: number }>; total: number }) {
   return (
     <div>

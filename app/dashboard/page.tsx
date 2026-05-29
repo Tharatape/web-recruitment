@@ -8,7 +8,7 @@ import {
   CardContent,
 } from "@/components/ui/Card";
 import { BarChart } from "@/components/charts/BarChart";
-import { PositionDistributionBar } from "@/components/charts/KpiCharts";
+import { PositionDistributionDonut } from "@/components/charts/KpiCharts";
 import { StageBar } from "@/components/charts/StageBar";
 import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
@@ -127,15 +127,7 @@ export default function DashboardPage() {
                 </p>
               </CardHeader>
               <CardContent>
-                <PositionDistributionBar data={positionDist} />
-                <div className="mt-4 space-y-2">
-                  {positionDist.map((p) => (
-                    <div key={p.name} className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
-                      <span>•</span>
-                      <span>{p.name}: {p.value}</span>
-                    </div>
-                  ))}
-                </div>
+                <PositionDistributionDonut data={positionDist} />
               </CardContent>
             </Card>
 
