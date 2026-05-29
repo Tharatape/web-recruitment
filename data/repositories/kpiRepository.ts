@@ -22,22 +22,25 @@ interface KpiCandidate {
 }
 
 export interface CandidateDetail {
-  unique_id: string;
-  date_applied: string;
-  position: string;
-  type: string;
-  department: string;
-  experience: number;
-  degree: string;
-  major: string;
-  toeic: number;
-  age: number;
-  bmi: number;
-  weight: number;
-  height: number;
-  status: string;
-  recruiter: string | null;
-}
+   unique_id: string;
+   date_applied: string;
+   position: string;
+   type: string;
+   department: string;
+   experience: number;
+   degree: string;
+   major: string;
+   toeic: number;
+   age: number;
+   bmi: number;
+   weight: number;
+   height: number;
+   status: string;
+   interview: string;
+   offer: string;
+   hired: string;
+   recruiter: string | null;
+ }
 
 export interface KpiAggregations {
   positionDistribution: Array<{ name: string; value: number }>;
@@ -56,7 +59,7 @@ export function getKpiCandidates(filters: {
   dateTo?: string;
   owner?: string | null;
 }): KpiCandidate[] {
-  let query = `
+let query = `
     SELECT c.id, c.unique_id, c.date_applied, p.name as position, c.experience, c.education, 
            c.age, c.bmi, c.height, c.weight, o.name as recruiter, c.type, c.department, 
            c.degree, c.major, c.toeic, s.name as status
@@ -245,27 +248,30 @@ export function exportKpiToExcel(filters: {
 }
 
 export function getKpiCandidateDetails(filters: {
-  search?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  owner?: string | null;
-}): CandidateDetail[] {
-  const candidates = getKpiCandidates(filters);
+   search?: string;
+   dateFrom?: string;
+   dateTo?: string;
+   owner?: string | null;
+ }): CandidateDetail[] {
+   const candidates = getKpiCandidates(filters);
   return candidates.map(c => ({
-    unique_id: c.unique_id,
-    date_applied: c.date_applied,
-    position: c.position,
-    type: c.type ?? "",
-    department: c.department ?? "",
-    experience: c.experience,
-    degree: c.degree ?? "",
-    major: c.major ?? "",
-    toeic: c.toeic ?? 0,
-    age: c.age ?? 0,
-    bmi: c.bmi ?? 0,
-    weight: c.weight ?? 0,
-    height: c.height ?? 0,
-    status: c.status ?? "",
-    recruiter: c.recruiter,
-  }));
-}
+       unique_id: c.unique_id,
+       date_applied: c.date_applied,
+       position: c.position,
+       type: c.type ?? "",
+       department: c.department ?? "",
+       experience: c.experience,
+       degree: c.degree ?? "",
+       major: c.major ?? "",
+       toeic: c.toeic ?? 0,
+       age: c.age ?? 0,
+       bmi: c.bmi ?? 0,
+       weight: c.weight ?? 0,
+       height: c.height ?? 0,
+       status: c.status ?? "",
+       interview: "",
+       offer: "",
+       hired: "",
+       recruiter: c.recruiter,
+     }));
+ }
