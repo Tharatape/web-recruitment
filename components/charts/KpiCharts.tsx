@@ -26,7 +26,7 @@ export function PositionDistributionBar({ data }: { data: Array<{ name: string; 
   }));
 
   return (
-    <BarChart data={chartData} layout="vertical" height={320} />
+    <BarChart data={chartData} layout="horizontal" height={320} />
   );
 }
 

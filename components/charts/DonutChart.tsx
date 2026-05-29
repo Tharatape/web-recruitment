@@ -16,8 +16,6 @@ const COLORS = [
 ];
 
 export function DonutChart({ data, height = 260, centerLabel, centerTotal }: DonutChartProps) {
-  const total = centerTotal !== undefined ? centerTotal : data.reduce((s, d) => s + d.value, 0);
-
   return (
     <div className="w-full relative">
       <ResponsiveContainer width="100%" height={height}>
@@ -26,12 +24,13 @@ export function DonutChart({ data, height = 260, centerLabel, centerTotal }: Don
             data={data}
             cx="50%"
             cy="50%"
-            innerRadius="58%"
-            outerRadius="80%"
+            innerRadius={data.length > 0 ? "58%" : "0%"}
+            outerRadius={data.length > 0 ? "80%" : "50%"}
             paddingAngle={2}
             dataKey="value"
             stroke="#ffffff"
             strokeWidth={2}
+            isAnimationActive={false}
           >
             {data.map((_, i) => (
               <Cell key={i} fill={data[i].color || COLORS[i % COLORS.length]} />
@@ -47,10 +46,12 @@ export function DonutChart({ data, height = 260, centerLabel, centerTotal }: Don
           />
         </RechartsPieChart>
       </ResponsiveContainer>
-      {centerLabel && total > 0 && (
+      {centerLabel && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none">
-          <span className="text-2xl font-bold text-[var(--foreground)]">{total}</span>
-          <span className="text-xs text-[var(--text-muted)]">{centerLabel}</span>
+          {centerTotal !== undefined && centerTotal > 0 && (
+            <span className="text-2xl font-bold text-[var(--foreground)]">{centerTotal}</span>
+          )}
+          <span className={`text-xs text-[var(--text-muted)] ${centerTotal === undefined || centerTotal === 0 ? "text-2xl font-bold text-[var(--foreground)]" : ""}`}>{centerLabel}</span>
         </div>
       )}
     </div>

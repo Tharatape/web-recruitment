@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { Button } from "@/components/ui/Button";
@@ -98,62 +99,70 @@ export default function KpiDataPage() {
   };
 
   return (
-    <main className="max-w-7xl mx-auto px-6 py-8">
-      <h1 className="text-2xl font-bold text-[var(--foreground)] mb-6">KPI Data</h1>
+    <>
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <h1 className="text-2xl font-bold text-[var(--foreground)] mb-6">KPI Data</h1>
 
-      <div className="flex flex-wrap gap-4 mb-6">
-        <Input
-          type="text"
-          placeholder="Name, Position, Unique ID..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-64"
-        />
-        <Input
-          type="date"
-          label="From"
-          value={dateFrom}
-          onChange={(e) => setDateFrom(e.target.value)}
-          className="w-40"
-        />
-        <Input
-          type="date"
-          label="To"
-          value={dateTo}
-          onChange={(e) => setDateTo(e.target.value)}
-          className="w-40"
-        />
-        <Dropdown
-          label="Recruiter"
-          placeholder="All Owners"
-          options={[{ label: "No Owner", value: "no-owner" }, ...OWNERS.map((r) => ({ label: r, value: r }))]}
-          value={owner}
-          onChange={setOwner}
-          className="w-48"
-        />
-        <Button variant="secondary" onClick={handleExport}>
-          Export to Excel
-        </Button>
-      </div>
+        <Card className="mb-6">
+          <CardContent className="!p-5">
+            <div className="flex flex-wrap gap-4 mb-6 items-end">
+              <div className="flex-1 min-w-[200px]">
+                <Input
+                  label="Search"
+                  type="text"
+                  placeholder="Name, Position, Unique ID..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <Input
+                type="date"
+                label="From"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-40"
+              />
+              <Input
+                type="date"
+                label="To"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="w-40"
+              />
+              <Dropdown
+                label="Recruiter"
+                placeholder="All Owners"
+                options={[{ label: "No Owner", value: "no-owner" }, ...OWNERS.map((r) => ({ label: r, value: r }))]}
+                value={owner}
+                onChange={setOwner}
+                className="w-48"
+              />
+              <Button variant="success" onClick={handleExport} size="sm" className="h-[38px]">
+                Export to Excel
+              </Button>
+            </div>
 
-      {hasActiveFilters && (
-        <div className="mb-4">
-          <button
-            onClick={handleClearFilters}
-            className="text-xs font-semibold text-[var(--accent-red)] hover:underline cursor-pointer bg-transparent border-none"
-          >
-            Clear All Filters
-          </button>
-        </div>
-      )}
+            {hasActiveFilters && (
+              <div className="mt-4 pt-4 border-t border-[var(--border)] flex justify-end">
+                <button
+                  onClick={handleClearFilters}
+                  className="text-xs font-semibold text-[var(--accent-red)] hover:underline cursor-pointer bg-transparent border-none"
+                >
+                  Clear All Filters
+                </button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {loading ? (
-        <p className="text-center py-8 text-[var(--text-secondary)]">Loading...</p>
-      ) : error ? (
-        <p className="text-center py-8 text-[var(--accent-red)]">Error: {error}</p>
-      ) : (
-        <KpiCharts aggregations={aggregations} />
-      )}
-    </main>
+        {loading ? (
+          <p className="text-center py-8 text-[var(--text-secondary)]">Loading...</p>
+        ) : error ? (
+          <p className="text-center py-8 text-[var(--accent-red)]">Error: {error}</p>
+        ) : (
+          <KpiCharts aggregations={aggregations} />
+        )}
+      </main>
+    </>
   );
 }

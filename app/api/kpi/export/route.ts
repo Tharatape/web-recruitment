@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initializeDatabase } from '@/data/db';
 import { exportKpiToExcel } from '@/data/repositories/kpiRepository';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     initializeDatabase();
     const searchParams = request.nextUrl.searchParams;
-    
+
     const filters = {
       search: searchParams.get('search') || undefined,
       dateFrom: searchParams.get('dateFrom') || undefined,
@@ -23,6 +25,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("API error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }
