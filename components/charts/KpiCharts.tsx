@@ -34,12 +34,12 @@ export function PositionDistributionDonut({ data }: { data: Array<{ name: string
   const total = data.reduce((s, i) => s + i.value, 0);
   return (
     <div>
-      <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} />
+      <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} total={total} />
       <div className="mt-4 space-y-2">
         {data.map((p) => (
           <div key={p.name} className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
             <span>•</span>
-            <span>{p.name}: {p.value}</span>
+            <span>{p.name}: {p.value} ({total > 0 ? ((p.value / total) * 100).toFixed(1) : 0}%)</span>
           </div>
         ))}
       </div>
@@ -50,12 +50,12 @@ export function PositionDistributionDonut({ data }: { data: Array<{ name: string
 export function EducationDegreeDonut({ data, total }: { data: Array<{ name: string; value: number }>; total: number }) {
   return (
     <div>
-      <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} />
+      <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} total={total} />
       <div className="mt-4 space-y-2">
         {data.map((p) => (
           <div key={p.name} className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
             <span>•</span>
-            <span>{p.name}: {p.value}</span>
+            <span>{p.name}: {p.value} ({total > 0 ? ((p.value / total) * 100).toFixed(1) : 0}%)</span>
           </div>
         ))}
       </div>
@@ -65,6 +65,7 @@ export function EducationDegreeDonut({ data, total }: { data: Array<{ name: stri
 
 export function ExperienceDonut({ data, avgExp }: { data: Array<{ name: string; value: number }>; avgExp: number }) {
   const segments = ["<1 year", "1-3 years", "3-5 years", "5-10 years", "10+ years"];
+  const total = data.reduce((s, i) => s + i.value, 0);
   const orderedData = segments.map((seg) => {
     const found = data.find((d) => d.name === seg);
     return found || { name: seg, value: 0 };
@@ -72,12 +73,12 @@ export function ExperienceDonut({ data, avgExp }: { data: Array<{ name: string; 
 
   return (
     <div>
-      <DonutChart data={data} height={260} centerLabel={`Avg: ${avgExp.toFixed(1)} Years`} centerTotal={undefined} segments={segments} />
+      <DonutChart data={data} height={260} centerLabel={`Avg: ${avgExp.toFixed(1)} Years`} centerTotal={undefined} segments={segments} total={total} />
       <div className="mt-4 space-y-2">
         {orderedData.map((p) => (
           <div key={p.name} className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
             <span>•</span>
-            <span>{p.name}: {p.value}</span>
+            <span>{p.name}: {p.value} ({total > 0 ? ((p.value / total) * 100).toFixed(1) : 0}%)</span>
           </div>
         ))}
       </div>
@@ -94,12 +95,12 @@ export function AgeGroupDonut({ data, total }: { data: Array<{ name: string; val
 
   return (
     <div>
-      <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} segments={segments} />
+      <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} segments={segments} total={total} />
       <div className="mt-4 space-y-2">
         {orderedData.map((p) => (
           <div key={p.name} className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
             <span>•</span>
-            <span>{p.name}: {p.value}</span>
+            <span>{p.name}: {p.value} ({total > 0 ? ((p.value / total) * 100).toFixed(1) : 0}%)</span>
           </div>
         ))}
       </div>
@@ -116,12 +117,12 @@ export function BMIDonut({ data, total }: { data: Array<{ name: string; value: n
 
   return (
     <div>
-      <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} segments={segments} />
+      <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} segments={segments} total={total} />
       <div className="mt-4 space-y-2">
         {orderedData.map((p) => (
           <div key={p.name} className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
             <span>•</span>
-            <span>{p.name}: {p.value}</span>
+            <span>{p.name}: {p.value} ({total > 0 ? ((p.value / total) * 100).toFixed(1) : 0}%)</span>
           </div>
         ))}
       </div>
@@ -138,12 +139,12 @@ export function HeightDistributionDonut({ data, total }: { data: Array<{ name: s
 
   return (
     <div>
-      <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} segments={segments} />
+      <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} segments={segments} total={total} />
       <div className="mt-4 space-y-2">
         {orderedData.map((p) => (
           <div key={p.name} className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
             <span>•</span>
-            <span>{p.name}: {p.value}</span>
+            <span>{p.name}: {p.value} ({total > 0 ? ((p.value / total) * 100).toFixed(1) : 0}%)</span>
           </div>
         ))}
       </div>

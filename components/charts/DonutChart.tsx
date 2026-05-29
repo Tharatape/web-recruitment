@@ -8,6 +8,7 @@ interface DonutChartProps {
   centerLabel?: string;
   centerTotal?: number;
   segments?: string[];
+  total?: number;
 }
 
 const COLORS = [
@@ -16,7 +17,7 @@ const COLORS = [
   "#8b5cf6",
 ];
 
-export function DonutChart({ data, height = 260, centerLabel, centerTotal, segments }: DonutChartProps) {
+export function DonutChart({ data, height = 260, centerLabel, centerTotal, segments, total }: DonutChartProps) {
   const orderedData = segments
     ? segments.map((seg) => {
         const found = data.find((d) => d.name === seg);
@@ -44,14 +45,21 @@ export function DonutChart({ data, height = 260, centerLabel, centerTotal, segme
               <Cell key={i} fill={orderedData[i].color || COLORS[i % COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "#ffffff",
-              border: "1px solid #e2e8f0",
-              borderRadius: "8px",
-              fontSize: "13px",
-            }}
-          />
+<Tooltip
+             content={({ active, payload }) => {
+               if (active && payload && payload[0]) {
+                 const dataPoint = payload[0].payload;
+                 const actualTotal = total !== undefined ? total : orderedData.reduce((s, i) => s + i.value, 0);
+                 const percentage = actualTotal > 0 ? ((dataPoint.value / actualTotal) * 100).toFixed(1) : 0;
+                 return (
+                   <div className="bg-white border border-[#e2e8f0] rounded-lg px-3 py-2 text-sm shadow-sm">
+                     <span className="font-medium text-[var(--foreground)]">{dataPoint.name}: {dataPoint.value} ({percentage}%)</span>
+                   </div>
+                 );
+               }
+               return null;
+             }}
+           />
         </RechartsPieChart>
       </ResponsiveContainer>
       {centerLabel && (
