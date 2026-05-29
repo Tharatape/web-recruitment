@@ -1,5 +1,5 @@
 export function getExperienceLabel(exp: number): string {
-  return exp < 2 ? "0-1 Year" : exp < 5 ? "2-4 Years" : exp < 9 ? "5-8 Years" : "9+ Years";
+  return exp < 1 ? "<1 year" : exp < 3 ? "1-3 years" : exp < 5 ? "3-5 years" : exp < 10 ? "5-10 years" : "10+ years";
 }
 
 export type Status =

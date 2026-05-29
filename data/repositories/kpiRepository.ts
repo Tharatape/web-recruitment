@@ -97,7 +97,7 @@ export function getKpiAggregations(filters: {
     ? candidates.reduce((sum, c) => sum + c.experience, 0) / totalCandidates 
     : 0;
 
-  const experienceDistributionMap: Record<string, number> = {};
+const experienceDistributionMap: Record<string, number> = {};
   for (const c of candidates) {
     const label = getExperienceLabel(c.experience);
     experienceDistributionMap[label] = (experienceDistributionMap[label] || 0) + 1;
@@ -109,13 +109,12 @@ export function getKpiAggregations(filters: {
   for (const c of candidates) {
     if (c.age !== null) {
       let label: string;
-      if (c.age < 25) label = "< 25";
-      else if (c.age <= 30) label = "25-30";
-      else if (c.age <= 35) label = "31-35";
-      else if (c.age <= 40) label = "36-40";
-      else if (c.age <= 45) label = "41-45";
-      else if (c.age <= 50) label = "46-50";
-      else label = "> 50";
+      if (c.age < 25) label = "<25";
+      else if (c.age <= 29) label = "25-29";
+      else if (c.age <= 34) label = "30-34";
+      else if (c.age <= 39) label = "35-39";
+      else if (c.age <= 44) label = "40-44";
+      else label = "45+";
       ageDistributionMap[label] = (ageDistributionMap[label] || 0) + 1;
     }
   }
@@ -126,10 +125,8 @@ export function getKpiAggregations(filters: {
   for (const c of candidates) {
     if (c.bmi !== null) {
       let label: string;
-      if (c.bmi < 18.5) label = "Underweight";
-      else if (c.bmi < 25) label = "Normal";
-      else if (c.bmi < 30) label = "Overweight";
-      else label = "Obese";
+      if (c.bmi <= 23) label = "<=23";
+      else label = ">23";
       bmiDistributionMap[label] = (bmiDistributionMap[label] || 0) + 1;
     }
   }
@@ -140,10 +137,8 @@ export function getKpiAggregations(filters: {
   for (const c of candidates) {
     if (c.height !== null) {
       let label: string;
-      if (c.height < 160) label = "< 160cm";
-      else if (c.height <= 170) label = "160-170cm";
-      else if (c.height <= 180) label = "171-180cm";
-      else label = "> 180cm";
+      if (c.height <= 155) label = "<=155";
+      else label = ">155";
       heightDistributionMap[label] = (heightDistributionMap[label] || 0) + 1;
     }
   }

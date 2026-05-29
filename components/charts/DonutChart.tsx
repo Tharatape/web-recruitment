@@ -7,6 +7,7 @@ interface DonutChartProps {
   height?: number;
   centerLabel?: string;
   centerTotal?: number;
+  segments?: string[];
 }
 
 const COLORS = [
@@ -15,25 +16,32 @@ const COLORS = [
   "#8b5cf6",
 ];
 
-export function DonutChart({ data, height = 260, centerLabel, centerTotal }: DonutChartProps) {
+export function DonutChart({ data, height = 260, centerLabel, centerTotal, segments }: DonutChartProps) {
+  const orderedData = segments
+    ? segments.map((seg) => {
+        const found = data.find((d) => d.name === seg);
+        return found || { name: seg, value: 0 };
+      })
+    : data;
+
   return (
     <div className="w-full relative">
       <ResponsiveContainer width="100%" height={height}>
         <RechartsPieChart>
           <Pie
-            data={data}
+            data={orderedData}
             cx="50%"
             cy="50%"
-            innerRadius={data.length > 0 ? "58%" : "0%"}
-            outerRadius={data.length > 0 ? "80%" : "50%"}
+            innerRadius={orderedData.length > 0 ? "58%" : "0%"}
+            outerRadius={orderedData.length > 0 ? "80%" : "50%"}
             paddingAngle={2}
             dataKey="value"
             stroke="#ffffff"
             strokeWidth={2}
             isAnimationActive={false}
           >
-            {data.map((_, i) => (
-              <Cell key={i} fill={data[i].color || COLORS[i % COLORS.length]} />
+            {orderedData.map((_, i) => (
+              <Cell key={i} fill={orderedData[i].color || COLORS[i % COLORS.length]} />
             ))}
           </Pie>
           <Tooltip

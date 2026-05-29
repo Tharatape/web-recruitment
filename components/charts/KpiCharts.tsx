@@ -32,31 +32,105 @@ export function PositionDistributionBar({ data }: { data: Array<{ name: string; 
 
 export function EducationDegreeDonut({ data, total }: { data: Array<{ name: string; value: number }>; total: number }) {
   return (
-    <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} />
+    <div>
+      <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} />
+      <div className="mt-4 space-y-2">
+        {data.map((p) => (
+          <div key={p.name} className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
+            <span>•</span>
+            <span>{p.name}: {p.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
 export function ExperienceDonut({ data, avgExp }: { data: Array<{ name: string; value: number }>; avgExp: number }) {
+  const segments = ["<1 year", "1-3 years", "3-5 years", "5-10 years", "10+ years"];
+  const orderedData = segments.map((seg) => {
+    const found = data.find((d) => d.name === seg);
+    return found || { name: seg, value: 0 };
+  });
+
   return (
-    <DonutChart data={data} height={260} centerLabel={`Avg: ${avgExp.toFixed(1)} Years`} centerTotal={undefined} />
+    <div>
+      <DonutChart data={data} height={260} centerLabel={`Avg: ${avgExp.toFixed(1)} Years`} centerTotal={undefined} segments={segments} />
+      <div className="mt-4 space-y-2">
+        {orderedData.map((p) => (
+          <div key={p.name} className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
+            <span>•</span>
+            <span>{p.name}: {p.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
 export function AgeGroupDonut({ data, total }: { data: Array<{ name: string; value: number }>; total: number }) {
+  const segments = ["<25", "25-29", "30-34", "35-39", "40-44", "45+"];
+  const orderedData = segments.map((seg) => {
+    const found = data.find((d) => d.name === seg);
+    return found || { name: seg, value: 0 };
+  });
+
   return (
-    <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} />
+    <div>
+      <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} segments={segments} />
+      <div className="mt-4 space-y-2">
+        {orderedData.map((p) => (
+          <div key={p.name} className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
+            <span>•</span>
+            <span>{p.name}: {p.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
 export function BMIDonut({ data, total }: { data: Array<{ name: string; value: number }>; total: number }) {
+  const segments = ["<=23", ">23"];
+  const orderedData = segments.map((seg) => {
+    const found = data.find((d) => d.name === seg);
+    return found || { name: seg, value: 0 };
+  });
+
   return (
-    <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} />
+    <div>
+      <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} segments={segments} />
+      <div className="mt-4 space-y-2">
+        {orderedData.map((p) => (
+          <div key={p.name} className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
+            <span>•</span>
+            <span>{p.name}: {p.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
 export function HeightDistributionDonut({ data, total }: { data: Array<{ name: string; value: number }>; total: number }) {
+  const segments = ["<=155", ">155"];
+  const orderedData = segments.map((seg) => {
+    const found = data.find((d) => d.name === seg);
+    return found || { name: seg, value: 0 };
+  });
+
   return (
-    <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} />
+    <div>
+      <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} segments={segments} />
+      <div className="mt-4 space-y-2">
+        {orderedData.map((p) => (
+          <div key={p.name} className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
+            <span>•</span>
+            <span>{p.name}: {p.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -112,7 +186,7 @@ export default function KpiCharts({ aggregations }: KpiChartsProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Height Distribution</CardTitle>
+          <CardTitle>Height Distribution (CM)</CardTitle>
         </CardHeader>
         <CardContent>
           <HeightDistributionDonut data={heightDistribution} total={totalCandidates} />
