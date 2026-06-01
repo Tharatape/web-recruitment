@@ -40,8 +40,7 @@ function makeRng(seed: number) {
     b = (b * 2244662503 + 314606269) & 0xffffffff;
     c = (c * 3266489917 + 342684491) & 0xffffffff;
     const t = (a >>> 16) ^ b;
-    const result = (t ^ (c >>> 16)) >>> 0;
-    return result / 0x100000000;
+    return (t ^ (c >>> 16)) / 0x100000000;
   };
 }
 
@@ -115,7 +114,7 @@ const educations = [
   "Bachelor's Degree, Psychology",
 ];
 
-const types = ["Staff", "Contract"]; // Restored original order
+const types = ["Contract", "Staff"];
 const degrees = ["Bachelor", "Master", "MBA"];
 
 const positionToDepartment: Record<string, string> = {
@@ -219,7 +218,8 @@ function randInt(r: () => number, n: number): number {
 }
 
 function randFloat(r: () => number, n: number): number {
-  return r() * n;
+  const result = r() * n;
+  return result;
 }
 
 function pickElement<T>(arr: T[], r: () => number): T {
@@ -342,9 +342,15 @@ export function generateCandidates(): CandidateWithLogs[] {
     const uniqueId = String(i + 1).padStart(5, "0");
     const position = POSITIONS[i % POSITIONS.length];
     const department = positionToDepartment[position] || "Operations";
-const type = pickElement(types, rRow);
-    // Experience 0-12 years in 0.5 increments
-    const experience = Math.round((randFloat(rRow, 12.01) * 2)) / 2;
+    const type = pickElement(types, rRow);
+    // Experience 0-12 years in 0.5 increments - CHANGED 2026-06-01
+    const raw = randFloat(rRow, 12.01);
+    const experience = Math.round(raw * 2) / 2;
+    
+    // DEBUG: verify formula
+    if (i === 0) {
+      console.log('SEED_DEBUG raw=' + raw + ' experience=' + experience);
+    }
 
     return {
        id:                 `APP-${String(i + 1).padStart(4, "0")}`,
