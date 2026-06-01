@@ -56,6 +56,84 @@ export interface DbLog {
   note: string | null;
 }
 
+function buildBaseQuery(): { query: string; params: (string | number | null)[] } {
+  const query = `
+    SELECT c.id, c.unique_id, c.name, c.phone, c.nid, c.email, p.name as position, c.experience, c.date_applied, s.name as status, o.name as recruiter, c.type, c.department, c.degree, c.major, c.toeic
+    FROM candidates c
+    JOIN statuses s ON c.status_id = s.id
+    LEFT JOIN owners o ON c.recruiter_id = o.id
+    JOIN positions p ON c.position_id = p.id
+    WHERE 1=1
+  `;
+  const params: (string | number | null)[] = [];
+  return { query, params };
+}
+
+function applyFilters(baseQuery: string, baseParams: (string | number | null)[], filters: {
+    startDate?: string;
+    endDate?: string;
+    owner?: string | null;
+    search?: string;
+    position?: string[];
+    status?: string[];
+    expMin?: number;
+    expMax?: number;
+  }): { query: string; params: (string | number | null)[] } {
+  let query = baseQuery;
+  const params = [...baseParams];
+
+  if (filters.startDate) {
+    params.push(filters.startDate);
+    query += ` AND c.date_applied >= ?`;
+  }
+  if (filters.endDate) {
+    params.push(filters.endDate);
+    query += ` AND c.date_applied <= ?`;
+  }
+  if (filters.owner !== undefined) {
+    if (filters.owner === null) {
+      query += ` AND c.recruiter_id IS NULL`;
+    } else {
+      params.push(filters.owner);
+      query += ` AND o.name = ?`;
+    }
+  }
+  if (filters.expMin !== undefined) {
+    params.push(filters.expMin);
+    query += ` AND c.experience >= ?`;
+  }
+  if (filters.expMax !== undefined) {
+    params.push(filters.expMax);
+    query += ` AND c.experience <= ?`;
+  }
+  if (filters.status?.length) {
+    query += ` AND s.name IN (${filters.status.map(() => '?').join(',')})`;
+    params.push(...filters.status);
+  }
+  if (filters.position?.length) {
+    query += ` AND p.name IN (${filters.position.map(() => '?').join(',')})`;
+    params.push(...filters.position);
+  }
+  if (filters.search) {
+    params.push(`%${filters.search}%`, `%${filters.search}%`, `%${filters.search}%`, `%${filters.search}%`);
+    query += ` AND (c.name LIKE ? OR c.email LIKE ? OR c.nid LIKE ? OR c.unique_id LIKE ?)`;
+  }
+
+  return { query, params };
+}
+
+function buildCountQuery(): { query: string; params: (string | number | null)[] } {
+  const query = `
+    SELECT COUNT(*) as total FROM candidates c
+    JOIN statuses s ON c.status_id = s.id
+    LEFT JOIN owners o ON c.recruiter_id = o.id
+    JOIN positions p ON c.position_id = p.id
+    WHERE 1=1
+  `;
+  const params: (string | number | null)[] = [];
+  return { query, params };
+}
+
 export function getCandidatesWithFilters(filters: {
     startDate?: string;
     endDate?: string;
@@ -71,74 +149,33 @@ export function getCandidatesWithFilters(filters: {
     essential?: boolean;
     countOnly?: boolean;
   }): DbCandidate[] | DbCandidateEssential[] | { total: number } {
-    let query = `
-      SELECT c.id, c.unique_id, c.name, c.phone, c.nid, c.email, p.name as position, c.experience, c.date_applied, s.name as status, o.name as recruiter, c.type, c.department, c.degree, c.major, c.toeic
-      FROM candidates c
-      JOIN statuses s ON c.status_id = s.id
-      LEFT JOIN owners o ON c.recruiter_id = o.id
-      JOIN positions p ON c.position_id = p.id
-      WHERE 1=1
-    `;
+    const { query: baseQuery, params: baseParams } = buildBaseQuery();
+    const { query, params } = applyFilters(baseQuery, baseParams, filters);
 
-   const params: (string | number | null)[] = [];
+    let finalQuery = query;
+    const finalParams = [...params];
 
-   if (filters.startDate) {
-     params.push(filters.startDate);
-     query += ` AND c.date_applied >= ?`;
-   }
-   if (filters.endDate) {
-     params.push(filters.endDate);
-     query += ` AND c.date_applied <= ?`;
-   }
-   if (filters.owner !== undefined) {
-     if (filters.owner === null) {
-       query += ` AND c.recruiter_id IS NULL`;
-     } else {
-       params.push(filters.owner);
-       query += ` AND o.name = ?`;
-     }
-   }
-   if (filters.expMin !== undefined) {
-     params.push(filters.expMin);
-     query += ` AND c.experience >= ?`;
-   }
-   if (filters.expMax !== undefined) {
-     params.push(filters.expMax);
-     query += ` AND c.experience <= ?`;
-   }
-   if (filters.status?.length) {
-     query += ` AND s.name IN (${filters.status.map(() => '?').join(',')})`;
-     params.push(...filters.status);
-   }
-   if (filters.position?.length) {
-     query += ` AND p.name IN (${filters.position.map(() => '?').join(',')})`;
-     params.push(...filters.position);
-   }
-   if (filters.search) {
-     params.push(`%${filters.search}%`, `%${filters.search}%`, `%${filters.search}%`, `%${filters.search}%`);
-     query += ` AND (c.name LIKE ? OR c.email LIKE ? OR c.nid LIKE ? OR c.unique_id LIKE ?)`;
-   }
+    if (filters.countOnly) {
+      const { query: countBaseQuery, params: countBaseParams } = buildCountQuery();
+      const { query: countQuery, params: countParams } = applyFilters(countBaseQuery, countBaseParams, filters);
+      const result = db.prepare(countQuery).get(countParams) as { total: number } | undefined;
+      return { total: result?.total ?? 0 };
+    }
 
-   query += ' ORDER BY c.date_applied DESC';
+    finalQuery += ' ORDER BY c.date_applied DESC';
 
-   if (filters.limit) {
-     query += ' LIMIT ? OFFSET ?';
-     params.push(filters.limit, filters.offset || 0);
-   }
+    if (filters.limit) {
+      finalQuery += ' LIMIT ? OFFSET ?';
+      finalParams.push(filters.limit, filters.offset || 0);
+    }
 
-if (filters.countOnly) {
-       const countQuery = query.replace(/SELECT c\.id, c\.unique_id[^,]+, c\.name[^,]+, c\.phone[^,]+, c\.nid[^,]+, c\.email[^,]+, p\.name as position[^,]+, c\.experience[^,]+, c\.date_applied[^,]+, s\.name as status[^,]+, o\.name as recruiter[^,]+, c\.type[^,]+, c\.department[^,]+, c\.degree[^,]+, c\.major[^,]+, c\.toeic/, 'SELECT COUNT(*) as total');
-       const result = db.prepare(countQuery).get(params) as { total: number } | undefined;
-       return { total: result?.total ?? 0 };
-     }
+    if (filters.essential) {
+      const essentialQuery = finalQuery.replace(/SELECT c\.id[^,]+, c\.unique_id[^,]+, c\.name[^,]+, c\.phone[^,]+, c\.nid[^,]+, c\.email[^,]+, p\.name as position[^,]+, c\.experience[^,]+, c\.date_applied[^,]+, s\.name as status[^,]+, o\.name as recruiter[^,]+, c\.type[^,]+, c\.department[^,]+, c\.degree[^,]+, c\.major[^,]+, c\.toeic/, 
+        'SELECT c.id, c.unique_id, c.name, c.phone, c.nid, c.email, p.name as position, c.experience, c.date_applied, s.name as status, o.name as recruiter');
+      return db.prepare(essentialQuery).all(finalParams) as DbCandidateEssential[];
+    }
 
-     if (filters.essential) {
-       const essentialQuery = query.replace(/SELECT c\.id[^,]+, c\.unique_id[^,]+, c\.name[^,]+, c\.phone[^,]+, c\.nid[^,]+, c\.email[^,]+, p\.name as position[^,]+, c\.experience[^,]+, c\.date_applied[^,]+, s\.name as status[^,]+, o\.name as recruiter[^,]+, c\.type[^,]+, c\.department[^,]+, c\.degree[^,]+, c\.major[^,]+, c\.toeic/, 
-         'SELECT c.id, c.unique_id, c.name, c.phone, c.nid, c.email, p.name as position, c.experience, c.date_applied, s.name as status, o.name as recruiter');
-       return db.prepare(essentialQuery).all(params) as DbCandidateEssential[];
-     }
-
-    const candidates = db.prepare(query).all(params) as DbCandidate[];
+    const candidates = db.prepare(finalQuery).all(finalParams) as DbCandidate[];
 
     if (filters.includeLogs) {
      const candidateIds = candidates.map(c => c.id);

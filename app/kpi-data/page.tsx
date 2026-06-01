@@ -10,6 +10,42 @@ import KpiCharts from "@/components/charts/KpiCharts";
 import type { CandidateDetail, KpiAggregations } from "@/data/repositories/kpiRepository";
 import { OWNERS } from "@/data/types";
 
+function ChecklistIcon({ status }: { status: "success" | "warning" | "error" | null }) {
+  const colorClass = status === "success" ? "text-green-500" : status === "warning" ? "text-yellow-500" : status === "error" ? "text-red-500" : "text-gray-300";
+  const fill = status === "success" ? "fill-green-500" : status === "warning" ? "fill-yellow-500" : status === "error" ? "fill-red-500" : "";
+  return (
+    <svg className={`w-5 h-5 ${colorClass}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" className={fill} />
+    </svg>
+  );
+}
+
+function getApplicationStatus(status: string): "success" | "warning" | "error" | null {
+  if (status === "Applied") return "warning";
+  if (status === "Not Suitable") return "error";
+  if (status === "Shortlisted") return "success";
+  return null;
+}
+
+function getInterviewStatus(status: string): "success" | "warning" | "error" | null {
+  if (status === "1st Interview" || status === "2nd Interview") return "warning";
+  if (status === "Not Selected") return "error";
+  if (status === "Selected") return "success";
+  return null;
+}
+
+function getOfferStatus(status: string): "success" | "warning" | "error" | null {
+  if (status === "Offer Accepted") return "success";
+  if (status === "Offer Declined") return "error";
+  return null;
+}
+
+function getHiredStatus(status: string): "success" | "warning" | "error" | null {
+  if (status === "Hired") return "success";
+  if (status === "Not Hired") return "error";
+  return null;
+}
+
 export default function KpiDataPage() {
   const [tableSearch, setTableSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
@@ -196,10 +232,10 @@ export default function KpiDataPage() {
                   { key: "bmi", header: "BMI" },
                   { key: "weight", header: "Weight" },
                   { key: "height", header: "Height" },
-                  { key: "status", header: "Application" },
-                  { key: "interview", header: "Interview" },
-                  { key: "offer", header: "Offer" },
-                  { key: "hired", header: "Hired" },
+                  { key: "status", header: "Application", render: (row) => <ChecklistIcon status={getApplicationStatus(row.status)} />, className: "w-[100px] text-center" },
+                  { key: "interview", header: "Interview", render: (row) => <ChecklistIcon status={getInterviewStatus(row.status)} />, className: "w-[100px] text-center" },
+                  { key: "offer", header: "Offer", render: (row) => <ChecklistIcon status={getOfferStatus(row.status)} />, className: "w-[80px] text-center" },
+                  { key: "hired", header: "Hired", render: (row) => <ChecklistIcon status={getHiredStatus(row.status)} />, className: "w-[80px] text-center" },
                   { key: "recruiter", header: "Owner" },
                 ]}
                 data={paginatedCandidates}

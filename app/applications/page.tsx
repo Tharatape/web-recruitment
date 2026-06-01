@@ -153,20 +153,20 @@ export default function ApplicationsPage() {
                   />
                 </div>
               </div>
-<div className="flex flex-col gap-1">
-                 <label className="text-sm font-semibold text-[var(--foreground)]">Date Applied</label>
-                 <Dropdown
-                   placeholder=""
-                   options={[
-                     { label: "All Time", value: "all" },
-                     { label: "Last 7 days", value: "7" },
-                     { label: "Last 14 days", value: "14" },
-                     { label: "Last 30 days", value: "30" },
-                     { label: "Last 90 days", value: "90" },
-                   ]}
-                   value={dateRange}
-                   onChange={setDateRange}
-                 />
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-[var(--foreground)]">Date Applied</label>
+                <Dropdown
+                  placeholder=""
+                  options={[
+                    { label: "All Time", value: "all" },
+                    { label: "Last 7 days", value: "7" },
+                    { label: "Last 14 days", value: "14" },
+                    { label: "Last 30 days", value: "30" },
+                    { label: "Last 90 days", value: "90" },
+                  ]}
+                  value={dateRange}
+                  onChange={setDateRange}
+                />
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Status</label>
@@ -303,45 +303,45 @@ export default function ApplicationsPage() {
               }
               if (!fullData) return null;
               
-return (
-                 <CandidateExpandedView
-                   candidate={{
-                     id: fullData.unique_id,
-                     uniqueId: fullData.unique_id,
-                     name: fullData.name,
-                     position: fullData.position,
-                     age: fullData.age,
-                     weight: fullData.weight,
-                     height: fullData.height,
-                     bmi: fullData.bmi,
-                     phone: fullData.phone,
-                     email: fullData.email,
-                     expectedSalary: fullData.expected_salary,
-                     education: fullData.education,
-                     address: fullData.address,
-                     language: fullData.language,
-                     license: fullData.license,
-                     previousEmployment: fullData.previous_employment,
-                     aiSummary: fullData.ai_summary,
-                     logs: fullData.logs,
-                     type: fullData.type,
-                     department: fullData.department,
-                     degree: fullData.degree,
-                     major: fullData.major,
-                     toeic: fullData.toeic,
-                   }}
-                   pros={[
-                     `${fullData.experience >= 5 ? "Extensive" : "Solid"} experience in ${fullData.position}`,
-                     (fullData.education ?? "").includes("Bachelor") || (fullData.education ?? "").includes("Master") ? "Strong educational background" : "Relevant education",
-                     fullData.language === "Fluent" || fullData.language === "Conversational" ? "Good communication skills" : "Basic communication ability",
-                   ].filter(Boolean)}
-                   cons={[
-                     fullData.experience < 3 ? "Limited professional experience" : null,
-                     fullData.status === "Not Suitable" ? "Does not fully match role requirements" : null,
-                     fullData.bmi > 30 ? "Health flag noted" : null,
-                   ].filter(Boolean) as string[]}
-                 />
-               );
+              return (
+                <CandidateExpandedView
+                  candidate={{
+                    id: fullData.unique_id,
+                    uniqueId: fullData.unique_id,
+                    name: fullData.name,
+                    position: fullData.position,
+                    age: fullData.age,
+                    weight: fullData.weight,
+                    height: fullData.height,
+                    bmi: fullData.bmi,
+                    phone: fullData.phone,
+                    email: fullData.email,
+                    expectedSalary: fullData.expected_salary,
+                    education: fullData.education,
+                    address: fullData.address,
+                    language: fullData.language,
+                    license: fullData.license,
+                    previousEmployment: fullData.previous_employment,
+                    aiSummary: fullData.ai_summary,
+                    logs: fullData.logs,
+                    type: fullData.type,
+                    department: fullData.department,
+                    degree: fullData.degree,
+                    major: fullData.major,
+                    toeic: fullData.toeic,
+                  }}
+                  pros={[
+                    `${fullData.experience >= 5 ? "Extensive" : "Solid"} experience in ${fullData.position}`,
+                    (fullData.education ?? "").includes("Bachelor") || (fullData.education ?? "").includes("Master") ? "Strong educational background" : "Relevant education",
+                    fullData.language === "Fluent" || fullData.language === "Conversational" ? "Good communication skills" : "Basic communication ability",
+                  ].filter(Boolean)}
+                  cons={[
+                    fullData.experience < 3 ? "Limited professional experience" : null,
+                    fullData.status === "Not Suitable" ? "Does not fully match role requirements" : null,
+                    fullData.bmi > 30 ? "Health flag noted" : null,
+                  ].filter(Boolean) as string[]}
+                />
+              );
             }}
             onRowClick={(row) => handleExpandedIdChange(expandedId === row.id ? null : row.id)}
           />
