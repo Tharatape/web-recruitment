@@ -115,9 +115,44 @@ const educations = [
 ];
 
 const types = ["Staff", "Contract"];
-const departments = ["Sales", "Marketing", "Engineering", "Analytics", "HR", "Finance", "Operations", "Customer Service"];
 const degrees = ["Bachelor", "Master", "MBA"];
-const majors = ["Business Administration", "Computer Science", "Information Technology", "Human Resource Management", "Finance", "Marketing", "Electrical Engineering", "Communication Arts", "Accounting", "Economics", "Psychology"];
+
+const positionToDepartment: Record<string, string> = {
+  "Sales Executive": "Sales",
+  "Marketing Specialist": "Marketing",
+  "Software Engineer": "Engineering",
+  "Data Analyst": "Analytics",
+  "HR Manager": "HR",
+  "Financial Analyst": "Finance",
+  "Customer Service": "Customer Service",
+  "Project Manager": "Operations",
+  "Business Analyst": "Analytics",
+  "Operations Manager": "Operations",
+};
+
+const departmentToMajors: Record<string, string[]> = {
+  Sales: ["Business Administration", "Marketing", "Communication Arts", "Economics", "Psychology"],
+  Marketing: ["Marketing", "Business Administration", "Communication Arts", "Psychology"],
+  Engineering: ["Computer Science", "Electrical Engineering", "Information Technology"],
+  Analytics: ["Data Science", "Computer Science", "Economics", "Accounting", "Mathematics"],
+  HR: ["Human Resource Management", "Psychology", "Business Administration"],
+  Finance: ["Finance", "Accounting", "Economics", "Business Administration"],
+  Operations: ["Business Administration", "Industrial Engineering", "Supply Chain Management", "Information Technology"],
+  "Customer Service": ["Communication Arts", "Psychology", "Business Administration"],
+};
+
+const positionToDegreeLikelihood: Record<string, { degree: string; weight: number }[]> = {
+  "Sales Executive": [{ degree: "Bachelor", weight: 70 }, { degree: "Master", weight: 20 }, { degree: "MBA", weight: 10 }],
+  "Marketing Specialist": [{ degree: "Bachelor", weight: 60 }, { degree: "Master", weight: 25 }, { degree: "MBA", weight: 15 }],
+  "Software Engineer": [{ degree: "Bachelor", weight: 80 }, { degree: "Master", weight: 15 }, { degree: "MBA", weight: 5 }],
+  "Data Analyst": [{ degree: "Bachelor", weight: 65 }, { degree: "Master", weight: 25 }, { degree: "MBA", weight: 10 }],
+  "HR Manager": [{ degree: "Bachelor", weight: 50 }, { degree: "Master", weight: 30 }, { degree: "MBA", weight: 20 }],
+  "Financial Analyst": [{ degree: "Bachelor", weight: 60 }, { degree: "Master", weight: 30 }, { degree: "MBA", weight: 10 }],
+  "Customer Service": [{ degree: "Bachelor", weight: 75 }, { degree: "Master", weight: 20 }, { degree: "MBA", weight: 5 }],
+  "Project Manager": [{ degree: "Bachelor", weight: 55 }, { degree: "Master", weight: 30 }, { degree: "MBA", weight: 15 }],
+  "Business Analyst": [{ degree: "Bachelor", weight: 60 }, { degree: "Master", weight: 25 }, { degree: "MBA", weight: 15 }],
+  "Operations Manager": [{ degree: "Bachelor", weight: 55 }, { degree: "Master", weight: 30 }, { degree: "MBA", weight: 15 }],
+};
 
 const addresses = [
   "New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX",
@@ -190,6 +225,18 @@ function pickElement<T>(arr: T[], r: () => number): T {
   const idx = Math.floor(r() * arr.length);
   const safeIdx = Math.max(0, Math.min(idx, arr.length - 1));
   return arr[safeIdx];
+}
+
+function weightedPick(arr: string[], weights: { degree: string; weight: number }[], r: () => number): string {
+  const totalWeight = weights.reduce((sum, w) => sum + w.weight, 0);
+  let random = r() * totalWeight;
+  for (const w of weights) {
+    random -= w.weight;
+    if (random <= 0) {
+      return w.degree;
+    }
+  }
+  return arr[0];
 }
 
 // ── Build activity logs consistent with the candidate's pipeline status ──────
@@ -292,6 +339,8 @@ export function generateCandidates(): CandidateWithLogs[] {
     const name: string = rawName ?? `Unknown-${i + 1}`;
     const rRow = makeRng(i + 1);
     const uniqueId = String(i + 1).padStart(5, "0");
+    const position = POSITIONS[i % POSITIONS.length];
+    const department = positionToDepartment[position] || "Operations";
 
     return {
       id:                 `APP-${String(i + 1).padStart(4, "0")}`,
@@ -300,7 +349,7 @@ export function generateCandidates(): CandidateWithLogs[] {
       phone:              `+1 (${randInt(rRow, 900) + 100}) ${randInt(rRow, 900) + 100}-${randInt(rRow, 9000) + 1000}`,
       nid:                `US-${String(randInt(rRow, 899) + 100).padStart(3, "0")}-${String(randInt(rRow, 89) + 10).padStart(2, "0")}-${String(randInt(rRow, 8999) + 1000).padStart(4, "0")}`,
       email:              `${name.split(" ")[0].toLowerCase()}.${name.split(" ").slice(1).join("").toLowerCase()}@gmail.com`,
-      position:           POSITIONS[i % POSITIONS.length],
+      position,
       experience:         Math.round((randFloat(rRow, 12) + 0.5) * 2) / 2,
       experienceLevel:    (() => {
         const exp = Math.round((randFloat(rRow, 12) + 0.5) * 2) / 2;
@@ -308,7 +357,7 @@ export function generateCandidates(): CandidateWithLogs[] {
              : exp < 5  ? "Mid"
              : exp < 9  ? "Senior"
              :             "Lead";
-})(),
+      })(),
       dateApplied:        pickDateApplied(rRow, i),
       status:             STATUS_WEIGHTS[i],
       recruiter:          i < 100 ? "" : OWNERS[i % OWNERS.length],
@@ -324,9 +373,9 @@ export function generateCandidates(): CandidateWithLogs[] {
       previousEmployment: pickElement(prevEmployments, rRow),
       aiSummary:          pickElement(summaries, rRow),
       type:               pickElement(types, rRow),
-      department:         pickElement(departments, rRow),
-      degree:             pickElement(degrees, rRow),
-      major:              pickElement(majors, rRow),
+      department,
+      degree:             weightedPick(degrees, positionToDegreeLikelihood[position] || [{ degree: "Bachelor", weight: 100 }], rRow),
+      major:              pickElement(departmentToMajors[department] || departmentToMajors["Operations"], rRow),
       toeic:              Math.round(400 + randFloat(rRow, 400)),
     };
   });
