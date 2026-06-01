@@ -13,6 +13,7 @@ import { StageBar } from "@/components/charts/StageBar";
 import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { STATUSES } from "@/data/types";
+import { StatsCardSkeleton, ChartSkeleton } from "@/components/ui/Skeleton";
 import type { DashboardStats } from "@/data/db/stats";
 
 export default function DashboardPage() {
@@ -79,13 +80,56 @@ export default function DashboardPage() {
 
   const positionDist = stats?.positionDistribution || [];
 
-  // if (loading) {
-  //   return (
-  //     <main className="max-w-7xl mx-auto px-6 py-8">
-  //       <p className="text-center py-8">Loading...</p>
-  //     </main>
-  //   );
-  // }
+  if (loading) {
+    return (
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <h1 className="text-2xl font-bold text-[var(--foreground)] mb-6">Dashboard</h1>
+        <div className="flex flex-wrap gap-4 mb-6">
+          <div className="h-10 bg-gray-100 rounded animate-pulse w-40" />
+          <div className="h-10 bg-gray-100 rounded animate-pulse w-40" />
+          <div className="h-10 bg-gray-100 rounded animate-pulse w-48" />
+        </div>
+        <StatsCardSkeleton />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white rounded-xl border border-[var(--border)] p-5">
+            <div className="h-5 bg-gray-200 rounded animate-pulse w-32 mb-1" />
+            <div className="h-4 bg-gray-100 rounded animate-pulse w-48 mb-4" />
+            <ChartSkeleton height={260} />
+          </div>
+          <div className="bg-white rounded-xl border border-[var(--border)] p-5">
+            <div className="h-5 bg-gray-200 rounded animate-pulse w-24 mb-1" />
+            <div className="h-4 bg-gray-100 rounded animate-pulse w-56 mb-4" />
+            <ChartSkeleton height={300} />
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-[var(--border)] p-5 mb-8">
+          <div className="h-5 bg-gray-200 rounded animate-pulse w-32 mb-1" />
+          <div className="h-4 bg-gray-100 rounded animate-pulse w-64 mb-4" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i}>
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-20 mb-2" />
+                <ChartSkeleton height={180} />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-[var(--border)] p-5">
+          <div className="h-5 bg-gray-200 rounded animate-pulse w-40 mb-1" />
+          <div className="h-4 bg-gray-100 rounded animate-pulse w-48 mb-4" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="p-4 bg-[#f8fafc] rounded-xl text-center">
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-20 mb-1 mx-auto" />
+                <div className="h-8 bg-gray-200 rounded animate-pulse w-12 mx-auto mb-1" />
+                <div className="h-3 bg-gray-100 rounded animate-pulse w-12 mx-auto" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="max-w-7xl mx-auto px-6 py-8">

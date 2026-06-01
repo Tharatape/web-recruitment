@@ -24,8 +24,13 @@ export interface DbCandidate {
    license: string;
    previous_employment: string;
    ai_summary: string;
+   type: string;
+   department: string;
+   degree: string;
+   major: string;
+   toeic: number;
    logs?: DbLog[];
- }
+  }
 
  export interface DbCandidateEssential {
    id: string;
@@ -52,28 +57,28 @@ export interface DbLog {
 }
 
 export function getCandidatesWithFilters(filters: {
-   startDate?: string;
-   endDate?: string;
-   owner?: string | null;
-   search?: string;
-   position?: string[];
-   status?: string[];
-   expMin?: number;
-   expMax?: number;
-   limit?: number;
-   offset?: number;
-   includeLogs?: boolean;
-   essential?: boolean;
-   countOnly?: boolean;
-}): DbCandidate[] | DbCandidateEssential[] | { total: number } {
-   let query = `
-     SELECT c.*, s.name as status, o.name as recruiter, p.name as position
-     FROM candidates c
-     JOIN statuses s ON c.status_id = s.id
-     LEFT JOIN owners o ON c.recruiter_id = o.id
-     JOIN positions p ON c.position_id = p.id
-     WHERE 1=1
-   `;
+    startDate?: string;
+    endDate?: string;
+    owner?: string | null;
+    search?: string;
+    position?: string[];
+    status?: string[];
+    expMin?: number;
+    expMax?: number;
+    limit?: number;
+    offset?: number;
+    includeLogs?: boolean;
+    essential?: boolean;
+    countOnly?: boolean;
+  }): DbCandidate[] | DbCandidateEssential[] | { total: number } {
+    let query = `
+      SELECT c.id, c.unique_id, c.name, c.phone, c.nid, c.email, p.name as position, c.experience, c.date_applied, s.name as status, o.name as recruiter, c.type, c.department, c.degree, c.major, c.toeic
+      FROM candidates c
+      JOIN statuses s ON c.status_id = s.id
+      LEFT JOIN owners o ON c.recruiter_id = o.id
+      JOIN positions p ON c.position_id = p.id
+      WHERE 1=1
+    `;
 
    const params: (string | number | null)[] = [];
 
@@ -122,16 +127,16 @@ export function getCandidatesWithFilters(filters: {
    }
 
 if (filters.countOnly) {
-      const countQuery = query.replace(/SELECT c.\*, s\.name as status, o\.name as recruiter, p\.name as position/, 'SELECT COUNT(*) as total');
-      const result = db.prepare(countQuery).get(params) as { total: number } | undefined;
-      return { total: result?.total ?? 0 };
-    }
+       const countQuery = query.replace(/SELECT c\.id, c\.unique_id[^,]+, c\.name[^,]+, c\.phone[^,]+, c\.nid[^,]+, c\.email[^,]+, p\.name as position[^,]+, c\.experience[^,]+, c\.date_applied[^,]+, s\.name as status[^,]+, o\.name as recruiter[^,]+, c\.type[^,]+, c\.department[^,]+, c\.degree[^,]+, c\.major[^,]+, c\.toeic/, 'SELECT COUNT(*) as total');
+       const result = db.prepare(countQuery).get(params) as { total: number } | undefined;
+       return { total: result?.total ?? 0 };
+     }
 
-    if (filters.essential) {
-      const essentialQuery = query.replace(/SELECT c.\*, s\.name as status, o\.name as recruiter, p\.name as position/, 
-        'SELECT c.id, c.unique_id, c.name, c.phone, c.nid, c.email, p.name as position, c.experience, c.date_applied, s.name as status, o.name as recruiter');
-      return db.prepare(essentialQuery).all(params) as DbCandidateEssential[];
-    }
+     if (filters.essential) {
+       const essentialQuery = query.replace(/SELECT c\.id[^,]+, c\.unique_id[^,]+, c\.name[^,]+, c\.phone[^,]+, c\.nid[^,]+, c\.email[^,]+, p\.name as position[^,]+, c\.experience[^,]+, c\.date_applied[^,]+, s\.name as status[^,]+, o\.name as recruiter[^,]+, c\.type[^,]+, c\.department[^,]+, c\.degree[^,]+, c\.major[^,]+, c\.toeic/, 
+         'SELECT c.id, c.unique_id, c.name, c.phone, c.nid, c.email, p.name as position, c.experience, c.date_applied, s.name as status, o.name as recruiter');
+       return db.prepare(essentialQuery).all(params) as DbCandidateEssential[];
+     }
 
     const candidates = db.prepare(query).all(params) as DbCandidate[];
 
@@ -181,25 +186,25 @@ export function getUniqueRecruiters(): { name: string }[] {
 }
 
 export function getCandidateByUniqueId(uniqueId: string): DbCandidate | undefined {
-  return db.prepare(`
-    SELECT c.*, s.name as status, o.name as recruiter, p.name as position
-    FROM candidates c
-    JOIN statuses s ON c.status_id = s.id
-    LEFT JOIN owners o ON c.recruiter_id = o.id
-    JOIN positions p ON c.position_id = p.id
-    WHERE c.unique_id = ?
-  `).get(uniqueId) as DbCandidate | undefined;
-}
+   return db.prepare(`
+     SELECT c.*, s.name as status, o.name as recruiter, p.name as position, c.type, c.department, c.degree, c.major, c.toeic
+     FROM candidates c
+     JOIN statuses s ON c.status_id = s.id
+     LEFT JOIN owners o ON c.recruiter_id = o.id
+     JOIN positions p ON c.position_id = p.id
+     WHERE c.unique_id = ?
+   `).get(uniqueId) as DbCandidate | undefined;
+ }
 
 export function getCandidateFullById(candidateId: string): DbCandidate | undefined {
-  const candidate = db.prepare(`
-    SELECT c.*, s.name as status, o.name as recruiter, p.name as position
-    FROM candidates c
-    JOIN statuses s ON c.status_id = s.id
-    LEFT JOIN owners o ON c.recruiter_id = o.id
-    JOIN positions p ON c.position_id = p.id
-    WHERE c.id = ?
-  `).get(candidateId) as DbCandidate | undefined;
+   const candidate = db.prepare(`
+     SELECT c.*, s.name as status, o.name as recruiter, p.name as position, c.type, c.department, c.degree, c.major, c.toeic
+     FROM candidates c
+     JOIN statuses s ON c.status_id = s.id
+     LEFT JOIN owners o ON c.recruiter_id = o.id
+     JOIN positions p ON c.position_id = p.id
+     WHERE c.id = ?
+   `).get(candidateId) as DbCandidate | undefined;
 
   if (candidate) {
     const logs = db.prepare(`

@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { Table } from "@/components/ui/Table";
+import { TableSkeleton } from "@/components/ui/Skeleton";
 import { OWNERS } from "@/data/types";
 
 interface Activity {
@@ -38,9 +39,11 @@ export default function AdminActivityPage() {
   const [action, setAction] = useState("");
   const [recruiter, setRecruiter] = useState("");
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
 
-useEffect(() => {
+  useEffect(() => {
     const fetchData = () => {
+      setLoading(true);
       const params = new URLSearchParams();
       if (datePeriod) params.set("days", datePeriod);
       if (status) params.set("status", status);
@@ -71,6 +74,9 @@ useEffect(() => {
         .catch((error) => {
           console.error("Failed to fetch activities:", error);
           setActivities([]);
+        })
+        .finally(() => {
+          setLoading(false);
         });
     };
     fetchData();
@@ -122,23 +128,23 @@ useEffect(() => {
                   { label: "Not Hired", value: "Not Hired" },
                 ]}
                 value={status}
-onChange={setStatus}
+                onChange={setStatus}
               />
             </div>
             <div className="flex flex-col gap-1">
-               <label className="text-sm font-semibold text-[var(--foreground)]">Action</label>
-               <Dropdown
-                 placeholder="All Actions"
-                 options={[
-                   { label: "Change Status", value: "Change Status" },
-                   { label: "Matching", value: "Matching" },
-                   { label: "Create/Edit JD", value: "Create/Edit JD" },
-                   { label: "AI Opinion", value: "AI Opinion" },
-                 ]}
-                 value={action}
-                 onChange={setAction}
-               />
-             </div>
+              <label className="text-sm font-semibold text-[var(--foreground)]">Action</label>
+              <Dropdown
+                placeholder="All Actions"
+                options={[
+                  { label: "Change Status", value: "Change Status" },
+                  { label: "Matching", value: "Matching" },
+                  { label: "Create/Edit JD", value: "Create/Edit JD" },
+                  { label: "AI Opinion", value: "AI Opinion" },
+                ]}
+                value={action}
+                onChange={setAction}
+              />
+            </div>
             <div className="flex flex-col gap-1">
               <label className="text-sm font-semibold text-[var(--foreground)]">Recruiter</label>
               <Dropdown
@@ -152,24 +158,28 @@ onChange={setStatus}
         </CardContent>
       </Card>
 
-      <Card>
-        <Table<Activity>
-          columns={[
-            { key: "timestamp", header: "Time Stamp" },
-            { key: "action", header: "Action" },
-            { key: "recruiter", header: "Recruiter" },
-            {
-              key: "candidate",
-              header: "Candidate & ID",
-              render: (row) => `${row.candidate} (${row.candidateId})`,
-            },
-            { key: "status", header: "Status" },
-            { key: "actionDetail", header: "Action Detail" },
-          ]}
-          data={activities}
-          keyExtractor={(row) => row.id}
-        />
-      </Card>
+      {loading ? (
+        <TableSkeleton rows={5} columns={6} />
+      ) : (
+        <Card>
+          <Table<Activity>
+            columns={[
+              { key: "timestamp", header: "Time Stamp" },
+              { key: "action", header: "Action" },
+              { key: "recruiter", header: "Recruiter" },
+              {
+                key: "candidate",
+                header: "Candidate & ID",
+                render: (row) => `${row.candidate} (${row.candidateId})`,
+              },
+              { key: "status", header: "Status" },
+              { key: "actionDetail", header: "Action Detail" },
+            ]}
+            data={activities}
+            keyExtractor={(row) => row.id}
+          />
+        </Card>
+      )}
     </main>
   );
 }

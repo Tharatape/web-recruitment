@@ -22,44 +22,49 @@ function getStatusStyle(status: string): string {
 
 interface CandidateExpandedViewProps {
    candidate: {
-     id: string;
-     uniqueId?: string;
-    name: string;
-    position: string;
-    age: number;
-    weight: number;
-    height: number;
-    bmi: number;
-    phone: string;
-    email: string;
-    expectedSalary: string;
-    education?: string;
-    address?: string;
-    language?: string;
-    license?: string;
-    previousEmployment?: string;
-    aiSummary: string;
-    logs?: DbLog[];
-  };
-  matchingScore?: number;
-  extraTopRight?: React.ReactNode;
-  pros?: string[];
-  cons?: string[];
-  barScores?: {
-    experience: number;
-    education: number;
-    language: number;
-    technical: number;
-    experienceChecklist?: string[];
-    educationChecklist?: string[];
-    languageChecklist?: string[];
-    technicalChecklist?: string[];
-    experiencePoints?: number;
-    educationPoints?: number;
-    languagePoints?: number;
-    technicalPoints?: number;
-  };
-}
+      id: string;
+      uniqueId?: string;
+     name: string;
+     position: string;
+     age: number;
+     weight: number;
+     height: number;
+     bmi: number;
+     phone: string;
+     email: string;
+     expectedSalary: string;
+     education?: string;
+     address?: string;
+     language?: string;
+     license?: string;
+     previousEmployment?: string;
+     aiSummary: string;
+     type?: string;
+     department?: string;
+     degree?: string;
+     major?: string;
+     toeic?: number;
+     logs?: DbLog[];
+   };
+   matchingScore?: number;
+   extraTopRight?: React.ReactNode;
+   pros?: string[];
+   cons?: string[];
+   barScores?: {
+     experience: number;
+     education: number;
+     language: number;
+     technical: number;
+     experienceChecklist?: string[];
+     educationChecklist?: string[];
+     languageChecklist?: string[];
+     technicalChecklist?: string[];
+     experiencePoints?: number;
+     educationPoints?: number;
+     languagePoints?: number;
+     technicalPoints?: number;
+   };
+ }
 
 function InfoField({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -210,23 +215,43 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
                   </div>
                 </div>
               </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-3">Background</p>
-                <div className="space-y-2.5 text-sm">
-                  <div>
-                    <span className="text-[var(--text-secondary)]">Education</span>
-                    <p className="font-semibold mt-0.5">{safeStr(candidate.education)}</p>
-                  </div>
-                  <div className="border-t border-[var(--border)] pt-2.5">
-                    <span className="text-[var(--text-secondary)]">Address (Province)</span>
-                    <p className="font-semibold mt-0.5">{safeStr(candidate.address)}</p>
-                  </div>
-                  <div className="border-t border-[var(--border)] pt-2.5">
-                    <span className="text-[var(--text-secondary)]">Language</span>
-                    <p className="font-semibold mt-0.5">{safeStr(candidate.language)}</p>
-                  </div>
-                </div>
-              </div>
+<div>
+                 <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-3">Background</p>
+                 <div className="space-y-2.5 text-sm">
+                   <div>
+                     <span className="text-[var(--text-secondary)]">Education</span>
+                     <p className="font-semibold mt-0.5">{safeStr(candidate.education)}</p>
+                   </div>
+                   <div className="border-t border-[var(--border)] pt-2.5">
+                     <span className="text-[var(--text-secondary)]">Address (Province)</span>
+                     <p className="font-semibold mt-0.5">{safeStr(candidate.address)}</p>
+                   </div>
+                   <div className="border-t border-[var(--border)] pt-2.5">
+                     <span className="text-[var(--text-secondary)]">Language</span>
+                     <p className="font-semibold mt-0.5">{safeStr(candidate.language)}</p>
+                   </div>
+                   <div className="border-t border-[var(--border)] pt-2.5">
+                     <span className="text-[var(--text-secondary)]">Type</span>
+                     <p className="font-semibold mt-0.5">{safeStr(candidate.type)}</p>
+                   </div>
+                   <div className="border-t border-[var(--border)] pt-2.5">
+                     <span className="text-[var(--text-secondary)]">Department</span>
+                     <p className="font-semibold mt-0.5">{safeStr(candidate.department)}</p>
+                   </div>
+                   <div className="border-t border-[var(--border)] pt-2.5">
+                     <span className="text-[var(--text-secondary)]">Degree</span>
+                     <p className="font-semibold mt-0.5">{safeStr(candidate.degree)}</p>
+                   </div>
+                   <div className="border-t border-[var(--border)] pt-2.5">
+                     <span className="text-[var(--text-secondary)]">Major</span>
+                     <p className="font-semibold mt-0.5">{safeStr(candidate.major)}</p>
+                   </div>
+                   <div className="border-t border-[var(--border)] pt-2.5">
+                     <span className="text-[var(--text-secondary)]">TOEIC</span>
+                     <p className="font-semibold mt-0.5">{candidate.toeic ?? "—"}</p>
+                   </div>
+                 </div>
+               </div>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-3">Employment</p>
                 <div className="space-y-2.5 text-sm">

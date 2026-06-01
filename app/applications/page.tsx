@@ -26,67 +26,62 @@ export default function ApplicationsPage() {
   const [paginatedCandidates, setPaginatedCandidates] = useState<DbCandidateEssential[]>([]);
   const [fullCandidates, setFullCandidates] = useState<Map<string, DbCandidate>>(new Map());
   const [allPositions, setAllPositions] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [loadingExpanded, setLoadingExpanded] = useState(false);
 
   const fetchPaginatedData = useCallback(async (): Promise<void> => {
-    setLoading(true);
-    
-    try {
-      const startDate = dateRange !== "all" ? new Date(Date.now() - Number(dateRange) * 24 * 60 * 60 * 1000).toISOString().split("T")[0] : undefined;
-      
-      const qp = new URLSearchParams({
-        limit: String(pageSize),
-        offset: String((page - 1) * pageSize),
-        essential: "true",
-      });
-      
-      if (search) qp.set("search", search);
-      if (startDate) qp.set("startDate", startDate);
-      position.forEach(p => qp.append("position", p));
-      if (expMin) qp.set("expMin", expMin);
-      if (expMax) qp.set("expMax", expMax);
-      status.forEach(s => qp.append("status", s));
-      if (recruiter === "no-owner") qp.set("owner", "no-owner");
-      else if (recruiter) qp.set("owner", recruiter);
-      
-      const countParams = new URLSearchParams({ countOnly: "true" });
-      if (search) countParams.set("search", search);
-      if (startDate) countParams.set("startDate", startDate);
-      position.forEach(p => countParams.append("position", p));
-      if (expMin) countParams.set("expMin", expMin);
-      if (expMax) countParams.set("expMax", expMax);
-      status.forEach(s => countParams.append("status", s));
-      if (recruiter === "no-owner") countParams.set("owner", "no-owner");
-      else if (recruiter) countParams.set("owner", recruiter);
+     try {
+       const startDate = dateRange !== "all" ? new Date(Date.now() - Number(dateRange) * 24 * 60 * 60 * 1000).toISOString().split("T")[0] : undefined;
+       
+       const qp = new URLSearchParams({
+         limit: String(pageSize),
+         offset: String((page - 1) * pageSize),
+         essential: "true",
+       });
+       
+       if (search) qp.set("search", search);
+       if (startDate) qp.set("startDate", startDate);
+       position.forEach(p => qp.append("position", p));
+       if (expMin) qp.set("expMin", expMin);
+       if (expMax) qp.set("expMax", expMax);
+       status.forEach(s => qp.append("status", s));
+       if (recruiter === "no-owner") qp.set("owner", "no-owner");
+       else if (recruiter) qp.set("owner", recruiter);
+       
+       const countParams = new URLSearchParams({ countOnly: "true" });
+       if (search) countParams.set("search", search);
+       if (startDate) countParams.set("startDate", startDate);
+       position.forEach(p => countParams.append("position", p));
+       if (expMin) countParams.set("expMin", expMin);
+       if (expMax) countParams.set("expMax", expMax);
+       status.forEach(s => countParams.append("status", s));
+       if (recruiter === "no-owner") countParams.set("owner", "no-owner");
+       else if (recruiter) countParams.set("owner", recruiter);
 
-      const [candRes, countRes] = await Promise.all([
-        fetch(`/api/candidates?${qp.toString()}`),
-        fetch(`/api/candidates?${countParams.toString()}`)
-      ]);
+       const [candRes, countRes] = await Promise.all([
+         fetch(`/api/candidates?${qp.toString()}`),
+         fetch(`/api/candidates?${countParams.toString()}`)
+       ]);
 
-      if (!candRes.ok) {
-        throw new Error(`Failed to fetch candidates: ${candRes.status}`);
-      }
-      if (!countRes.ok) {
-        throw new Error(`Failed to fetch count: ${countRes.status}`);
-      }
+       if (!candRes.ok) {
+         throw new Error(`Failed to fetch candidates: ${candRes.status}`);
+       }
+       if (!countRes.ok) {
+         throw new Error(`Failed to fetch count: ${countRes.status}`);
+       }
 
-      const cands = await candRes.json();
-      const countData = await countRes.json();
-      
-      setPaginatedCandidates(cands);
-      setTotal(countData.total || 0);
-      
-      const positions = Array.from(new Set(cands.map((c: DbCandidateEssential) => c.position)));
-      setAllPositions(positions as string[]);
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, pageSize, search, position, expMin, expMax, dateRange, status, recruiter]);
+       const cands = await candRes.json();
+       const countData = await countRes.json();
+       
+       setPaginatedCandidates(cands);
+       setTotal(countData.total || 0);
+       
+       const positions = Array.from(new Set(cands.map((c: DbCandidateEssential) => c.position)));
+       setAllPositions(positions as string[]);
+     } catch (error) {
+       console.error("Failed to fetch data:", error);
+     }
+   }, [page, pageSize, search, position, expMin, expMax, dateRange, status, recruiter]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -116,14 +111,6 @@ export default function ApplicationsPage() {
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const safePage = Math.min(page, totalPages);
-
-  // if (loading) {
-  //   return (
-  //     <main className="max-w-7xl mx-auto px-6 py-8">
-  //       <p className="text-center py-8">Loading...</p>
-  //     </main>
-  //   );
-  // }
 
   return (
     <>
@@ -316,40 +303,45 @@ export default function ApplicationsPage() {
               }
               if (!fullData) return null;
               
-              return (
-                <CandidateExpandedView
-                  candidate={{
-                    id: fullData.unique_id,
-                    uniqueId: fullData.unique_id,
-                    name: fullData.name,
-                    position: fullData.position,
-                    age: fullData.age,
-                    weight: fullData.weight,
-                    height: fullData.height,
-                    bmi: fullData.bmi,
-                    phone: fullData.phone,
-                    email: fullData.email,
-                    expectedSalary: fullData.expected_salary,
-                    education: fullData.education,
-                    address: fullData.address,
-                    language: fullData.language,
-                    license: fullData.license,
-                    previousEmployment: fullData.previous_employment,
-                    aiSummary: fullData.ai_summary,
-                    logs: fullData.logs,
-                  }}
-                  pros={[
-                    `${fullData.experience >= 5 ? "Extensive" : "Solid"} experience in ${fullData.position}`,
-                    (fullData.education ?? "").includes("Bachelor") || (fullData.education ?? "").includes("Master") ? "Strong educational background" : "Relevant education",
-                    fullData.language === "Fluent" || fullData.language === "Conversational" ? "Good communication skills" : "Basic communication ability",
-                  ].filter(Boolean)}
-                  cons={[
-                    fullData.experience < 3 ? "Limited professional experience" : null,
-                    fullData.status === "Not Suitable" ? "Does not fully match role requirements" : null,
-                    fullData.bmi > 30 ? "Health flag noted" : null,
-                  ].filter(Boolean) as string[]}
-                />
-              );
+return (
+                 <CandidateExpandedView
+                   candidate={{
+                     id: fullData.unique_id,
+                     uniqueId: fullData.unique_id,
+                     name: fullData.name,
+                     position: fullData.position,
+                     age: fullData.age,
+                     weight: fullData.weight,
+                     height: fullData.height,
+                     bmi: fullData.bmi,
+                     phone: fullData.phone,
+                     email: fullData.email,
+                     expectedSalary: fullData.expected_salary,
+                     education: fullData.education,
+                     address: fullData.address,
+                     language: fullData.language,
+                     license: fullData.license,
+                     previousEmployment: fullData.previous_employment,
+                     aiSummary: fullData.ai_summary,
+                     logs: fullData.logs,
+                     type: fullData.type,
+                     department: fullData.department,
+                     degree: fullData.degree,
+                     major: fullData.major,
+                     toeic: fullData.toeic,
+                   }}
+                   pros={[
+                     `${fullData.experience >= 5 ? "Extensive" : "Solid"} experience in ${fullData.position}`,
+                     (fullData.education ?? "").includes("Bachelor") || (fullData.education ?? "").includes("Master") ? "Strong educational background" : "Relevant education",
+                     fullData.language === "Fluent" || fullData.language === "Conversational" ? "Good communication skills" : "Basic communication ability",
+                   ].filter(Boolean)}
+                   cons={[
+                     fullData.experience < 3 ? "Limited professional experience" : null,
+                     fullData.status === "Not Suitable" ? "Does not fully match role requirements" : null,
+                     fullData.bmi > 30 ? "Health flag noted" : null,
+                   ].filter(Boolean) as string[]}
+                 />
+               );
             }}
             onRowClick={(row) => handleExpandedIdChange(expandedId === row.id ? null : row.id)}
           />

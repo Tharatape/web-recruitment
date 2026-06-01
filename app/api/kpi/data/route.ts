@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeDatabase } from '@/data/db';
-import { getKpiAggregations, getKpiCandidates } from '@/data/repositories/kpiRepository';
+import { getKpiAggregations, getKpiCandidateDetails } from '@/data/repositories/kpiRepository';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     };
 
     const aggregations = getKpiAggregations(filters);
-    const candidates = getKpiCandidates(filters);
+    const candidates = getKpiCandidateDetails(filters);
     return NextResponse.json({ aggregations, candidates });
   } catch (error) {
     console.error("API error:", error);

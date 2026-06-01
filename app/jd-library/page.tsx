@@ -176,13 +176,39 @@ export default function JdLibraryPage() {
     );
   };
 
-  // if (loading) {
-  //   return (
-  //     <main className="max-w-7xl mx-auto px-6 py-8">
-  //       <p className="text-center py-8">Loading...</p>
-  //     </main>
-  //   );
-  // }
+  if (loading) {
+    return (
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <h1 className="text-3xl font-bold text-[var(--primary)] mb-6">JD Library</h1>
+        <div className="w-full bg-white rounded-xl border border-[var(--border)] p-4 mb-6">
+          <div className="h-6 bg-gray-200 rounded animate-pulse w-24 mb-3" />
+          <div className="border-2 border-dashed border-[var(--border)] rounded-lg p-4 text-center mb-3">
+            <div className="h-10 bg-gray-100 rounded animate-pulse mx-auto mb-2" />
+            <div className="h-4 bg-gray-100 rounded animate-pulse w-40 mx-auto mb-2" />
+            <div className="h-8 bg-gray-200 rounded animate-pulse w-28 mx-auto" />
+          </div>
+          <div className="h-10 bg-gray-200 rounded animate-pulse w-20" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-white rounded-xl border border-[var(--border)] p-5">
+            <div className="h-6 bg-gray-200 rounded animate-pulse w-32 mb-4" />
+            <div className="h-10 bg-gray-100 rounded animate-pulse mb-4" />
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="h-12 bg-gray-100 rounded animate-pulse" />
+              ))}
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-[var(--border)] p-6">
+            <div className="h-6 bg-gray-200 rounded animate-pulse w-24 mb-4" />
+            <div className="rounded-lg border-2 border-dashed border-[var(--border)] flex items-center justify-center min-h-[200px]">
+              <span className="text-[var(--text-muted)]">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="max-w-7xl mx-auto px-6 py-8">

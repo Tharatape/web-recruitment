@@ -6,9 +6,8 @@ import { Input } from "@/components/ui/Input";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { Table } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
-import { LazyLoadWrapper } from "@/components/LazyLoadWrapper";
-import { LazyKpiCharts } from "@/components/LazyKpiCharts";
-import type { CandidateDetail } from "@/data/repositories/kpiRepository";
+import KpiCharts from "@/components/charts/KpiCharts";
+import type { CandidateDetail, KpiAggregations } from "@/data/repositories/kpiRepository";
 import { OWNERS } from "@/data/types";
 
 export default function KpiDataPage() {
@@ -19,6 +18,16 @@ export default function KpiDataPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const [allCandidates, setAllCandidates] = useState<CandidateDetail[]>([]);
+  const [aggregations, setAggregations] = useState<KpiAggregations>({
+    positionDistribution: [],
+    educationDistribution: [],
+    experienceDistribution: [],
+    ageDistribution: [],
+    bmiDistribution: [],
+    heightDistribution: [],
+    totalCandidates: 0,
+    averageExperience: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,6 +59,7 @@ export default function KpiDataPage() {
         }
         const data = await res.json();
         setAllCandidates(data.candidates);
+        setAggregations(data.aggregations);
         setPage(1);
       } catch (err) {
         setError(String(err));
@@ -154,9 +164,7 @@ export default function KpiDataPage() {
           <p className="text-center py-8 text-[var(--accent-red)]">Error: {error}</p>
         ) : (
           <>
-            <LazyLoadWrapper>
-              <LazyKpiCharts dateFrom={dateFrom} dateTo={dateTo} owner={owner} />
-            </LazyLoadWrapper>
+            <KpiCharts aggregations={aggregations} />
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-[var(--text-secondary)]">
                 Showing {paginatedCandidates.length} of {candidates.length} candidates
