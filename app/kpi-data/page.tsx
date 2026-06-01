@@ -28,20 +28,30 @@ const STATUS_TO_STAGE: Record<string, number> = {
 
 const ERROR_STATUSES = ["Not Selected", "Offer Declined", "Not Hired", "Not Suitable"];
 
-function StageIcon({ stageIndex, currentStage, isError }: { stageIndex: number; currentStage: number; isError: boolean }) {
+function StageIcon({ stageIndex, currentStage, isError, status }: { stageIndex: number; currentStage: number; isError: boolean; status: string }) {
   const hasCheckmark = isError ? stageIndex < currentStage : stageIndex <= currentStage;
   const hasErrorX = isError && stageIndex === currentStage;
+  const isYellowStage = (stageIndex === 0 && status === "Applied") || (stageIndex === 1 && (status === "1st Interview" || status === "2nd Interview"));
+
+  const bgColor = hasErrorX ? "#ef4444" : isYellowStage ? "#eab308" : hasCheckmark ? "#22c55e" : "transparent";
 
   return (
-    <div className="flex items-center justify-center w-6 h-6 rounded-full border border-gray-300" style={{ backgroundColor: hasErrorX ? "#ef4444" : hasCheckmark ? "#22c55e" : "transparent" }}>
-      {hasCheckmark && !hasErrorX && (
-        <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-        </svg>
-      )}
+    <div className="flex items-center justify-center w-6 h-6 rounded-full border border-gray-300" style={{ backgroundColor: bgColor }}>
       {hasErrorX && (
         <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      )}
+      {isYellowStage && (
+        <div className="flex space-x-0.5">
+          <div className="w-1 h-1 bg-white rounded-full" />
+          <div className="w-1 h-1 bg-white rounded-full" />
+          <div className="w-1 h-1 bg-white rounded-full" />
+        </div>
+      )}
+      {hasCheckmark && !isYellowStage && !hasErrorX && (
+        <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
         </svg>
       )}
     </div>
@@ -233,10 +243,10 @@ export default function KpiDataPage() {
                   { key: "bmi", header: "BMI" },
                   { key: "weight", header: "Weight" },
                   { key: "height", header: "Height" },
-                  { key: "application", header: "Application", render: (row) => <StageIcon stageIndex={0} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} />, className: "w-[80px] text-center" },
-                  { key: "interview", header: "Interview", render: (row) => <StageIcon stageIndex={1} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} />, className: "w-[80px] text-center" },
-                  { key: "offer", header: "Offer", render: (row) => <StageIcon stageIndex={2} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} />, className: "w-[80px] text-center" },
-                  { key: "hired", header: "Hired", render: (row) => <StageIcon stageIndex={3} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} />, className: "w-[80px] text-center" },
+{ key: "application", header: "Application", render: (row) => <StageIcon stageIndex={0} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} status={row.status} />, className: "w-[80px] text-center" },
+                   { key: "interview", header: "Interview", render: (row) => <StageIcon stageIndex={1} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} status={row.status} />, className: "w-[80px] text-center" },
+{ key: "offer", header: "Offer", render: (row) => <StageIcon stageIndex={2} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} status={row.status} />, className: "w-[80px] text-center" },
+                   { key: "hired", header: "Hired", render: (row) => <StageIcon stageIndex={3} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} status={row.status} />, className: "w-[80px] text-center" },
                   { key: "recruiter", header: "Owner" },
                 ]}
                 data={paginatedCandidates}
