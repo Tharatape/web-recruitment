@@ -10,40 +10,42 @@ import KpiCharts from "@/components/charts/KpiCharts";
 import type { CandidateDetail, KpiAggregations } from "@/data/repositories/kpiRepository";
 import { OWNERS } from "@/data/types";
 
-function ChecklistIcon({ status }: { status: "success" | "warning" | "error" | null }) {
-  const colorClass = status === "success" ? "text-green-500" : status === "warning" ? "text-yellow-500" : status === "error" ? "text-red-500" : "text-gray-300";
-  const fill = status === "success" ? "fill-green-500" : status === "warning" ? "fill-yellow-500" : status === "error" ? "fill-red-500" : "";
+const STAGE_LABELS = ["Application", "Interview", "Offer", "Hired"] as const;
+
+const STATUS_TO_STAGE: Record<string, number> = {
+  "Applied": 0,
+  "Shortlisted": 0,
+  "1st Interview": 1,
+  "2nd Interview": 1,
+  "Selected": 1,
+  "Not Selected": 1,
+  "Offer Accepted": 2,
+  "Offer Declined": 2,
+  "Not Suitable": 0,
+  "Hired": 3,
+  "Not Hired": 3,
+};
+
+const ERROR_STATUSES = ["Not Selected", "Offer Declined", "Not Hired", "Not Suitable"];
+
+function StageIcon({ stageIndex, currentStage, isError }: { stageIndex: number; currentStage: number; isError: boolean }) {
+  const hasCheckmark = isError ? stageIndex < currentStage : stageIndex <= currentStage;
+  const hasErrorX = isError && stageIndex === currentStage;
+
   return (
-    <svg className={`w-5 h-5 ${colorClass}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" className={fill} />
-    </svg>
+    <div className="flex items-center justify-center w-6 h-6 rounded-full border border-gray-300" style={{ backgroundColor: hasErrorX ? "#ef4444" : hasCheckmark ? "#22c55e" : "transparent" }}>
+      {hasCheckmark && !hasErrorX && (
+        <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      )}
+      {hasErrorX && (
+        <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      )}
+    </div>
   );
-}
-
-function getApplicationStatus(status: string): "success" | "warning" | "error" | null {
-  if (status === "Applied") return "warning";
-  if (status === "Not Suitable") return "error";
-  if (status === "Shortlisted") return "success";
-  return null;
-}
-
-function getInterviewStatus(status: string): "success" | "warning" | "error" | null {
-  if (status === "1st Interview" || status === "2nd Interview") return "warning";
-  if (status === "Not Selected") return "error";
-  if (status === "Selected") return "success";
-  return null;
-}
-
-function getOfferStatus(status: string): "success" | "warning" | "error" | null {
-  if (status === "Offer Accepted") return "success";
-  if (status === "Offer Declined") return "error";
-  return null;
-}
-
-function getHiredStatus(status: string): "success" | "warning" | "error" | null {
-  if (status === "Hired") return "success";
-  if (status === "Not Hired") return "error";
-  return null;
 }
 
 export default function KpiDataPage() {
@@ -232,10 +234,10 @@ export default function KpiDataPage() {
                   { key: "bmi", header: "BMI" },
                   { key: "weight", header: "Weight" },
                   { key: "height", header: "Height" },
-                  { key: "status", header: "Application", render: (row) => <ChecklistIcon status={getApplicationStatus(row.status)} />, className: "w-[100px] text-center" },
-                  { key: "interview", header: "Interview", render: (row) => <ChecklistIcon status={getInterviewStatus(row.status)} />, className: "w-[100px] text-center" },
-                  { key: "offer", header: "Offer", render: (row) => <ChecklistIcon status={getOfferStatus(row.status)} />, className: "w-[80px] text-center" },
-                  { key: "hired", header: "Hired", render: (row) => <ChecklistIcon status={getHiredStatus(row.status)} />, className: "w-[80px] text-center" },
+                  { key: "application", header: "Application", render: (row) => <StageIcon stageIndex={0} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} />, className: "w-[80px] text-center" },
+                  { key: "interview", header: "Interview", render: (row) => <StageIcon stageIndex={1} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} />, className: "w-[80px] text-center" },
+                  { key: "offer", header: "Offer", render: (row) => <StageIcon stageIndex={2} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} />, className: "w-[80px] text-center" },
+                  { key: "hired", header: "Hired", render: (row) => <StageIcon stageIndex={3} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} />, className: "w-[80px] text-center" },
                   { key: "recruiter", header: "Owner" },
                 ]}
                 data={paginatedCandidates}
