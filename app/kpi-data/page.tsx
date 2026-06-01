@@ -223,9 +223,8 @@ export default function KpiDataPage() {
                 columns={[
                   { key: "unique_id", header: "Unique ID", render: (row) => <span className="font-mono text-xs text-[var(--text-secondary)]">{row.unique_id}</span>, className: "w-[100px]" },
                   { key: "date_applied", header: "Date Applied" },
-                  { key: "position", header: "Position" },
-                  { key: "type", header: "Type" },
-                  { key: "department", header: "Department" },
+{ key: "position", header: "Position" },
+                   { key: "department", header: "Department" },
                   { key: "experience", header: "Experience" },
                   { key: "degree", header: "Degree" },
                   { key: "major", header: "Major" },
