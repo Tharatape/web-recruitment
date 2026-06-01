@@ -101,6 +101,7 @@ const NAMES: string[] = (() => {
 })();
 
 const educations = [
+  "Associate Degree, Business Administration",
   "Bachelor's Degree, Business Administration",
   "Bachelor's Degree, Computer Science",
   "Bachelor's Degree, Information Technology",
@@ -113,10 +114,12 @@ const educations = [
   "Bachelor's Degree, Accounting",
   "Bachelor's Degree, Economics",
   "Bachelor's Degree, Psychology",
+  "Doctoral Degree / Ph.D., Computer Science",
+  "Doctoral Degree / Ph.D., Business Administration",
 ];
 
-const types = ["Staff", "Contract"]; // Restored original order
-const degrees = ["Bachelor", "Master", "MBA"];
+const types = ["Staff", "Contract"];
+const degrees = ["Associate", "Bachelor", "Master", "Doctoral / Ph.D."];
 
 const positionToDepartment: Record<string, string> = {
   "Sales Executive": "Sales",
@@ -143,16 +146,16 @@ const departmentToMajors: Record<string, string[]> = {
 };
 
 const positionToDegreeLikelihood: Record<string, { degree: string; weight: number }[]> = {
-  "Sales Executive": [{ degree: "Bachelor", weight: 70 }, { degree: "Master", weight: 20 }, { degree: "MBA", weight: 10 }],
-  "Marketing Specialist": [{ degree: "Bachelor", weight: 60 }, { degree: "Master", weight: 25 }, { degree: "MBA", weight: 15 }],
-  "Software Engineer": [{ degree: "Bachelor", weight: 80 }, { degree: "Master", weight: 15 }, { degree: "MBA", weight: 5 }],
-  "Data Analyst": [{ degree: "Bachelor", weight: 65 }, { degree: "Master", weight: 25 }, { degree: "MBA", weight: 10 }],
-  "HR Manager": [{ degree: "Bachelor", weight: 50 }, { degree: "Master", weight: 30 }, { degree: "MBA", weight: 20 }],
-  "Financial Analyst": [{ degree: "Bachelor", weight: 60 }, { degree: "Master", weight: 30 }, { degree: "MBA", weight: 10 }],
-  "Customer Service": [{ degree: "Bachelor", weight: 75 }, { degree: "Master", weight: 20 }, { degree: "MBA", weight: 5 }],
-  "Project Manager": [{ degree: "Bachelor", weight: 55 }, { degree: "Master", weight: 30 }, { degree: "MBA", weight: 15 }],
-  "Business Analyst": [{ degree: "Bachelor", weight: 60 }, { degree: "Master", weight: 25 }, { degree: "MBA", weight: 15 }],
-  "Operations Manager": [{ degree: "Bachelor", weight: 55 }, { degree: "Master", weight: 30 }, { degree: "MBA", weight: 15 }],
+  "Sales Executive": [{ degree: "Bachelor", weight: 60 }, { degree: "Master", weight: 20 }, { degree: "MBA", weight: 15 }, { degree: "Associate", weight: 3 }, { degree: "Doctoral / Ph.D.", weight: 2 }],
+  "Marketing Specialist": [{ degree: "Bachelor", weight: 55 }, { degree: "Master", weight: 20 }, { degree: "MBA", weight: 15 }, { degree: "Associate", weight: 7 }, { degree: "Doctoral / Ph.D.", weight: 3 }],
+  "Software Engineer": [{ degree: "Bachelor", weight: 70 }, { degree: "Master", weight: 15 }, { degree: "MBA", weight: 5 }, { degree: "Associate", weight: 5 }, { degree: "Doctoral / Ph.D.", weight: 5 }],
+  "Data Analyst": [{ degree: "Bachelor", weight: 55 }, { degree: "Master", weight: 25 }, { degree: "MBA", weight: 10 }, { degree: "Associate", weight: 7 }, { degree: "Doctoral / Ph.D.", weight: 3 }],
+  "HR Manager": [{ degree: "Bachelor", weight: 40 }, { degree: "Master", weight: 25 }, { degree: "MBA", weight: 20 }, { degree: "Associate", weight: 10 }, { degree: "Doctoral / Ph.D.", weight: 5 }],
+  "Financial Analyst": [{ degree: "Bachelor", weight: 50 }, { degree: "Master", weight: 25 }, { degree: "MBA", weight: 15 }, { degree: "Associate", weight: 7 }, { degree: "Doctoral / Ph.D.", weight: 3 }],
+  "Customer Service": [{ degree: "Bachelor", weight: 65 }, { degree: "Master", weight: 15 }, { degree: "MBA", weight: 10 }, { degree: "Associate", weight: 6 }, { degree: "Doctoral / Ph.D.", weight: 4 }],
+  "Project Manager": [{ degree: "Bachelor", weight: 45 }, { degree: "Master", weight: 25 }, { degree: "MBA", weight: 20 }, { degree: "Associate", weight: 5 }, { degree: "Doctoral / Ph.D.", weight: 5 }],
+  "Business Analyst": [{ degree: "Bachelor", weight: 50 }, { degree: "Master", weight: 25 }, { degree: "MBA", weight: 15 }, { degree: "Associate", weight: 7 }, { degree: "Doctoral / Ph.D.", weight: 3 }],
+  "Operations Manager": [{ degree: "Bachelor", weight: 45 }, { degree: "Master", weight: 25 }, { degree: "MBA", weight: 20 }, { degree: "Associate", weight: 6 }, { degree: "Doctoral / Ph.D.", weight: 4 }],
 };
 
 const addresses = [

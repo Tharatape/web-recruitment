@@ -48,11 +48,17 @@ export function PositionDistributionDonut({ data }: { data: Array<{ name: string
 }
 
 export function EducationDegreeDonut({ data, total }: { data: Array<{ name: string; value: number }>; total: number }) {
+  const segments = ["Associate's Degree", "Bachelor's Degree", "Master's Degree", "Doctoral Degree / Ph.D.", "Other"];
+  const orderedData = segments.map((seg) => {
+    const found = data.find((d) => d.name === seg);
+    return found || { name: seg, value: 0 };
+  });
+
   return (
     <div>
-      <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} total={total} />
+      <DonutChart data={data} height={260} centerLabel="Total" centerTotal={total} segments={segments} total={total} />
       <div className="mt-4 space-y-2">
-        {data.map((p) => (
+        {orderedData.map((p) => (
           <div key={p.name} className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]">
             <span>•</span>
             <span>{p.name}: {p.value} ({total > 0 ? ((p.value / total) * 100).toFixed(1) : 0}%)</span>

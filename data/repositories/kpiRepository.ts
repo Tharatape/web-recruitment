@@ -117,11 +117,17 @@ export function getKpiAggregations(filters: {
   const educationDistributionMap: Record<string, number> = {};
   for (const c of candidates) {
     if (c.education) {
-      educationDistributionMap[c.education] = (educationDistributionMap[c.education] || 0) + 1;
+      let label: string;
+      if (c.education.includes("Associate")) label = "Associate's Degree";
+      else if (c.education.includes("Bachelor")) label = "Bachelor's Degree";
+      else if (c.education.includes("Master")) label = "Master's Degree";
+      else if (c.education.includes("Doctoral") || c.education.includes("Ph.D") || c.education.includes("Doctorate")) label = "Doctoral Degree / Ph.D.";
+      else label = "Other";
+      educationDistributionMap[label] = (educationDistributionMap[label] || 0) + 1;
     }
   }
-  const educationDistribution = Object.entries(educationDistributionMap)
-    .map(([name, value]) => ({ name, value }));
+  const educationDistribution = ["Associate's Degree", "Bachelor's Degree", "Master's Degree", "Doctoral Degree / Ph.D.", "Other"]
+    .map((name) => ({ name, value: educationDistributionMap[name] || 0 }));
 
   const totalCandidates = candidates.length;
   const averageExperience = totalCandidates > 0
