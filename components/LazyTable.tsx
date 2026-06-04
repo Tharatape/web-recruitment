@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { Card } from "@/components/ui/Card";
 import { Table } from "@/components/ui/Table";
 import type { CandidateDetail } from "@/data/repositories/kpiRepository";
 
@@ -57,15 +58,14 @@ interface LazyTableProps {
     owner: string;
     search?: string;
   };
-  pageSize?: number;
 }
 
-export function LazyTable({ filters, pageSize = 50 }: LazyTableProps) {
+export function LazyTable({ filters }: LazyTableProps) {
   const [allCandidates, setAllCandidates] = useState<CandidateDetail[]>([]);
-  const [displayedCount, setDisplayedCount] = useState(pageSize);
+  const [page, setPage] = useState(1);
+  const [currentPageSize, setCurrentPageSize] = useState(25);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const fetchCandidates = useCallback(async () => {
     setLoading(true);
@@ -84,66 +84,27 @@ export function LazyTable({ filters, pageSize = 50 }: LazyTableProps) {
       }
       const data = await res.json();
       setAllCandidates(data.candidates);
-      setDisplayedCount(pageSize);
+      setPage(1);
     } catch (err) {
       setError(String(err));
       console.error("Failed to fetch candidates:", err);
     } finally {
       setLoading(false);
     }
-}, [filters.dateFrom, filters.dateTo, filters.owner, filters.search, pageSize]);
+  }, [filters.dateFrom, filters.dateTo, filters.owner, filters.search]);
 
-  // Fetch data on mount and when filters change
   useEffect(() => {
     void fetchCandidates();
   }, [fetchCandidates]);
 
-  useEffect(() => {
-    if (!sentinelRef.current || loading) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && displayedCount < allCandidates.length) {
-          setDisplayedCount((prev) => Math.min(prev + pageSize, allCandidates.length));
-        }
-      },
-      { rootMargin: "200px" }
-    );
-
-    observer.observe(sentinelRef.current);
-
-    return () => observer.disconnect();
-  }, [loading, displayedCount, allCandidates.length, pageSize]);
+  const candidates = allCandidates;
+  const totalPages = Math.max(1, Math.ceil(candidates.length / currentPageSize));
+  const safePage = Math.min(page, totalPages);
+  const paginatedCandidates = candidates.slice((page - 1) * currentPageSize, page * currentPageSize);
 
   if (loading) {
     return (
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-[#f8fafc] border-b border-[var(--border)]">
-              {[
-                "Unique ID", "Date Applied", "Position", "Department", "Experience",
-                "Degree", "Major", "TOEIC", "Age", "BMI", "Weight", "Height", "", "", ""
-              ].map((header, i) => (
-                <th key={i} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {Array.from({ length: 10 }).map((_, rowIdx) => (
-              <tr key={rowIdx} className="border-b border-[var(--border)]">
-                {Array.from({ length: 15 }).map((_, colIdx) => (
-                  <td key={colIdx} className="px-4 py-3">
-                    <div className="h-4 bg-gray-100 rounded animate-pulse w-full max-w-32" />
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <p className="text-center py-8 text-[var(--text-secondary)]">Loading...</p>
     );
   }
 
@@ -153,42 +114,55 @@ export function LazyTable({ filters, pageSize = 50 }: LazyTableProps) {
     );
   }
 
-  const displayedCandidates = allCandidates.slice(0, displayedCount);
-  const hasMore = displayedCount < allCandidates.length;
-
   return (
     <>
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-[var(--text-secondary)]">
-          Showing {displayedCandidates.length} of {allCandidates.length} candidates
+          Showing {paginatedCandidates.length} of {candidates.length} candidates
         </p>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-semibold text-[var(--foreground)]">Per page:</span>
+          <select
+            className="text-sm border border-[var(--border)] rounded-lg px-2.5 py-1.5 bg-white cursor-pointer"
+            value={currentPageSize}
+            onChange={(e) => { setCurrentPageSize(Number(e.target.value)); setPage(1); }}
+          >
+            {[25, 50, 100].map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
       </div>
-      <Table
-        columns={[
-          { key: "unique_id", header: "Unique ID", render: (row) => <span className="font-mono text-xs text-[var(--text-secondary)]">{row.unique_id}</span>, className: "w-[100px]" },
-          { key: "date_applied", header: "Date Applied" },
-          { key: "position", header: "Position" },
-          { key: "department", header: "Department" },
-          { key: "experience", header: "Experience" },
-          { key: "degree", header: "Degree" },
-          { key: "major", header: "Major" },
-          { key: "toeic", header: "TOEIC" },
-          { key: "age", header: "Age" },
-          { key: "bmi", header: "BMI" },
-          { key: "weight", header: "Weight" },
-          { key: "height", header: "Height" },
-          { key: "application", header: "Application", render: (row) => <StageIcon stageIndex={0} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} status={row.status} />, className: "w-[80px] text-center" },
-          { key: "interview", header: "Interview", render: (row) => <StageIcon stageIndex={1} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} status={row.status} />, className: "w-[80px] text-center" },
-          { key: "offer", header: "Offer", render: (row) => <StageIcon stageIndex={2} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} status={row.status} />, className: "w-[80px] text-center" },
-          { key: "hired", header: "Hired", render: (row) => <StageIcon stageIndex={3} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} status={row.status} />, className: "w-[80px] text-center" },
-          { key: "recruiter", header: "Owner" },
-        ]}
-        data={displayedCandidates}
-        keyExtractor={(row) => row.unique_id}
-      />
-      {hasMore && (
-        <div ref={sentinelRef} className="h-10 flex items-center justify-center">
-          <div className="w-6 h-6 border-2 border-[var(--border)] border-t-[var(--accent)] rounded-full animate-spin" />
+      <Card>
+        <Table
+          columns={[
+            { key: "unique_id", header: "Unique ID", render: (row) => <span className="font-mono text-xs text-[var(--text-secondary)]">{row.unique_id}</span>, className: "w-[100px]" },
+            { key: "date_applied", header: "Date Applied" },
+            { key: "position", header: "Position" },
+            { key: "department", header: "Department" },
+            { key: "experience", header: "Experience" },
+            { key: "degree", header: "Degree" },
+            { key: "major", header: "Major" },
+            { key: "toeic", header: "TOEIC" },
+            { key: "age", header: "Age" },
+            { key: "bmi", header: "BMI" },
+            { key: "weight", header: "Weight" },
+            { key: "height", header: "Height" },
+            { key: "application", header: "Application", render: (row) => <StageIcon stageIndex={0} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} status={row.status} />, className: "w-[80px] text-center" },
+            { key: "interview", header: "Interview", render: (row) => <StageIcon stageIndex={1} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} status={row.status} />, className: "w-[80px] text-center" },
+            { key: "offer", header: "Offer", render: (row) => <StageIcon stageIndex={2} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} status={row.status} />, className: "w-[80px] text-center" },
+            { key: "hired", header: "Hired", render: (row) => <StageIcon stageIndex={3} currentStage={STATUS_TO_STAGE[row.status] || 0} isError={ERROR_STATUSES.includes(row.status)} status={row.status} />, className: "w-[80px] text-center" },
+            { key: "recruiter", header: "Owner" },
+          ]}
+          data={paginatedCandidates}
+          keyExtractor={(row) => row.unique_id}
+        />
+      </Card>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-5">
+          <p className="text-sm text-[var(--text-secondary)]">Page {safePage} of {totalPages}</p>
+          <div className="flex gap-2">
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={safePage <= 1} className="px-4 py-2 text-sm font-medium rounded-lg border border-[var(--border)] bg-white hover:bg-[#f8fafc] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">Previous</button>
+            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={safePage >= totalPages} className="px-4 py-2 text-sm font-medium rounded-lg border border-[var(--border)] bg-white hover:bg-[#f8fafc] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed">Next</button>
+          </div>
         </div>
       )}
     </>

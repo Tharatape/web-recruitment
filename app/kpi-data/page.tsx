@@ -105,9 +105,7 @@ export default function KpiDataPage() {
           <LazyKpiCharts dateFrom={dateFrom} dateTo={dateTo} owner={owner} />
         </LazyLoadWrapper>
 
-        <LazyLoadWrapper>
-          <LazyTable filters={{ dateFrom, dateTo, owner, search: tableSearch }} />
-        </LazyLoadWrapper>
+        <LazyTable filters={{ dateFrom, dateTo, owner, search: tableSearch }} />
       </main>
     </>
   );
