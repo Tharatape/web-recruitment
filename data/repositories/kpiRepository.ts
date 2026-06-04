@@ -1,5 +1,6 @@
 import { db } from '../db';
 import { getExperienceLabel } from '@/data/types';
+import * as XLSX from 'xlsx';
 
 interface KpiCandidate {
   id: string;
@@ -194,38 +195,38 @@ return {
   };
 }
 
-export function exportKpiToExcel(filters: {
+export function exportKpitoExcel(filters: {
   search?: string;
   dateFrom?: string;
   dateTo?: string;
   owner?: string | null;
-}): string {
+}): ArrayBuffer {
   const candidates = getKpiCandidates(filters);
 
-  const headers = ["Unique ID", "Date Applied", "Position", "Type", "Department", "Experience", "Degree", "Major", "TOEIC", "Age", "BMI", "Weight", "Height", "Application Status", "Owner"];
-  const csvLines = [headers.join(",")];
+  const data = candidates.map(c => ({
+    "Unique ID": c.unique_id,
+    "Date Applied": c.date_applied,
+    "Position": c.position,
+    "Type": c.type ?? "",
+    "Department": c.department ?? "",
+    "Experience": c.experience,
+    "Degree": c.degree ?? "",
+    "Major": c.major ?? "",
+    "TOEIC": c.toeic ?? "",
+    "Age": c.age ?? "",
+    "BMI": c.bmi?.toFixed(1) ?? "",
+    "Weight": c.weight ?? "",
+    "Height": c.height ?? "",
+    "Application Status": c.status ?? "",
+    "Owner": c.recruiter ?? "",
+  }));
 
-  for (const c of candidates) {
-    csvLines.push([
-      c.unique_id,
-      c.date_applied,
-      c.position,
-      c.type ?? "",
-      c.department ?? "",
-      c.experience,
-      c.degree ?? "",
-      c.major ?? "",
-      c.toeic ?? "",
-      c.age ?? "",
-      c.bmi?.toFixed(1) ?? "",
-      c.weight ?? "",
-      c.height ?? "",
-      c.status ?? "",
-      c.recruiter ?? "",
-    ].join(","));
-  }
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "KPI Data");
 
-  return csvLines.join("\n");
+  const arrayBuffer = XLSX.write(workbook, { type: 'array', bookType: 'xlsx' });
+  return arrayBuffer;
 }
 
 export function getKpiCandidateDetails(filters: {

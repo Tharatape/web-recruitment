@@ -131,12 +131,11 @@ export default function KpiDataPage() {
 
     const res = await fetch(`/api/kpi/export?${qp.toString()}`);
     if (res.ok) {
-      const csv = await res.text();
-      const blob = new Blob([csv], { type: 'text/csv' });
+      const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'kpi-data.csv';
+      a.download = 'kpi-data.xlsx';
       a.click();
       URL.revokeObjectURL(url);
     }

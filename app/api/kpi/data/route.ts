@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeDatabase } from '@/data/db';
-import { getKpiAggregations, getKpiCandidateDetails } from '@/data/repositories/kpiRepository';
+import { getKpiAggregations, getKpiCandidateDetails, exportKpitoExcel } from '@/data/repositories/kpiRepository';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,17 +32,16 @@ export async function POST(request: NextRequest) {
     const { action, ...filters } = body;
 
     if (action === 'export') {
-      const { exportKpiToExcel } = await import('@/data/repositories/kpiRepository');
-      const csv = exportKpiToExcel({
+      const buffer = exportKpitoExcel({
         search: filters.search,
         dateFrom: filters.dateFrom,
         dateTo: filters.dateTo,
         owner: filters.owner,
       });
-      return new NextResponse(csv, {
+      return new NextResponse(buffer, {
         headers: {
-          'Content-Type': 'text/csv',
-          'Content-Disposition': 'attachment; filename="kpi-data.csv"',
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Disposition': 'attachment; filename="kpi-data.xlsx"',
         },
       });
     }

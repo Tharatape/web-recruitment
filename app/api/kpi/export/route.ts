@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeDatabase } from '@/data/db';
-import { exportKpiToExcel } from '@/data/repositories/kpiRepository';
+import { exportKpitoExcel } from '@/data/repositories/kpiRepository';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,11 +16,11 @@ export async function GET(request: NextRequest) {
       owner: searchParams.get('owner') === 'no-owner' ? null : (searchParams.get('owner') || undefined),
     };
 
-    const csv = exportKpiToExcel(filters);
-    return new NextResponse(csv, {
+    const buffer = exportKpitoExcel(filters);
+    return new NextResponse(buffer, {
       headers: {
-        'Content-Type': 'text/csv',
-        'Content-Disposition': 'attachment; filename="kpi-data.csv"',
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': 'attachment; filename="kpi-data.xlsx"',
       },
     });
   } catch (error) {
