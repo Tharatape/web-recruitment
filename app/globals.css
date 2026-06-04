@@ -83,24 +83,35 @@ body {
 .status-hired { background: #dcfce7; color: #166534; }
 .status-not-hired { background: #f1f5f9; color: #64748b; }
 
+/* Force Recharts tooltip background visibility */
+.recharts-default-tooltip,
+.recharts-default-tooltip *,
+.recharts-tooltip,
+.recharts-tooltip *,
+.recharts-tooltip-content,
+.recharts-tooltip-content * {
+  background: #ffffff !important;
+}
+
 .recharts-default-tooltip {
-  background: transparent !important;
-}
-
-.donut-tooltip {
-  background-color: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 8px !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1) !important;
-  padding: 8px 12px !important;
-}
-
-.recharts-tooltip {
-  background: transparent !important;
-}
-
-.recharts-tooltip-inner {
   background: #ffffff !important;
   border: 1px solid #e2e8f0 !important;
   border-radius: 8px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1) !important;
+  padding: 8px 12px !important;
+}
+
+.recharts-default-tooltip *,
+.recharts-tooltip *,
+.recharts-tooltip-content * {
+  background: #ffffff !important;
+}
+
+/* Ensure tooltip is above chart center label */
+.donut-chart-container {
+  contain: layout style;
+}
+
+.donut-chart-container > div:last-child {
+  z-index: 1;
 }
