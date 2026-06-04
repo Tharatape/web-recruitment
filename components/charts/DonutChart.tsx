@@ -25,8 +25,19 @@ export function DonutChart({ data, height = 260, centerLabel, centerTotal, segme
       })
     : data;
 
-  return (
-    <div className="w-full relative">
+return (
+    <div className="w-full relative" style={{ isolation: 'isolate' }}>
+      {centerLabel && (
+        <div 
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none" 
+          style={{ zIndex: 1 }}
+        >
+          {centerTotal !== undefined && centerTotal > 0 && (
+            <span className="text-2xl font-bold text-[var(--foreground)]">{centerTotal}</span>
+          )}
+          <span className={`text-xs text-[var(--text-muted)] ${centerTotal === undefined || centerTotal === 0 ? "text-2xl font-bold text-[var(--foreground)]" : ""}`}>{centerLabel}</span>
+        </div>
+      )}
       <ResponsiveContainer width="100%" height={height}>
         <RechartsPieChart>
           <Pie
@@ -45,31 +56,38 @@ export function DonutChart({ data, height = 260, centerLabel, centerTotal, segme
               <Cell key={i} fill={orderedData[i].color || COLORS[i % COLORS.length]} />
             ))}
           </Pie>
-<Tooltip
-             content={({ active, payload }) => {
-               if (active && payload && payload[0]) {
-                 const dataPoint = payload[0].payload;
-                 const actualTotal = total !== undefined ? total : orderedData.reduce((s, i) => s + i.value, 0);
-                 const percentage = actualTotal > 0 ? ((dataPoint.value / actualTotal) * 100).toFixed(1) : 0;
-                 return (
-                   <div className="bg-white border border-[#e2e8f0] rounded-lg px-3 py-2 text-sm shadow-sm">
-                     <span className="font-medium text-[var(--foreground)]">{dataPoint.name}: {dataPoint.value} ({percentage}%)</span>
-                   </div>
-                 );
-               }
-               return null;
-             }}
-           />
+          <Tooltip
+            wrapperStyle={{ zIndex: 9999, pointerEvents: 'none' }}
+            contentStyle={{ 
+              backgroundColor: '#ffffff',
+              border: '1px solid #e2e8f0',
+              borderRadius: '8px',
+              boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+              padding: '8px 12px',
+            }}
+            content={({ active, payload }) => {
+              if (active && payload && payload[0]) {
+                const dataPoint = payload[0].payload;
+                const actualTotal = total !== undefined ? total : orderedData.reduce((s, i) => s + i.value, 0);
+                const percentage = actualTotal > 0 ? ((dataPoint.value / actualTotal) * 100).toFixed(1) : 0;
+                return (
+                  <div style={{ 
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
+                    padding: '8px 12px',
+                    minWidth: '120px',
+                  }}>
+                    <span className="font-medium text-[var(--foreground)]">{dataPoint.name}: {dataPoint.value} ({percentage}%)</span>
+                  </div>
+                );
+              }
+              return null;
+            }}
+          />
         </RechartsPieChart>
       </ResponsiveContainer>
-      {centerLabel && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none">
-          {centerTotal !== undefined && centerTotal > 0 && (
-            <span className="text-2xl font-bold text-[var(--foreground)]">{centerTotal}</span>
-          )}
-          <span className={`text-xs text-[var(--text-muted)] ${centerTotal === undefined || centerTotal === 0 ? "text-2xl font-bold text-[var(--foreground)]" : ""}`}>{centerLabel}</span>
-        </div>
-      )}
     </div>
   );
 }

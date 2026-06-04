@@ -82,3 +82,25 @@ body {
 .status-offer-declined { background: #fee2e2; color: #dc2626; }
 .status-hired { background: #dcfce7; color: #166534; }
 .status-not-hired { background: #f1f5f9; color: #64748b; }
+
+.recharts-default-tooltip {
+  background: transparent !important;
+}
+
+.donut-tooltip {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1) !important;
+  padding: 8px 12px !important;
+}
+
+.recharts-tooltip {
+  background: transparent !important;
+}
+
+.recharts-tooltip-inner {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+}
