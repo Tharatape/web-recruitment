@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     initializeDatabase();
     const searchParams = request.nextUrl.searchParams;
+    const type = searchParams.get('type') || 'all';
 
     const filters = {
       search: searchParams.get('search') || undefined,
@@ -15,6 +16,16 @@ export async function GET(request: NextRequest) {
       dateTo: searchParams.get('dateTo') || undefined,
       owner: searchParams.get('owner') === 'no-owner' ? null : (searchParams.get('owner') || undefined),
     };
+
+    if (type === 'candidates') {
+      const candidates = getKpiCandidateDetails(filters);
+      return NextResponse.json({ candidates });
+    }
+
+    if (type === 'aggregations') {
+      const aggregations = getKpiAggregations(filters);
+      return NextResponse.json({ aggregations });
+    }
 
     const aggregations = getKpiAggregations(filters);
     const candidates = getKpiCandidateDetails(filters);

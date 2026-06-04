@@ -3,19 +3,9 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import KpiCharts from "@/components/charts/KpiCharts";
+import type { KpiAggregations } from "@/data/repositories/kpiRepository";
 
-interface AggregationData {
-  positionDistribution: Array<{ name: string; value: number }>;
-  educationDistribution: Array<{ name: string; value: number }>;
-  experienceDistribution: Array<{ name: string; value: number }>;
-  ageDistribution: Array<{ name: string; value: number }>;
-  bmiDistribution: Array<{ name: string; value: number }>;
-  heightDistribution: Array<{ name: string; value: number }>;
-  totalCandidates: number;
-  averageExperience: number;
-}
-
-const emptyAggregations: AggregationData = {
+const emptyAggregations: KpiAggregations = {
   positionDistribution: [],
   educationDistribution: [],
   experienceDistribution: [],
@@ -33,7 +23,7 @@ interface LazyKpiChartsProps {
 }
 
 export function LazyKpiCharts({ dateFrom, dateTo, owner }: LazyKpiChartsProps) {
-  const [aggregations, setAggregations] = useState<AggregationData>(emptyAggregations);
+  const [aggregations, setAggregations] = useState<KpiAggregations>(emptyAggregations);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,7 +32,7 @@ export function LazyKpiCharts({ dateFrom, dateTo, owner }: LazyKpiChartsProps) {
       setLoading(true);
       setError(null);
       try {
-        const qp = new URLSearchParams();
+        const qp = new URLSearchParams({ type: "aggregations" });
         if (dateFrom) qp.set("dateFrom", dateFrom);
         if (dateTo) qp.set("dateTo", dateTo);
         if (owner === "no-owner") qp.set("owner", "no-owner");
