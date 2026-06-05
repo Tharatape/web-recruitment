@@ -25,30 +25,45 @@ interface TableSkeletonProps {
 
 export function TableSkeleton({ rows = 5, columns = 5 }: TableSkeletonProps) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-[var(--border)]">
-            {Array.from({ length: columns }).map((_, i) => (
-              <th key={i} className="text-left py-2 px-3">
-                <div className="h-4 bg-gray-200 rounded animate-pulse w-20" />
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {Array.from({ length: rows }).map((_, rowIdx) => (
-            <tr key={rowIdx} className="border-b border-[var(--border)] last:border-0">
-              {Array.from({ length: columns }).map((_, colIdx) => (
-                <td key={colIdx} className="py-3 px-3">
-                  <div className="h-4 bg-gray-100 rounded animate-pulse w-full max-w-32" />
-                </td>
+    <>
+      <div className="overflow-x-auto hidden sm:block">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-[var(--border)]">
+              {Array.from({ length: columns }).map((_, i) => (
+                <th key={i} className="text-left py-2 px-3">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-20" />
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {Array.from({ length: rows }).map((_, rowIdx) => (
+              <tr key={rowIdx} className="border-b border-[var(--border)] last:border-0">
+                {Array.from({ length: columns }).map((_, colIdx) => (
+                  <td key={colIdx} className="py-3 px-3">
+                    <div className="h-4 bg-gray-100 rounded animate-pulse w-full max-w-32" />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="sm:hidden space-y-3">
+        {Array.from({ length: rows }).map((_, rowIdx) => (
+          <div key={rowIdx} className="bg-white rounded-lg border border-[var(--border)] p-4 space-y-2.5">
+            {Array.from({ length: 6 }).map((_, colIdx) => (
+              <div key={colIdx} className="flex justify-between items-start">
+                <div className="h-3 bg-gray-200 rounded animate-pulse w-20" />
+                <div className="h-4 bg-gray-100 rounded animate-pulse w-24" />
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
 

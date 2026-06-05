@@ -83,18 +83,18 @@ export default function AdminActivityPage() {
   }, [datePeriod, status, action, recruiter, search]);
 
   return (
-    <main className="max-w-7xl mx-auto px-6 py-8 lg:ml-60">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">Admin Activity</h1>
-        <div className="flex items-center gap-3">
+    <main className="w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 lg:ml-60">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
+        <h1 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">Admin Activity</h1>
+        <div className="flex items-center gap-2 sm:gap-3">
           <span className="text-sm font-semibold text-[var(--foreground)]">Sarah Mitchell</span>
-          <div className="w-10 h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-sm cursor-pointer hover:ring-2 hover:ring-[var(--primary)] transition-all" title="Profile">SM</div>
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xs sm:text-sm cursor-pointer hover:ring-2 hover:ring-[var(--primary)] transition-all" title="Profile">SM</div>
         </div>
       </div>
 
-      <Card className="mb-6">
-        <CardContent className="!p-5">
-          <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4">
+      <Card className="mb-4 sm:mb-6">
+        <CardContent className="!p-4 sm:!p-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             <Input
               label="Advance Search"
               placeholder="Search..."

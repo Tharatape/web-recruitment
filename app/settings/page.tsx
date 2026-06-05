@@ -71,6 +71,31 @@ export default function SettingsPage() {
 
       <Card className="mb-6">
         <CardHeader>
+          <CardTitle>Change Name</CardTitle>
+        </CardHeader>
+        <CardContent className="!py-5">
+          <div className="space-y-4 max-w-md">
+            <Input
+              label="Current Name"
+              type="text"
+              placeholder="Sarah Mitchell"
+              defaultValue="Sarah Mitchell"
+              disabled
+            />
+            <Input
+              label="New Name"
+              type="text"
+              placeholder="Enter new name"
+            />
+            <button className="px-4 py-2 bg-[var(--primary)] text-white rounded-md hover:bg-[var(--primary-hover)] transition-colors text-sm font-medium">
+              Update Name
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
           <CardTitle>Change Password</CardTitle>
         </CardHeader>
         <CardContent className="!py-5">
