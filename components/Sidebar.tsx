@@ -11,6 +11,7 @@ const nav = [
   { href: "/matching", label: "Matching" },
   { href: "/jd-library", label: "JD Library" },
   { href: "/admin-activity", label: "Admin Activity" },
+  { href: "/settings", label: "Settings" },
 ];
 
 export default function Sidebar() {

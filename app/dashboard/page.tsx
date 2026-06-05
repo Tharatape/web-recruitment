@@ -82,8 +82,14 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold text-[var(--foreground)] mb-6">Dashboard</h1>
+      <main className="max-w-7xl mx-auto px-6 py-8 lg:ml-60">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">Dashboard</h1>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold text-[var(--foreground)]">Sarah Mitchell</span>
+            <div className="w-10 h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-sm" title="Profile">SM</div>
+          </div>
+        </div>
         <div className="flex flex-wrap gap-4 mb-6">
           <div className="h-10 bg-gray-100 rounded animate-pulse w-40" />
           <div className="h-10 bg-gray-100 rounded animate-pulse w-40" />
@@ -132,158 +138,166 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="flex flex-wrap gap-4 mb-6">
-          <Input label="Start Date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-          <Input label="End Date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-          <Dropdown
-            label="Recruiter"
-            placeholder="All Owners"
-            options={recruiters.map((r) => ({ label: r, value: r }))}
-            value={owner}
-            onChange={setOwner}
-            className="w-48"
-          />
+    <main className="max-w-7xl mx-auto px-6 py-8 lg:ml-60">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-[var(--foreground)]">Dashboard</h1>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-semibold text-[var(--foreground)]">Sarah Mitchell</span>
+          <div className="w-10 h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-sm cursor-pointer hover:ring-2 hover:ring-[var(--primary)] transition-all" title="Profile">SM</div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: "Total Applications", value: total },
-            { label: "Today Applied", value: today },
-            { label: "Last Week Applied", value: lastWeek },
-            { label: "Last Month Applied", value: lastMonth },
-          ].map((stat) => (
-            <Card key={stat.label} className="p-5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">
-                {stat.label}
-              </p>
-              <p className="text-3xl font-bold text-[var(--primary)]">{stat.value}</p>
-            </Card>
-          ))}
-        </div>
+      <div className="flex flex-wrap gap-4 mb-6">
+        <Input label="Start Date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+        <Input label="End Date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+        <Dropdown
+          label="Recruiter"
+          placeholder="All Owners"
+          options={recruiters.map((r) => ({ label: r, value: r }))}
+          value={owner}
+          onChange={setOwner}
+          className="w-48"
+        />
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <Card>
-              <CardHeader>
-                <CardTitle className="mb-0">Position Distribution</CardTitle>
-                <p className="text-sm text-[var(--text-secondary)] -mt-1">
-                  Distribution of applications across different positions
-                </p>
-              </CardHeader>
-              <CardContent>
-                <PositionDistributionDonut data={positionDist} />
-              </CardContent>
-            </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {[
+          { label: "Total Applications", value: total },
+          { label: "Today Applied", value: today },
+          { label: "Last Week Applied", value: lastWeek },
+          { label: "Last Month Applied", value: lastMonth },
+        ].map((stat) => (
+          <Card key={stat.label} className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">
+              {stat.label}
+            </p>
+            <p className="text-3xl font-bold text-[var(--primary)]">{stat.value}</p>
+          </Card>
+        ))}
+      </div>
 
-          <Card>
-              <CardHeader>
-                <CardTitle className="mb-0">Status Overview</CardTitle>
-                <p className="text-sm text-[var(--text-secondary)] -mt-1">
-                  Current candidate distribution across all application statuses
-                </p>
-              </CardHeader>
-              <CardContent>
-               <BarChart data={statusBarData} height={300} />
-               <div className="mt-3 overflow-x-auto">
-                 <table className="w-full text-sm">
-                   <thead>
-                     <tr className="text-[var(--text-muted)] text-xs">
-                       <th className="text-left pr-4 pb-2">Status</th>
-                       <th className="text-right pb-2">Count</th>
-                       <th className="text-right pb-2">%</th>
-                     </tr>
-                   </thead>
-                   <tbody>
-                     {STATUSES.map((s) => {
-                       const v = fullStatusCounts[s] || 0;
-                       return (
-                         <tr key={s} className="border-t border-[var(--border)] last:border-0">
-                           <td className="py-1.5 pr-4 font-medium">{s}</td>
-                           <td className="py-1.5 text-right">{v}</td>
-                           <td className="py-1.5 text-right text-[var(--text-secondary)]">
-                             {total > 0 ? ((v / total) * 100).toFixed(1) : 0}%
-                           </td>
-                         </tr>
-                       );
-                     })}
-                   </tbody>
-                 </table>
-               </div>
-             </CardContent>
-           </Card>
-        </div>
-
-        <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="mb-0">Stage Performance</CardTitle>
-              <p className="text-sm text-[var(--text-secondary)] -mt-1">
-                Funnel visualization of candidate progression through hiring stages
-              </p>
-            </CardHeader>
-            <CardContent>
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-               {stageData.map((stage) => (
-                 <div key={stage.name} className="flex flex-col">
-                   <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">{stage.name}</h4>
-                   <StageBar name={stage.name} segments={stage.segments} height={180} yAxisMax={maxTotal} />
-                   <div className="mt-2 space-y-1">
-                     {stage.segments.map((seg) => (
-                       <div key={seg.name} className="flex items-center justify-between text-xs">
-                         <span className="flex items-center gap-1">
-                           <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: seg.color }} />
-                           {seg.name}
-                         </span>
-                         <span className="font-medium">
-                           {seg.value} ({stageTotals[stage.name] > 0 ? ((seg.value / stageTotals[stage.name]) * 100).toFixed(1) : 0}%)
-                         </span>
-                       </div>
-                     ))}
-                   </div>
-                 </div>
-               ))}
-             </div>
-           </CardContent>
-           <div className="px-6 pb-4 border-t border-[var(--border)] pt-4">
-             <div className="text-xs text-[var(--text-secondary)] opacity-70 space-y-1">
-               <p><strong>Applied:</strong> Candidates who meet the initial job criteria but have not yet been selected for the next stage.</p>
-               <p><strong>Shortlisted:</strong> Candidates who meet the criteria and have been selected to move forward in the Interview process.</p>
-               <p><strong>Not Suitable:</strong> Candidates who do not meet the minimum requirements for the role.</p>
-               <p><strong>Selected:</strong> Candidates who have successfully passed both the 1st and 2nd round interviews.</p>
-               <p><strong>Not Selected:</strong> Candidates who did not pass either the 1st or 2nd round interviews.</p>
-               <p><strong>Offer Accepted:</strong> Candidates who have formally accepted the job offer.</p>
-               <p><strong>Offer Declined:</strong> Candidates who were extended an offer but chose not to accept it.</p>
-               <p><strong>Hired:</strong> Candidates who have successfully completed the onboarding process and are officially part of the company.</p>
-               <p><strong>Not Hired:</strong> Candidates who went through the process but were ultimately not chosen for the role.</p>
-             </div>
-           </div>
-         </Card>
-
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <Card>
           <CardHeader>
-            <CardTitle className="mb-0">Average Duration Between Stages</CardTitle>
+            <CardTitle className="mb-0">Position Distribution</CardTitle>
             <p className="text-sm text-[var(--text-secondary)] -mt-1">
-              Time candidates spend transitioning between Stage Performance
+              Distribution of applications across different positions
             </p>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { label: "Applied → Interview", days: "12.4" },
-                { label: "Interview → Offer", days: "8.2" },
-                { label: "Offer → Hired", days: "5.6" },
-                { label: "Applied → Hired", days: "26.2" },
-              ].map((d) => (
-                <div key={d.label} className="p-4 bg-[#f8fafc] rounded-xl text-center">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">
-                    {d.label}
-                  </p>
-                  <p className="text-2xl font-bold text-[var(--primary)]">{d.days}</p>
-                  <p className="text-xs text-[var(--text-muted)]">days avg</p>
-                </div>
-              ))}
+            <PositionDistributionDonut data={positionDist} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="mb-0">Status Overview</CardTitle>
+            <p className="text-sm text-[var(--text-secondary)] -mt-1">
+              Current candidate distribution across all application statuses
+            </p>
+          </CardHeader>
+          <CardContent>
+            <BarChart data={statusBarData} height={300} />
+            <div className="mt-3 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-[var(--text-muted)] text-xs">
+                    <th className="text-left pr-4 pb-2">Status</th>
+                    <th className="text-right pb-2">Count</th>
+                    <th className="text-right pb-2">%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {STATUSES.map((s) => {
+                    const v = fullStatusCounts[s] || 0;
+                    return (
+                      <tr key={s} className="border-t border-[var(--border)] last:border-0">
+                        <td className="py-1.5 pr-4 font-medium">{s}</td>
+                        <td className="py-1.5 text-right">{v}</td>
+                        <td className="py-1.5 text-right text-[var(--text-secondary)]">
+                          {total > 0 ? ((v / total) * 100).toFixed(1) : 0}%
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </CardContent>
         </Card>
-     </main>
-   );
+      </div>
+
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="mb-0">Stage Performance</CardTitle>
+          <p className="text-sm text-[var(--text-secondary)] -mt-1">
+            Funnel visualization of candidate progression through hiring stages
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {stageData.map((stage) => (
+              <div key={stage.name} className="flex flex-col">
+                <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">{stage.name}</h4>
+                <StageBar name={stage.name} segments={stage.segments} height={180} yAxisMax={maxTotal} />
+                <div className="mt-2 space-y-1">
+                  {stage.segments.map((seg) => (
+                    <div key={seg.name} className="flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-1">
+                        <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ backgroundColor: seg.color }} />
+                        {seg.name}
+                      </span>
+                      <span className="font-medium">
+                        {seg.value} ({stageTotals[stage.name] > 0 ? ((seg.value / stageTotals[stage.name]) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+        <div className="px-6 pb-4 border-t border-[var(--border)] pt-4">
+          <div className="text-xs text-[var(--text-secondary)] opacity-70 space-y-1">
+            <p><strong>Applied:</strong> Candidates who meet the initial job criteria but have not yet been selected for the next stage.</p>
+            <p><strong>Shortlisted:</strong> Candidates who meet the criteria and have been selected to move forward in the Interview process.</p>
+            <p><strong>Not Suitable:</strong> Candidates who do not meet the minimum requirements for the role.</p>
+            <p><strong>Selected:</strong> Candidates who have successfully passed both the 1st and 2nd round interviews.</p>
+            <p><strong>Not Selected:</strong> Candidates who did not pass either the 1st or 2nd round interviews.</p>
+            <p><strong>Offer Accepted:</strong> Candidates who have formally accepted the job offer.</p>
+            <p><strong>Offer Declined:</strong> Candidates who were extended an offer but chose not to accept it.</p>
+            <p><strong>Hired:</strong> Candidates who have successfully completed the onboarding process and are officially part of the company.</p>
+            <p><strong>Not Hired:</strong> Candidates who went through the process but were ultimately not chosen for the role.</p>
+          </div>
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="mb-0">Average Duration Between Stages</CardTitle>
+          <p className="text-sm text-[var(--text-secondary)] -mt-1">
+            Time candidates spend transitioning between Stage Performance
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { label: "Applied → Interview", days: "12.4" },
+              { label: "Interview → Offer", days: "8.2" },
+              { label: "Offer → Hired", days: "5.6" },
+              { label: "Applied → Hired", days: "26.2" },
+            ].map((d) => (
+              <div key={d.label} className="p-4 bg-[#f8fafc] rounded-xl text-center">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">
+                  {d.label}
+                </p>
+                <p className="text-2xl font-bold text-[var(--primary)]">{d.days}</p>
+                <p className="text-xs text-[var(--text-muted)]">days avg</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </main>
+  );
 }

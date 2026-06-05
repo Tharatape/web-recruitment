@@ -207,7 +207,6 @@ export function exportKpitoExcel(filters: {
     "Unique ID": c.unique_id,
     "Date Applied": c.date_applied,
     "Position": c.position,
-    "Type": c.type ?? "",
     "Department": c.department ?? "",
     "Experience": c.experience,
     "Degree": c.degree ?? "",

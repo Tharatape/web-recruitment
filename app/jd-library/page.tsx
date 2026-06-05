@@ -178,8 +178,14 @@ export default function JdLibraryPage() {
 
   if (loading) {
     return (
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <h1 className="text-3xl font-bold text-[var(--primary)] mb-6">JD Library</h1>
+      <main className="max-w-7xl mx-auto px-6 py-8 lg:ml-60">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-[var(--primary)]">JD Library</h1>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold text-[var(--foreground)]">Sarah Mitchell</span>
+            <div className="w-10 h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-sm" title="Profile">SM</div>
+          </div>
+        </div>
         <div className="w-full bg-white rounded-xl border border-[var(--border)] p-4 mb-6">
           <div className="h-6 bg-gray-200 rounded animate-pulse w-24 mb-3" />
           <div className="border-2 border-dashed border-[var(--border)] rounded-lg p-4 text-center mb-3">
@@ -211,8 +217,14 @@ export default function JdLibraryPage() {
   }
 
   return (
-    <main className="max-w-7xl mx-auto px-6 py-8">
-      <h1 className="text-3xl font-bold text-[var(--primary)] mb-6">JD Library</h1>
+    <main className="max-w-7xl mx-auto px-6 py-8 lg:ml-60">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-[var(--primary)]">JD Library</h1>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-semibold text-[var(--foreground)]">Sarah Mitchell</span>
+          <div className="w-10 h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-sm cursor-pointer hover:ring-2 hover:ring-[var(--primary)] transition-all" title="Profile">SM</div>
+        </div>
+      </div>
 
       <div className="w-full bg-white rounded-xl border border-[var(--border)] p-4 mb-6">
         <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Upload JD</h2>

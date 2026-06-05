@@ -107,11 +107,8 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-screen bg-[var(--background)]">
-        {/* ── Sidebar ─────────────────────────────────── */}
         <Sidebar />
-
-        {/* ── Main content ────────────────────────────── */}
-        <main className="lg:ml-60">{children}</main>
+        {children}
       </body>
     </html>
   );

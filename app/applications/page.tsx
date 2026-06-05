@@ -84,7 +84,7 @@ export default function ApplicationsPage() {
    }, [page, pageSize, search, position, expMin, expMax, dateRange, status, recruiter]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     void fetchPaginatedData();
   }, [fetchPaginatedData]);
 
@@ -114,8 +114,14 @@ export default function ApplicationsPage() {
 
   return (
     <>
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold text-[var(--foreground)] mb-6">Application List</h1>
+      <main className="max-w-7xl mx-auto px-6 py-8 lg:ml-60">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">Application List</h1>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold text-[var(--foreground)]">Sarah Mitchell</span>
+            <div className="w-10 h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-sm cursor-pointer hover:ring-2 hover:ring-[var(--primary)] transition-all" title="Profile">SM</div>
+          </div>
+        </div>
 
         <Card className="mb-6">
           <CardContent className="!p-5">
@@ -180,11 +186,11 @@ export default function ApplicationsPage() {
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Recruiter</label>
                 <Dropdown
-                  placeholder="All Recruiters"
-                  options={[{ label: "No Owner", value: "no-owner" }, ...OWNERS.map((r) => ({ label: r, value: r }))]}
-                  value={recruiter}
-                  onChange={setRecruiter}
-                />
+                   placeholder="All Recruiters"
+                   options={[{ label: "No Owner", value: "no-owner" }, ...OWNERS.map((r) => ({ label: r, value: r }))]}
+                   value={recruiter}
+                   onChange={setRecruiter}
+                 />
               </div>
             </div>
             {(search || position.length > 0 || status.length > 0 || recruiter || dateRange !== "all") && (
