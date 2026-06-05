@@ -192,7 +192,7 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
                  </div>
                 <div className="flex gap-2">
                   <button onClick={() => { /* TODO: download/wire candidate CV */ }} className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer">View Original CV</button>
-                  <a href="#" target="_blank" rel="noopener noreferrer" className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors inline-block">View Application Form</a>
+                  <button type="button" onClick={() => {}} className="px-3 py-2 text-xs font-semibold text-[var(--primary)] bg-[var(--primary-light)] rounded-lg hover:bg-[#bfdbfe] transition-colors cursor-pointer">View Application Form</button>
                 </div>
               </div>
 
