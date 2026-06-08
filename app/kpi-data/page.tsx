@@ -45,7 +45,7 @@ export default function KpiDataPage() {
   const hasActiveFilters = dateFrom || dateTo || owner;
 
   return (
-    <main className="w-full px-4 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8 lg:ml-60">
+    <main className="max-w-7xl px-4 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8 lg:ml-60">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
         <h1 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">KPI Data</h1>
         <div className="flex items-center gap-2 sm:gap-3">
