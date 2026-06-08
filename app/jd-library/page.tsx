@@ -143,29 +143,29 @@ export default function JdLibraryPage() {
     const count = counts[key] !== undefined ? counts[key] : (checklist ? checklist.length : 5);
     const initialValue = checklist || [];
     return (
-      <div className="px-5">
+      <div className="px-3 sm:px-5">
         <div className="flex items-center justify-between mb-2">
-          <label className="text-xs font-semibold text-[var(--text-primary)]">{label}</label>
+          <label className="text-2xs sm:text-xs font-semibold text-[var(--text-primary)]">{label}</label>
           <button
             onClick={() => addCriterion(jd.id, category)}
             disabled={count >= 5}
-            className="px-2 py-1 text-xs font-medium text-[var(--primary)] bg-[var(--primary-light)] rounded hover:bg-[#bfdbfe] disabled:opacity-50 cursor-pointer"
+            className="px-2 py-0.5 sm:py-1 text-2xs sm:text-xs font-medium text-[var(--primary)] bg-[var(--primary-light)] rounded hover:bg-[#bfdbfe] disabled:opacity-50 cursor-pointer"
           >
             + Add
           </button>
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1.5 sm:gap-2">
           {Array.from({ length: count }).map((_, i) => (
             <div key={i} className="relative">
               <Input
                 placeholder={`${label.split(" ")[0]} criterion ${i + 1}`}
                 value={criteria[`${jd.id}-${category}-${i}`] || initialValue[i] || ""}
                 onChange={(e) => handleCriterionChange(jd.id, category, i, e.target.value)}
-                className="text-xs pr-10"
+                className="text-2xs sm:text-xs pr-8 sm:pr-10"
               />
               <button
                 onClick={() => removeCriterion(jd.id, category, i, count)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 rounded cursor-pointer"
+                className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 px-1.5 sm:px-2 py-0.5 sm:py-1 text-2xs sm:text-xs font-medium text-red-600 hover:bg-red-50 rounded cursor-pointer"
               >
                 ×
               </button>
@@ -178,37 +178,37 @@ export default function JdLibraryPage() {
 
   if (loading) {
     return (
-      <main className="max-w-7xl mx-auto px-6 py-8 lg:ml-60">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-[var(--primary)]">JD Library</h1>
-          <div className="flex items-center gap-3">
+      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
+          <h1 className="text-xl sm:text-3xl font-bold text-[var(--primary)]">JD Library</h1>
+          <div className="flex items-center gap-2 sm:gap-3">
             <span className="text-sm font-semibold text-[var(--foreground)]">Sarah Mitchell</span>
-            <div className="w-10 h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-sm" title="Profile">SM</div>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xs sm:text-sm" title="Profile">SM</div>
           </div>
         </div>
-        <div className="w-full bg-white rounded-xl border border-[var(--border)] p-4 mb-6">
-          <div className="h-6 bg-gray-200 rounded animate-pulse w-24 mb-3" />
-          <div className="border-2 border-dashed border-[var(--border)] rounded-lg p-4 text-center mb-3">
-            <div className="h-10 bg-gray-100 rounded animate-pulse mx-auto mb-2" />
-            <div className="h-4 bg-gray-100 rounded animate-pulse w-40 mx-auto mb-2" />
-            <div className="h-8 bg-gray-200 rounded animate-pulse w-28 mx-auto" />
+        <div className="w-full bg-white rounded-xl border border-[var(--border)] p-3 sm:p-4 mb-4 sm:mb-6">
+          <div className="h-5 sm:h-6 bg-gray-200 rounded animate-pulse w-20 sm:w-24 mb-2 sm:mb-3" />
+          <div className="border-2 border-dashed border-[var(--border)] rounded-lg p-3 sm:p-4 text-center mb-2 sm:mb-3">
+            <div className="h-8 sm:h-10 bg-gray-100 rounded animate-pulse mx-auto mb-1.5 sm:mb-2" />
+            <div className="h-3 sm:h-4 bg-gray-100 rounded animate-pulse w-32 sm:w-40 mx-auto mb-1.5 sm:mb-2" />
+            <div className="h-7 sm:h-8 bg-gray-200 rounded animate-pulse w-24 sm:w-28 mx-auto" />
           </div>
-          <div className="h-10 bg-gray-200 rounded animate-pulse w-20" />
+          <div className="h-9 sm:h-10 bg-gray-200 rounded animate-pulse w-16 sm:w-20" />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-white rounded-xl border border-[var(--border)] p-5">
-            <div className="h-6 bg-gray-200 rounded animate-pulse w-32 mb-4" />
-            <div className="h-10 bg-gray-100 rounded animate-pulse mb-4" />
-            <div className="space-y-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+          <div className="bg-white rounded-xl border border-[var(--border)] p-3 sm:p-4">
+            <div className="h-5 sm:h-6 bg-gray-200 rounded animate-pulse w-28 sm:w-32 mb-3 sm:mb-4" />
+            <div className="h-9 sm:h-10 bg-gray-100 rounded animate-pulse mb-3 sm:mb-4" />
+            <div className="space-y-1.5 sm:space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-12 bg-gray-100 rounded animate-pulse" />
+                <div key={i} className="h-10 sm:h-12 bg-gray-100 rounded animate-pulse" />
               ))}
             </div>
           </div>
-          <div className="bg-white rounded-xl border border-[var(--border)] p-6">
-            <div className="h-6 bg-gray-200 rounded animate-pulse w-24 mb-4" />
-            <div className="rounded-lg border-2 border-dashed border-[var(--border)] flex items-center justify-center min-h-[200px]">
-              <span className="text-[var(--text-muted)]">Loading...</span>
+          <div className="bg-white rounded-xl border border-[var(--border)] p-4 sm:p-5">
+            <div className="h-5 sm:h-6 bg-gray-200 rounded animate-pulse w-20 sm:w-24 mb-3 sm:mb-4" />
+            <div className="rounded-lg border-2 border-dashed border-[var(--border)] flex items-center justify-center min-h-[150px] sm:min-h-[200px]">
+              <span className="text-[var(--text-muted)] text-xs sm:text-sm">Loading...</span>
             </div>
           </div>
         </div>
@@ -217,32 +217,32 @@ export default function JdLibraryPage() {
   }
 
   return (
-    <main className="max-w-7xl mx-auto px-6 py-8 lg:ml-60">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-[var(--primary)]">JD Library</h1>
-        <div className="flex items-center gap-3">
+    <main className="max-w-7xl mx-auto px-4 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
+        <h1 className="text-xl sm:text-3xl font-bold text-[var(--primary)]">JD Library</h1>
+        <div className="flex items-center gap-2 sm:gap-3">
           <span className="text-sm font-semibold text-[var(--foreground)]">Sarah Mitchell</span>
-          <div className="w-10 h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-sm cursor-pointer hover:ring-2 hover:ring-[var(--primary)] transition-all" title="Profile">SM</div>
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xs sm:text-sm cursor-pointer hover:ring-2 hover:ring-[var(--primary)] transition-all" title="Profile">SM</div>
         </div>
       </div>
 
-      <div className="w-full bg-white rounded-xl border border-[var(--border)] p-4 mb-6">
-        <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-3">Upload JD</h2>
-        <div className="border-2 border-dashed border-[var(--border)] rounded-lg p-4 text-center mb-3">
-          <svg className="w-10 h-10 mx-auto text-[var(--text-muted)] mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="w-full bg-white rounded-xl border border-[var(--border)] p-3 sm:p-4 mb-4 sm:mb-6">
+        <h2 className="text-lg sm:text-xl font-semibold text-[var(--text-primary)] mb-2 sm:mb-3">Upload JD</h2>
+        <div className="border-2 border-dashed border-[var(--border)] rounded-lg p-3 sm:p-4 text-center mb-2 sm:mb-3">
+          <svg className="w-8 h-8 sm:w-10 sm:h-10 mx-auto text-[var(--text-muted)] mb-1.5 sm:mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.9-7.95l.44-1.4A4 4 0 1115.44 6l1.4.44A4 4 0 0117 14h-1" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 12v9m-4-4l4 4 4-4" />
           </svg>
-          <p className="text-[var(--text-secondary)] mb-2 text-sm">Drop your JD files here or click to browse</p>
+          <p className="text-[var(--text-secondary)] mb-1.5 sm:mb-2 text-xs sm:text-sm">Drop your JD files here or click to browse</p>
           <Input type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} className="hidden" id="jd-upload" />
-          <label htmlFor="jd-upload" className="inline-block px-3 py-1.5 bg-[var(--primary)] text-white rounded-lg cursor-pointer hover:bg-[var(--primary)]/90 text-sm">
+          <label htmlFor="jd-upload" className="inline-block px-2.5 sm:px-3 py-1 sm:py-1.5 bg-[var(--primary)] text-white rounded-lg cursor-pointer hover:bg-[var(--primary)]/90 text-xs sm:text-sm">
             Choose Files
           </label>
         </div>
         {files.length > 0 && (
           <div className="mb-3">
-            <p className="text-sm font-medium text-[var(--text-primary)] mb-1">Selected files:</p>
-            <ul className="text-xs text-[var(--text-secondary)]">
+            <p className="text-xs sm:text-sm font-medium text-[var(--text-primary)] mb-1">Selected files:</p>
+            <ul className="text-2xs sm:text-xs text-[var(--text-secondary)]">
               {files.map((file) => (
                 <li key={file.name}>{file.name}</li>
               ))}
@@ -250,38 +250,38 @@ export default function JdLibraryPage() {
           </div>
         )}
         <div className="flex justify-end">
-          <Button onClick={handleUpload} disabled={files.length === 0} className="text-sm py-1.5">
+          <Button onClick={handleUpload} disabled={files.length === 0} className="text-xs sm:text-sm py-1 sm:py-1.5">
             Upload
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <Card>
           <CardHeader>
             <CardTitle>JD Repository</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 sm:p-4">
             <Input
               placeholder="Search JDs..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="mb-4"
+              className="mb-3 sm:mb-4"
             />
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-xs sm:text-sm">
                 <tbody>
                   {filteredJds.map((jd) => (
                     <React.Fragment key={jd.id}>
                       <tr>
                         <td>
-                          <div className="flex items-center justify-between py-3 px-5 cursor-pointer"
+                          <div className="flex items-center justify-between py-2.5 sm:py-3 px-3 sm:px-5 cursor-pointer"
                             onClick={() => handleSelectJd(jd.id)}>
-                              <div className="flex items-center gap-3">
-                                <span className={`font-medium text-sm ${jd.disabled ? "line-through text-[var(--text-muted)]" : ""}`}>{jd.name}</span>
-                                <span className={`text-xs ${jd.disabled ? "line-through text-[var(--text-muted)]" : "text-[var(--text-secondary)] bg-[var(--primary-light)]"} px-2 py-0.5 rounded`}>{jd.position}</span>
+                              <div className="flex items-center gap-2 sm:gap-3">
+                                <span className={`font-medium text-xs sm:text-sm ${jd.disabled ? "line-through text-[var(--text-muted)]" : ""}`}>{jd.name}</span>
+                                <span className={`text-2xs sm:text-xs ${jd.disabled ? "line-through text-[var(--text-muted)]" : "text-[var(--text-secondary)] bg-[var(--primary-light)]"} px-1.5 sm:px-2 py-0.5 rounded`}>{jd.position}</span>
                                 {!!jd.disabled && (
-                                  <span className="text-xs text-[var(--text-muted)] bg-[var(--border)] px-2 py-0.5 rounded">Disabled</span>
+                                  <span className="text-2xs sm:text-xs text-[var(--text-muted)] bg-[var(--border)] px-1.5 sm:px-2 py-0.5 rounded">Disabled</span>
                                 )}
                               </div>
                               <div className="flex items-center gap-1">
@@ -291,29 +291,29 @@ export default function JdLibraryPage() {
                                       e.stopPropagation();
                                       setActiveMenuId(activeMenuId === jd.id ? null : jd.id);
                                     }}
-                                    className="p-1.5 rounded-lg hover:bg-[#e2e8f0] transition-colors cursor-pointer"
+                                    className="p-1 sm:p-1.5 rounded-lg hover:bg-[#e2e8f0] transition-colors cursor-pointer"
                                   >
-                                    <svg className="w-4 h-4 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01" />
                                     </svg>
                                   </button>
                                   {activeMenuId === jd.id && (
-                                    <div className="absolute right-0 mt-1 w-32 bg-white border border-[var(--border)] rounded-lg shadow-lg z-10">
+                                    <div className="absolute right-0 mt-1 w-28 sm:w-32 bg-white border border-[var(--border)] rounded-lg shadow-lg z-10">
                                       <button
                                         onClick={() => handleSelectJd(jd.id)}
-                                        className="w-full px-3 py-2 text-left text-xs text-[var(--primary)] hover:bg-[var(--primary-light)]/30 rounded-lg cursor-pointer"
+                                        className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-left text-2xs sm:text-xs text-[var(--primary)] hover:bg-[var(--primary-light)]/30 rounded-lg cursor-pointer"
                                       >
                                         View JD
                                       </button>
                                       <button
                                         onClick={() => handleToggleDisabled(jd.id, !jd.disabled)}
-                                        className="w-full px-3 py-2 text-left text-xs text-amber-600 hover:bg-amber-50 rounded-lg cursor-pointer"
+                                        className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-left text-2xs sm:text-xs text-amber-600 hover:bg-amber-50 rounded-lg cursor-pointer"
                                       >
                                         {jd.disabled ? "Enable JD" : "Disable JD"}
                                       </button>
                                       <button
                                         onClick={() => handleDelete(jd.id)}
-                                        className="w-full px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
+                                        className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-left text-2xs sm:text-xs text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
                                       >
                                         Delete JD
                                       </button>
@@ -332,27 +332,27 @@ export default function JdLibraryPage() {
           </CardContent>
         </Card>
 
-        <div className="bg-white rounded-xl border border-[var(--border)] p-6">
-          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">JD Detail</h2>
+        <div className="bg-white rounded-xl border border-[var(--border)] p-3 sm:p-4 lg:p-6">
+          <h2 className="text-lg sm:text-xl font-semibold text-[var(--text-primary)] mb-3 sm:mb-4">JD Detail</h2>
           {expandedId ? (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {(() => {
                 const jd = jdList.find((j) => j.id === expandedId);
                 if (!jd) return null;
                 return (
                   <>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="bg-[var(--primary-light)]/20 border border-[var(--primary)] rounded-lg p-3 text-center">
-                        <p className="text-xs font-semibold text-[var(--text-secondary)] mb-1">Last Update</p>
-                        <p className="text-sm font-bold text-[var(--primary)]">{jd.created_at}</p>
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                      <div className="bg-[var(--primary-light)]/20 border border-[var(--primary)] rounded-lg p-2 sm:p-2.5 text-center">
+                        <p className="text-2xs sm:text-xs font-semibold text-[var(--text-secondary)] mb-0.5 sm:mb-1">Last Update</p>
+                        <p className="text-2xs sm:text-xs font-bold text-[var(--primary)]">{jd.created_at}</p>
                       </div>
-                      <div className="bg-[var(--primary-light)]/20 border border-[var(--primary)] rounded-lg p-3 text-center">
-                        <p className="text-xs font-semibold text-[var(--text-secondary)] mb-1">Last Editor</p>
-                        <p className="text-sm font-bold text-[var(--primary)]">Admin User</p>
+                      <div className="bg-[var(--primary-light)]/20 border border-[var(--primary)] rounded-lg p-2 sm:p-2.5 text-center">
+                        <p className="text-2xs sm:text-xs font-semibold text-[var(--text-secondary)] mb-0.5 sm:mb-1">Last Editor</p>
+                        <p className="text-2xs sm:text-xs font-bold text-[var(--primary)]">Admin User</p>
                       </div>
-                      <div className="bg-[var(--primary-light)]/20 border border-[var(--primary)] rounded-lg p-3 text-center">
-                        <p className="text-xs font-semibold text-[var(--text-secondary)] mb-1">Version</p>
-                        <p className="text-sm font-bold text-[var(--primary)]">v1.0</p>
+                      <div className="bg-[var(--primary-light)]/20 border border-[var(--primary)] rounded-lg p-2 sm:p-2.5 text-center">
+                        <p className="text-2xs sm:text-xs font-semibold text-[var(--text-secondary)] mb-0.5 sm:mb-1">Version</p>
+                        <p className="text-2xs sm:text-xs font-bold text-[var(--primary)]">v1.0</p>
                       </div>
                     </div>
                     {renderCriteria(jd, "exp", "Experience (max 5)", jd.experienceChecklist)}
@@ -363,14 +363,14 @@ export default function JdLibraryPage() {
                 );
               })()}
               <div className="flex justify-end">
-                <Button onClick={() => console.log("Save criteria for", expandedId)}>
+                <Button onClick={() => console.log("Save criteria for", expandedId)} className="text-xs sm:text-sm">
                   Save
                 </Button>
               </div>
             </div>
           ) : (
-            <div className="rounded-lg border-2 border-dashed border-[var(--border)] flex items-center justify-center min-h-[200px]">
-              <span className="text-[var(--text-muted)]">Select a JD to view details</span>
+            <div className="rounded-lg border-2 border-dashed border-[var(--border)] flex items-center justify-center min-h-[150px] sm:min-h-[200px]">
+              <span className="text-[var(--text-muted)] text-xs sm:text-sm">Select a JD to view details</span>
             </div>
           )}
         </div>

@@ -26,7 +26,7 @@ export function DonutChart({ data, height = 260, centerLabel, centerTotal, segme
     : data;
 
   return (
-    <div className="w-full relative donut-chart-container">
+    <div className="w-full relative donut-chart-container chart-container">
       <ResponsiveContainer width="100%" height={height}>
         <RechartsPieChart>
           <Pie

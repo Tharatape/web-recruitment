@@ -50,7 +50,7 @@ export function Table<T>({
 
   return (
     <>
-      <div className="overflow-x-auto hidden sm:block">
+      <div className="overflow-x-auto hidden sm:block table-container">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-[#f8fafc] border-b border-[var(--border)]">

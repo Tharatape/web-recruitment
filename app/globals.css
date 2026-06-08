@@ -61,6 +61,7 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   margin: 0;
   position: relative;
+  overflow-x: hidden;
 }
 
 /* Status color badges */
@@ -116,6 +117,38 @@ body {
 
 .donut-chart-container > div:last-child {
   z-index: 1;
+}
+
+/* Prevent horizontal scroll from overflow containers */
+.overflow-x-auto {
+  scrollbar-gutter: stable both-edges;
+}
+
+/* Ensure charts fit within container without extra padding */
+.recharts-surface {
+  overflow: visible !important;
+}
+
+.recharts-chart-surface {
+  overflow: visible !important;
+}
+
+/* Explicit width constraints for chart elements */
+.chart-container {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Sidebar offset for large screens - ensures content doesn't overflow */
+@media (min-width: 1024px) {
+  main {
+    margin-left: 240px;
+  }
+}
+
+/* Ensure proper box model on charts */
+.recharts-surface, .recharts-surface text {
+  font-feature-settings: normal;
 }
 
 /* Responsive utilities for xs grid breakpoint */

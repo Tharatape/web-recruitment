@@ -26,7 +26,7 @@ interface TableSkeletonProps {
 export function TableSkeleton({ rows = 5, columns = 5 }: TableSkeletonProps) {
   return (
     <>
-      <div className="overflow-x-auto hidden sm:block">
+      <div className="overflow-x-auto hidden sm:block table-container">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--border)]">

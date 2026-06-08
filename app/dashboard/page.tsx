@@ -80,38 +80,38 @@ export default function DashboardPage() {
 
   const positionDist = stats?.positionDistribution || [];
 
-  if (loading) {
+if (loading) {
     return (
-      <main className="max-w-7xl mx-auto px-6 py-8 lg:ml-60">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Dashboard</h1>
-          <div className="flex items-center gap-3">
+      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">Dashboard</h1>
+          <div className="flex items-center gap-2 sm:gap-3">
             <span className="text-sm font-semibold text-[var(--foreground)]">Sarah Mitchell</span>
-            <div className="w-10 h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-sm" title="Profile">SM</div>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xs sm:text-sm cursor-pointer hover:ring-2 hover:ring-[var(--primary)] transition-all" title="Profile">SM</div>
           </div>
         </div>
-        <div className="flex flex-wrap gap-4 mb-6">
+        <div className="flex flex-wrap gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div className="h-10 bg-gray-100 rounded animate-pulse w-40" />
           <div className="h-10 bg-gray-100 rounded animate-pulse w-40" />
           <div className="h-10 bg-gray-100 rounded animate-pulse w-48" />
         </div>
         <StatsCardSkeleton />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white rounded-xl border border-[var(--border)] p-5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white rounded-xl border border-[var(--border)] p-4 sm:p-5">
             <div className="h-5 bg-gray-200 rounded animate-pulse w-32 mb-1" />
-            <div className="h-4 bg-gray-100 rounded animate-pulse w-48 mb-4" />
+            <div className="h-4 bg-gray-100 rounded animate-pulse w-48 mb-3 sm:mb-4" />
             <ChartSkeleton height={260} />
           </div>
-          <div className="bg-white rounded-xl border border-[var(--border)] p-5">
+          <div className="bg-white rounded-xl border border-[var(--border)] p-4 sm:p-5">
             <div className="h-5 bg-gray-200 rounded animate-pulse w-24 mb-1" />
-            <div className="h-4 bg-gray-100 rounded animate-pulse w-56 mb-4" />
+            <div className="h-4 bg-gray-100 rounded animate-pulse w-56 mb-3 sm:mb-4" />
             <ChartSkeleton height={300} />
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-[var(--border)] p-5 mb-8">
+        <div className="bg-white rounded-xl border border-[var(--border)] p-4 sm:p-5 mb-6 sm:mb-8">
           <div className="h-5 bg-gray-200 rounded animate-pulse w-32 mb-1" />
-          <div className="h-4 bg-gray-100 rounded animate-pulse w-64 mb-4" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="h-4 bg-gray-100 rounded animate-pulse w-64 mb-3 sm:mb-4" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i}>
                 <div className="h-4 bg-gray-200 rounded animate-pulse w-20 mb-2" />
@@ -120,12 +120,12 @@ export default function DashboardPage() {
             ))}
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-[var(--border)] p-5">
+        <div className="bg-white rounded-xl border border-[var(--border)] p-4 sm:p-5">
           <div className="h-5 bg-gray-200 rounded animate-pulse w-40 mb-1" />
-          <div className="h-4 bg-gray-100 rounded animate-pulse w-48 mb-4" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="h-4 bg-gray-100 rounded animate-pulse w-48 mb-3 sm:mb-4" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="p-4 bg-[#f8fafc] rounded-xl text-center">
+              <div key={i} className="p-3 sm:p-4 bg-[#f8fafc] rounded-xl text-center">
                 <div className="h-3 bg-gray-200 rounded animate-pulse w-20 mb-1 mx-auto" />
                 <div className="h-8 bg-gray-200 rounded animate-pulse w-12 mx-auto mb-1" />
                 <div className="h-3 bg-gray-100 rounded animate-pulse w-12 mx-auto" />
@@ -137,17 +137,17 @@ export default function DashboardPage() {
     );
   }
 
-  return (
-    <main className="max-w-7xl mx-auto px-6 py-8 lg:ml-60">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">Dashboard</h1>
-        <div className="flex items-center gap-3">
+return (
+    <main className="max-w-7xl mx-auto px-4 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
+        <h1 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">Dashboard</h1>
+        <div className="flex items-center gap-2 sm:gap-3">
           <span className="text-sm font-semibold text-[var(--foreground)]">Sarah Mitchell</span>
-          <div className="w-10 h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-sm cursor-pointer hover:ring-2 hover:ring-[var(--primary)] transition-all" title="Profile">SM</div>
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xs sm:text-sm cursor-pointer hover:ring-2 hover:ring-[var(--primary)] transition-all" title="Profile">SM</div>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-4 mb-6">
+      <div className="flex flex-wrap gap-3 sm:gap-4 mb-4 sm:mb-6">
         <Input label="Start Date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
         <Input label="End Date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
         <Dropdown
@@ -160,23 +160,23 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         {[
           { label: "Total Applications", value: total },
           { label: "Today Applied", value: today },
           { label: "Last Week Applied", value: lastWeek },
           { label: "Last Month Applied", value: lastMonth },
         ].map((stat) => (
-          <Card key={stat.label} className="p-5">
+          <Card key={stat.label} className="p-4 sm:p-5">
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">
               {stat.label}
             </p>
-            <p className="text-3xl font-bold text-[var(--primary)]">{stat.value}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-[var(--primary)]">{stat.value}</p>
           </Card>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <Card>
           <CardHeader>
             <CardTitle className="mb-0">Position Distribution</CardTitle>
@@ -235,7 +235,7 @@ export default function DashboardPage() {
           </p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {stageData.map((stage) => (
               <div key={stage.name} className="flex flex-col">
                 <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">{stage.name}</h4>
@@ -257,7 +257,7 @@ export default function DashboardPage() {
             ))}
           </div>
         </CardContent>
-        <div className="px-6 pb-4 border-t border-[var(--border)] pt-4">
+        <div className="px-4 sm:px-6 pb-3 sm:pb-4 border-t border-[var(--border)] pt-3 sm:pt-4">
           <div className="text-xs text-[var(--text-secondary)] opacity-70 space-y-1">
             <p><strong>Applied:</strong> Candidates who meet the initial job criteria but have not yet been selected for the next stage.</p>
             <p><strong>Shortlisted:</strong> Candidates who meet the criteria and have been selected to move forward in the Interview process.</p>
@@ -280,14 +280,14 @@ export default function DashboardPage() {
           </p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             {[
               { label: "Applied → Interview", days: "12.4" },
               { label: "Interview → Offer", days: "8.2" },
               { label: "Offer → Hired", days: "5.6" },
               { label: "Applied → Hired", days: "26.2" },
             ].map((d) => (
-              <div key={d.label} className="p-4 bg-[#f8fafc] rounded-xl text-center">
+              <div key={d.label} className="p-3 sm:p-4 bg-[#f8fafc] rounded-xl text-center">
                 <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">
                   {d.label}
                 </p>

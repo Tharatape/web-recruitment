@@ -114,18 +114,18 @@ export default function ApplicationsPage() {
 
   return (
     <>
-      <main className="max-w-7xl mx-auto px-6 py-8 lg:ml-60">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Application List</h1>
-          <div className="flex items-center gap-3">
+      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">Application List</h1>
+          <div className="flex items-center gap-2 sm:gap-3">
             <span className="text-sm font-semibold text-[var(--foreground)]">Sarah Mitchell</span>
-            <div className="w-10 h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-sm cursor-pointer hover:ring-2 hover:ring-[var(--primary)] transition-all" title="Profile">SM</div>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xs sm:text-sm cursor-pointer hover:ring-2 hover:ring-[var(--primary)] transition-all" title="Profile">SM</div>
           </div>
         </div>
 
-        <Card className="mb-6">
-          <CardContent className="!p-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <Card className="mb-4 sm:mb-6">
+          <CardContent className="!p-4 sm:!p-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
               <Input label="Search" placeholder="Name, Phone, NID, Email, Unique ID..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-[var(--foreground)]">Position</label>
@@ -208,14 +208,14 @@ export default function ApplicationsPage() {
           </CardContent>
         </Card>
 
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-sm text-[var(--text-secondary)]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-5 mt-4 sm:mt-5 gap-2 sm:gap-0">
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)]">
             Showing {paginatedCandidates.length} of {total} candidates
           </p>
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold text-[var(--foreground)]">Per page:</span>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="text-xs sm:text-sm font-semibold text-[var(--foreground)]">Per page:</span>
             <select
-              className="text-sm border border-[var(--border)] rounded-lg px-2.5 py-1.5 bg-white cursor-pointer"
+              className="text-xs sm:text-sm border border-[var(--border)] rounded-lg px-2 py-1 sm:px-2.5 sm:py-1.5 bg-white cursor-pointer"
               value={pageSize}
               onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
             >

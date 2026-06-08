@@ -56,23 +56,25 @@ export function StageBar({ name, segments, height = 200, yAxisMax }: StageBarPro
   }];
 
   return (
-    <ResponsiveContainer width="100%" height={height}>
-      <RechartsBarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-        <XAxis dataKey="name" tick={{ fontSize: 12 }} tickLine={false} axisLine={{ stroke: "#e2e8f0" }} />
-        <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={{ stroke: "#e2e8f0" }} allowDecimals={false} domain={yAxisMax ? [0, yAxisMax] : undefined} />
-        <Tooltip content={<CustomTooltip />} />
-        {segments.map((seg) => (
-          <Bar
-            key={`${name}___${seg.name}`}
-            dataKey={seg.name}
-            stackId={name}
-            name={seg.name}
-          >
-            <Cell fill={seg.color} />
-          </Bar>
-        ))}
-      </RechartsBarChart>
-    </ResponsiveContainer>
+    <div className="chart-container">
+      <ResponsiveContainer width="100%" height={height}>
+        <RechartsBarChart data={data} margin={{ top: 20, right: 5, left: 0, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+          <XAxis dataKey="name" tick={{ fontSize: 12 }} tickLine={false} axisLine={{ stroke: "#e2e8f0" }} />
+          <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={{ stroke: "#e2e8f0" }} allowDecimals={false} domain={yAxisMax ? [0, yAxisMax] : undefined} />
+          <Tooltip content={<CustomTooltip />} />
+          {segments.map((seg) => (
+            <Bar
+              key={`${name}___${seg.name}`}
+              dataKey={seg.name}
+              stackId={name}
+              name={seg.name}
+            >
+              <Cell fill={seg.color} />
+            </Bar>
+          ))}
+        </RechartsBarChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
