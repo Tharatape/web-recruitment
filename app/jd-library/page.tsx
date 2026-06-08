@@ -76,9 +76,9 @@ export default function JdLibraryPage() {
     const jd = jdList.find((j) => j.id === id);
     if (jd) {
       const initialCounts: CriterionCounts = {};
-      ["exp", "edu", "lang", "tech"].forEach((cat) => {
+      [["exp", 5], ["edu", 5], ["lang", 2], ["tech", 5]].forEach(([cat, max]) => {
         const checklist = jd[`${cat}Checklist` as keyof JD] as string[] | undefined;
-        if (checklist) initialCounts[`${jd.id}-${cat}`] = checklist.length;
+        if (checklist) initialCounts[`${jd.id}-${cat}`] = Math.min(checklist.length, max);
       });
       setCounts((prev) => ({ ...prev, ...initialCounts }));
     }
@@ -110,10 +110,10 @@ export default function JdLibraryPage() {
     }));
   };
 
-  const addCriterion = (jdId: string, category: string) => {
+  const addCriterion = (jdId: string, category: string, max: number = 5) => {
     const key = `${jdId}-${category}`;
     const currentCount = counts[key] ?? 0;
-    if (currentCount < 5) {
+    if (currentCount < max) {
       setCounts((prev) => ({ ...prev, [key]: currentCount + 1 }));
     }
   };
@@ -138,17 +138,17 @@ export default function JdLibraryPage() {
     }
   };
 
-  const renderCriteria = (jd: JD, category: string, label: string, checklist: string[] | undefined) => {
+  const renderCriteria = (jd: JD, category: string, label: string, checklist: string[] | undefined, max: number = 5) => {
     const key = `${jd.id}-${category}`;
-    const count = counts[key] !== undefined ? counts[key] : (checklist ? checklist.length : 5);
+    const count = counts[key] !== undefined ? counts[key] : (checklist ? checklist.length : max);
     const initialValue = checklist || [];
     return (
       <div className="px-3 sm:px-5">
         <div className="flex items-center justify-between mb-2">
           <label className="text-2xs sm:text-xs font-semibold text-[var(--text-primary)]">{label}</label>
           <button
-            onClick={() => addCriterion(jd.id, category)}
-            disabled={count >= 5}
+            onClick={() => addCriterion(jd.id, category, max)}
+            disabled={count >= max}
             className="px-2 py-0.5 sm:py-1 text-2xs sm:text-xs font-medium text-[var(--primary)] bg-[var(--primary-light)] rounded hover:bg-[#bfdbfe] disabled:opacity-50 cursor-pointer"
           >
             + Add
@@ -357,7 +357,7 @@ export default function JdLibraryPage() {
                     </div>
                     {renderCriteria(jd, "exp", "Experience (max 5)", jd.experienceChecklist)}
                     {renderCriteria(jd, "edu", "Education (max 5)", jd.educationChecklist)}
-                    {renderCriteria(jd, "lang", "Language (max 5)", jd.languageChecklist)}
+                    {renderCriteria(jd, "lang", "Language (max 2)", jd.languageChecklist, 2)}
                     {renderCriteria(jd, "tech", "Skill (max 5)", jd.technicalChecklist)}
                   </>
                 );
