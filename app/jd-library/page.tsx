@@ -76,7 +76,8 @@ export default function JdLibraryPage() {
     const jd = jdList.find((j) => j.id === id);
     if (jd) {
       const initialCounts: CriterionCounts = {};
-      [["exp", 5], ["edu", 5], ["lang", 2], ["tech", 5]].forEach(([cat, max]) => {
+      const categories: [string, number][] = [["exp", 5], ["edu", 5], ["lang", 2], ["tech", 5]];
+      categories.forEach(([cat, max]) => {
         const checklist = jd[`${cat}Checklist` as keyof JD] as string[] | undefined;
         if (checklist) initialCounts[`${jd.id}-${cat}`] = Math.min(checklist.length, max);
       });
