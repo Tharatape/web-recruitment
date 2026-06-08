@@ -178,7 +178,7 @@ export default function JdLibraryPage() {
 
   if (loading) {
     return (
-      <main className="max-w-7xl px-4 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8 lg:ml-60">
+      <main className="w-full px-4 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8 lg:ml-60 lg:max-w-[calc(100vw-240px)]">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
           <h1 className="text-xl sm:text-3xl font-bold text-[var(--primary)]">JD Library</h1>
           <div className="flex items-center gap-2 sm:gap-3">
@@ -195,7 +195,7 @@ export default function JdLibraryPage() {
           </div>
           <div className="h-9 sm:h-10 bg-gray-200 rounded animate-pulse w-16 sm:w-20" />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
           <div className="bg-white rounded-xl border border-[var(--border)] p-3 sm:p-4">
             <div className="h-5 sm:h-6 bg-gray-200 rounded animate-pulse w-28 sm:w-32 mb-3 sm:mb-4" />
             <div className="h-9 sm:h-10 bg-gray-100 rounded animate-pulse mb-3 sm:mb-4" />
@@ -217,7 +217,7 @@ export default function JdLibraryPage() {
   }
 
   return (
-    <main className="max-w-7xl px-4 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8 lg:ml-60">
+    <main className="w-full px-4 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8 lg:ml-60 lg:max-w-[calc(100vw-240px)]">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
         <h1 className="text-xl sm:text-3xl font-bold text-[var(--primary)]">JD Library</h1>
         <div className="flex items-center gap-2 sm:gap-3">
@@ -256,7 +256,7 @@ export default function JdLibraryPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <Card>
           <CardHeader>
             <CardTitle>JD Repository</CardTitle>

@@ -45,7 +45,7 @@ export default function KpiDataPage() {
   const hasActiveFilters = dateFrom || dateTo || owner;
 
   return (
-    <main className="max-w-7xl px-4 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8 lg:ml-60">
+    <main className="w-full px-4 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8 lg:ml-60 lg:max-w-[calc(100vw-240px)]">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
         <h1 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">KPI Data</h1>
         <div className="flex items-center gap-2 sm:gap-3">
@@ -56,7 +56,7 @@ export default function KpiDataPage() {
 
       <Card className="mb-4 sm:mb-6">
         <CardContent className="!p-4 sm:!p-5">
-          <div className="flex flex-wrap gap-3 sm:gap-4 mb-4 sm:mb-6 items-end">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 mb-4 sm:mb-6 items-end">
             <div className="flex-1 min-w-[200px]">
               <Input
                 label="Search"
@@ -66,31 +66,33 @@ export default function KpiDataPage() {
                 onChange={(e) => setTableSearch(e.target.value)}
               />
             </div>
-            <Input
-              type="date"
-              label="From"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="w-40"
-            />
-            <Input
-              type="date"
-              label="To"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="w-40"
-            />
-            <Dropdown
-              label="Recruiter"
-              placeholder="All Owners"
-              options={[{ label: "No Owner", value: "no-owner" }, ...OWNERS.map((r) => ({ label: r, value: r }))]}
-              value={owner}
-              onChange={setOwner}
-              className="w-48"
-            />
-            <Button variant="success" onClick={handleExport} size="sm" className="h-[38px]">
-              Export to Excel
-            </Button>
+            <div className="flex flex-wrap gap-3 sm:gap-4 items-end">
+              <Input
+                type="date"
+                label="From"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-full sm:w-40"
+              />
+              <Input
+                type="date"
+                label="To"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="w-full sm:w-40"
+              />
+              <Dropdown
+                label="Recruiter"
+                placeholder="All Owners"
+                options={[{ label: "No Owner", value: "no-owner" }, ...OWNERS.map((r) => ({ label: r, value: r }))]}
+                value={owner}
+                onChange={setOwner}
+                className="w-full sm:w-48"
+              />
+              <Button variant="success" onClick={handleExport} size="sm" className="h-[38px] w-full sm:w-auto">
+                Export to Excel
+              </Button>
+            </div>
           </div>
 
           {hasActiveFilters && (

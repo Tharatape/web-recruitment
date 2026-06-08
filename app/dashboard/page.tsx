@@ -82,7 +82,7 @@ export default function DashboardPage() {
 
 if (loading) {
     return (
-      <main className="max-w-7xl px-4 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8 lg:ml-60">
+      <main className="w-full px-4 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8 lg:ml-60 lg:max-w-[calc(100vw-240px)]">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
           <h1 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">Dashboard</h1>
           <div className="flex items-center gap-2 sm:gap-3">
@@ -90,10 +90,11 @@ if (loading) {
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold text-xs sm:text-sm cursor-pointer hover:ring-2 hover:ring-[var(--primary)] transition-all" title="Profile">SM</div>
           </div>
         </div>
-        <div className="flex flex-wrap gap-3 sm:gap-4 mb-4 sm:mb-6">
-          <div className="h-10 bg-gray-100 rounded animate-pulse w-40" />
-          <div className="h-10 bg-gray-100 rounded animate-pulse w-40" />
-          <div className="h-10 bg-gray-100 rounded animate-pulse w-48" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="h-10 bg-gray-100 rounded animate-pulse w-full" />
+          <div className="h-10 bg-gray-100 rounded animate-pulse w-full" />
+          <div className="h-10 bg-gray-100 rounded animate-pulse w-full" />
+          <div className="h-10 bg-gray-100 rounded animate-pulse w-full" />
         </div>
         <StatsCardSkeleton />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
@@ -138,7 +139,7 @@ if (loading) {
   }
 
 return (
-    <main className="max-w-7xl px-4 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8 lg:ml-60">
+    <main className="w-full px-4 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8 lg:ml-60 lg:max-w-[calc(100vw-240px)]">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
         <h1 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">Dashboard</h1>
         <div className="flex items-center gap-2 sm:gap-3">
@@ -167,8 +168,8 @@ return (
           { label: "Last Week Applied", value: lastWeek },
           { label: "Last Month Applied", value: lastMonth },
         ].map((stat) => (
-          <Card key={stat.label} className="p-4 sm:p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1">
+          <Card key={stat.label} className="p-4 sm:p-5 min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1 truncate">
               {stat.label}
             </p>
             <p className="text-2xl sm:text-3xl font-bold text-[var(--primary)]">{stat.value}</p>

@@ -94,7 +94,7 @@ export function BarChart({
             height={70}
             type="category"
             tickCount={data.length}
-            interval={0}
+            minTickGap={10}
           />
           <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={{ stroke: "#e2e8f0" }} domain={[0, 'dataMax']} />
           <Tooltip

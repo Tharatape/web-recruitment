@@ -139,8 +139,6 @@ body {
   max-width: 100%;
 }
 
-
-
 /* Ensure proper box model on charts */
 .recharts-surface, .recharts-surface text {
   font-feature-settings: normal;
