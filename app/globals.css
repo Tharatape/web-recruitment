@@ -140,7 +140,11 @@ body {
 }
 
 /* Sidebar offset for large screens - ensures content doesn't overflow */
-
+@media (min-width: 1024px) {
+  main {
+    margin-left: 240px;
+  }
+}
 
 /* Ensure proper box model on charts */
 .recharts-surface, .recharts-surface text {
