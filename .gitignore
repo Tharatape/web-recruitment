@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# database — generated file, reseeded on startup
+data/db/mockup.db
+data/db/seed.lock
+
+# backup files
+*.bak
