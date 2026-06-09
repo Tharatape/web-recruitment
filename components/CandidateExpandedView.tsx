@@ -51,19 +51,27 @@ interface CandidateExpandedViewProps {
    pros?: string[];
    cons?: string[];
    barScores?: {
-     experience: number;
-     education: number;
-     language: number;
-     technical: number;
-     experienceChecklist?: string[];
-     educationChecklist?: string[];
-     languageChecklist?: string[];
-     technicalChecklist?: string[];
-     experiencePoints?: number;
-     educationPoints?: number;
-     languagePoints?: number;
-     technicalPoints?: number;
-   };
+      experience: number;
+      education: number;
+      language: number;
+      technical: number;
+      experienceChecklist?: string[];
+      educationChecklist?: string[];
+      languageChecklist?: string[];
+      technicalChecklist?: string[];
+      experiencePoints?: number;
+      educationPoints?: number;
+      languagePoints?: number;
+      technicalPoints?: number;
+      expPass?: number;
+      expItems?: number;
+      eduPass?: number;
+      eduItems?: number;
+      langPass?: number;
+      langItems?: number;
+      techPass?: number;
+      techItems?: number;
+    };
  }
 
 function InfoField({ label, value }: { label: string; value: React.ReactNode }) {
@@ -112,19 +120,24 @@ interface ScoreBarProps {
   checklist?: string[];
   totalPassed?: number;
   maxPoints?: number;
+  totalItems?: number;
 }
 
-function ScoreBar({ label, score, checklist, totalPassed, maxPoints }: ScoreBarProps) {
-  const barWidth = checklist && totalPassed !== undefined 
-    ? Math.max(0, (totalPassed / checklist.length) * 100) 
-    : score;
+function ScoreBar({ label, score, checklist, totalPassed, maxPoints, totalItems }: ScoreBarProps) {
+  const barWidth = checklist && totalPassed !== undefined && totalItems !== undefined
+    ? Math.max(0, (totalPassed / totalItems) * 100)
+    : (checklist && totalPassed !== undefined
+      ? Math.max(0, (totalPassed / checklist.length) * 100)
+      : score);
   const color = barWidth >= 80 ? "#22c55e" : barWidth >= 50 ? "#f59e0b" : "#ef4444";
+  const passed = totalPassed ?? (checklist ? Math.max(0, Math.round((score / 100) * checklist.length)) : 0);
+  const total = totalItems ?? checklist?.length ?? 0;
   const pointsDisplay = maxPoints !== undefined ? `${maxPoints} pts` : `${Math.round(barWidth)}%`;
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
         <span className="text-xs font-bold text-[var(--foreground)]">{label}</span>
-        <span className="text-xs font-bold text-[var(--text-muted)]">{pointsDisplay} {totalPassed !== undefined && `(${totalPassed}/${checklist?.length || 0})`}</span>
+        <span className="text-xs font-bold text-[var(--text-muted)]">{pointsDisplay} ({passed}/{total})</span>
       </div>
       <div className="h-2 rounded-full bg-[#e2e8f0] overflow-hidden">
         <div
@@ -132,7 +145,7 @@ function ScoreBar({ label, score, checklist, totalPassed, maxPoints }: ScoreBarP
           style={{ width: `${barWidth}%`, backgroundColor: color }}
         />
       </div>
-      {checklist && <Checklist items={checklist} score={(totalPassed ?? 0) / checklist.length * 100} />}
+      {checklist && <Checklist items={checklist} score={(passed / total) * 100} />}
     </div>
   );
 }
@@ -293,15 +306,14 @@ export function CandidateExpandedView({ candidate, matchingScore, extraTopRight,
                 <div className="flex-1 w-full min-w-0">
                   <div className="space-y-3">
                     {([
-                      ["Experience", barScores.experience, barScores.experienceChecklist, barScores.experiencePoints],
-                      ["Education", barScores.education, barScores.educationChecklist, barScores.educationPoints],
-                      ["Language", barScores.language, barScores.languageChecklist, barScores.languagePoints],
-                      ["Skill", barScores.technical, barScores.technicalChecklist, barScores.technicalPoints],
-                    ] as [string, number, string[] | undefined, number | undefined][])
-.map(([lbl, sc, checklist, pts]) => {
-                        const passCount = checklist ? Math.max(0, Math.round((sc / 100) * checklist.length)) : undefined;
-                        return <ScoreBar key={lbl} label={lbl} score={sc} checklist={checklist} totalPassed={passCount} maxPoints={pts} />;
-                      })}
+                      ["Experience", barScores.experience, barScores.experienceChecklist, barScores.experiencePoints, barScores.expPass, barScores.expItems],
+                      ["Education", barScores.education, barScores.educationChecklist, barScores.educationPoints, barScores.eduPass, barScores.eduItems],
+                      ["Language", barScores.language, barScores.languageChecklist, barScores.languagePoints, barScores.langPass, barScores.langItems],
+                      ["Skill", barScores.technical, barScores.technicalChecklist, barScores.technicalPoints, barScores.techPass, barScores.techItems],
+                    ] as [string, number, string[] | undefined, number | undefined, number | undefined, number | undefined][])
+                    .map(([lbl, sc, checklist, pts, pass, items]) => {
+                      return <ScoreBar key={lbl} label={lbl} score={sc} checklist={checklist} totalPassed={pass} maxPoints={pts} totalItems={items} />;
+                    })}
                   </div>
                 </div>
               )}

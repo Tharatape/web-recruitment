@@ -46,26 +46,61 @@ export function clearScoreCache(): void {
 }
 
 /**
- * JD type-specific scoring modifiers.
- * Each JD position has a unique scoring profile based on typical requirements.
- * These factors are designed to produce clearly different scores for different JD types.
+ * Core scoring — returns per-category points based on candidate data and JD checklists.
+ * This is the single source of truth for matching scores.
+ * Each category: (passedCount / totalItems) * maxPoints, clamped to maxPoints.
+ * Total is the sum of all four categories, clamped to 100.
  */
-const JD_SCORING_PROFILES: Record<string, {
-  expFactor: number; eduFactor: number; langFactor: number; techFactor: number;
-}> = {
-  sales: { expFactor: 1.4, eduFactor: 0.9, langFactor: 1.2, techFactor: 0.8 },
-  marketing: { expFactor: 1.2, eduFactor: 0.95, langFactor: 1.15, techFactor: 1.1 },
-  engineer: { expFactor: 1.3, eduFactor: 1.2, langFactor: 1.0, techFactor: 1.5 },
-  software: { expFactor: 1.3, eduFactor: 1.2, langFactor: 1.0, techFactor: 1.5 },
-  data: { expFactor: 1.1, eduFactor: 1.25, langFactor: 1.0, techFactor: 1.4 },
-  analyst: { expFactor: 1.1, eduFactor: 1.25, langFactor: 1.0, techFactor: 1.4 },
-  hr: { expFactor: 1.5, eduFactor: 1.15, langFactor: 1.3, techFactor: 0.7 },
-  financial: { expFactor: 1.0, eduFactor: 1.35, langFactor: 1.0, techFactor: 1.1 },
-  customer: { expFactor: 1.35, eduFactor: 1.0, langFactor: 1.4, techFactor: 0.6 },
-  project: { expFactor: 1.45, eduFactor: 1.2, langFactor: 1.15, techFactor: 1.3 },
-  business: { expFactor: 1.2, eduFactor: 1.3, langFactor: 1.25, techFactor: 1.25 },
-  operations: { expFactor: 1.35, eduFactor: 1.0, langFactor: 1.15, techFactor: 0.85 },
-};
+function getCategoryScores(row: {
+  id: string;
+  experience: number;
+  education?: string;
+  language?: string;
+  position?: string;
+}, jdChecklists?: {
+  experienceChecklist?: string[];
+  educationChecklist?: string[];
+  languageChecklist?: string[];
+  technicalChecklist?: string[];
+}): {
+  experiencePoints: number;
+  educationPoints: number;
+  languagePoints: number;
+  technicalPoints: number;
+  total: number;
+} {
+  const w = CATEGORY_WEIGHTS;
+
+  // How many checklist items the candidate "passes" in each category
+  // Experience & Technical: derived from years of experience
+  // Education & language: derived from candidate profile
+  const expScore  = getExperienceScore(row.experience);
+  const eduScore  = getEducationScore(row.education);
+  const langScore = getLanguageScore(row.language);
+  const techScore = getTechnicalScore(row.experience);
+
+  // Map checklist count from JD, or use default itemCount
+  const expItems = jdChecklists?.experienceChecklist?.length ?? w.experience.itemCount;
+  const eduItems = jdChecklists?.educationChecklist?.length ?? w.education.itemCount;
+  const langItems = jdChecklists?.languageChecklist?.length ?? w.language.itemCount;
+  const techItems = jdChecklists?.technicalChecklist?.length ?? w.technical.itemCount;
+
+  // Passed count = how many items the candidate meets (score-based proportion)
+  const expPass  = Math.max(0, Math.min(expItems,  Math.round((expScore  / 100) * expItems)));
+  const eduPass  = Math.max(0, Math.min(eduItems,  Math.round((eduScore  / 100) * eduItems)));
+  const langPass = Math.max(0, Math.min(langItems, Math.round((langScore / 100) * langItems)));
+  const techPass = Math.max(0, Math.min(techItems, Math.round((techScore / 100) * techItems)));
+
+  // Points = proportional to passed/total, using the JD's actual checklist size
+  const experiencePoints = calculatePoints(expPass,  expItems,  w.experience.maxPoints);
+  const educationPoints  = calculatePoints(eduPass,  eduItems,  w.education.maxPoints);
+  const languagePoints   = calculatePoints(langPass, langItems, w.language.maxPoints);
+  const technicalPoints  = calculatePoints(techPass, techItems, w.technical.maxPoints);
+
+  const total = Math.min(100, experiencePoints + educationPoints + languagePoints + technicalPoints);
+
+  return { experiencePoints, educationPoints, languagePoints, technicalPoints, total };
+}
 
 function getMatchingScoreForRow(row: {
   id: string;
@@ -82,72 +117,13 @@ function getMatchingScoreForRow(row: {
   const cacheKey = jdId ? `${row.id}-${jdId}` : row.id;
   if (_scoreCache.has(cacheKey)) return _scoreCache.get(cacheKey)!;
 
-  const w = CATEGORY_WEIGHTS;
-  const rowPos = (row.position || "").toLowerCase();
-  
-  // Extract JD position if available (for position matching)
-  const jdPos = jdChecklists && "jd" in jdChecklists && (jdChecklists as { jd?: { position?: string } }).jd?.position
-    ? String((jdChecklists as { jd: { position: string } }).jd.position).toLowerCase()
-    : "";
-  
-  // Base component score calculation
-  let expPoints = calculatePoints(
-    Math.max(1, Math.round((getExperienceScore(row.experience) / 100) * w.experience.itemCount)),
-    w.experience.itemCount, w.experience.maxPoints
-  );
-  let eduPoints = calculatePoints(
-    Math.max(1, Math.round((getEducationScore(row.education) / 100) * w.education.itemCount)),
-    w.education.itemCount, w.education.maxPoints
-  );
-  let langPoints = calculatePoints(
-    Math.max(1, Math.round((getLanguageScore(row.language) / 100) * w.language.itemCount)),
-    w.language.itemCount, w.language.maxPoints
-  );
-  let techPoints = calculatePoints(
-    Math.max(1, Math.round((getTechnicalScore(row.experience) / 100) * w.technical.itemCount)),
-    w.technical.itemCount, w.technical.maxPoints
-  );
+  // Normalize jdChecklists to the checklist form
+  const checklists = jdChecklists && ("experienceChecklist" in jdChecklists || "jd" in jdChecklists)
+    ? ("experienceChecklist" in jdChecklists ? jdChecklists : undefined)
+    : undefined;
 
-  // Position alignment modifier - each JD type has a unique scoring profile
-  if (jdPos) {
-    // Find matching JD profile
-    let profile: typeof JD_SCORING_PROFILES[keyof typeof JD_SCORING_PROFILES] | null = null;
-    for (const [key, value] of Object.entries(JD_SCORING_PROFILES)) {
-      if (jdPos.includes(key)) {
-        profile = value;
-        break;
-      }
-    }
-    
-    if (profile) {
-      // Apply JD-specific modifiers
-      expPoints = Math.round(expPoints * profile.expFactor);
-      eduPoints = Math.round(eduPoints * profile.eduFactor);
-      langPoints = Math.round(langPoints * profile.langFactor);
-      techPoints = Math.round(techPoints * profile.techFactor);
-    }
-    
-    // Position match bonus - candidates aligned with JD position get extra points
-    const positionMatch = 
-      (rowPos.includes("sales") && jdPos.includes("sales")) ||
-      (rowPos.includes("marketing") && jdPos.includes("marketing")) ||
-      (rowPos.includes("engineer") && (jdPos.includes("engineer") || jdPos.includes("software"))) ||
-      (rowPos.includes("data") && (jdPos.includes("data") || jdPos.includes("analyst"))) ||
-      (rowPos.includes("hr") && jdPos.includes("hr")) ||
-      (rowPos.includes("financial") && jdPos.includes("financial")) ||
-      (rowPos.includes("customer") && jdPos.includes("customer")) ||
-      (rowPos.includes("project") && jdPos.includes("project")) ||
-      (rowPos.includes("business") && jdPos.includes("business")) ||
-      (rowPos.includes("operations") && jdPos.includes("operations"));
-    
-    if (positionMatch) {
-      // Add bonus for exact position alignment
-      expPoints = Math.min(40, expPoints + 5); // Cap at max points
-      techPoints = Math.min(30, techPoints + 4);
-    }
-  }
-
-  const score = expPoints + eduPoints + langPoints + techPoints;
+  const scores = getCategoryScores(row, checklists);
+  const score = scores.total;
 
   _scoreCache.set(cacheKey, score);
   return score;
@@ -184,17 +160,25 @@ export function buildBarScores(row: {
    languageChecklist?: string[];
    technicalChecklist?: string[];
  }) {
+   const scores = getCategoryScores(row, jdChecklists);
    const w = CATEGORY_WEIGHTS;
 
+   // Build display scores (0-100 scale for each category)
    const expScore  = getExperienceScore(row.experience);
    const eduScore  = getEducationScore(row.education);
    const langScore = getLanguageScore(row.language);
    const techScore = getTechnicalScore(row.experience);
 
-const expPass  = Math.max(0, Math.round((expScore  / 100) * w.experience.itemCount));
-    const eduPass  = Math.max(0, Math.round((eduScore  / 100) * w.education.itemCount));
-    const langPass = Math.max(0, Math.round((langScore / 100) * w.language.itemCount));
-    const techPass = Math.max(0, Math.round((techScore / 100) * w.technical.itemCount));
+   // Passed counts for checklist display
+   const expPass  = Math.max(0, Math.min(jdChecklists?.experienceChecklist?.length  ?? w.experience.itemCount,  Math.round((expScore  / 100) * (jdChecklists?.experienceChecklist?.length  ?? w.experience.itemCount))));
+   const eduPass  = Math.max(0, Math.min(jdChecklists?.educationChecklist?.length   ?? w.education.itemCount,   Math.round((eduScore  / 100) * (jdChecklists?.educationChecklist?.length   ?? w.education.itemCount))));
+   const langPass = Math.max(0, Math.min(jdChecklists?.languageChecklist?.length    ?? w.language.itemCount,    Math.round((langScore / 100) * (jdChecklists?.languageChecklist?.length    ?? w.language.itemCount))));
+   const techPass = Math.max(0, Math.min(jdChecklists?.technicalChecklist?.length   ?? w.technical.itemCount,   Math.round((techScore / 100) * (jdChecklists?.technicalChecklist?.length   ?? w.technical.itemCount))));
+
+   const expItems  = jdChecklists?.experienceChecklist?.length  ?? w.experience.itemCount;
+   const eduItems  = jdChecklists?.educationChecklist?.length   ?? w.education.itemCount;
+   const langItems = jdChecklists?.languageChecklist?.length    ?? w.language.itemCount;
+   const techItems = jdChecklists?.technicalChecklist?.length   ?? w.technical.itemCount;
 
    return {
      experience: expScore,
@@ -205,9 +189,13 @@ const expPass  = Math.max(0, Math.round((expScore  / 100) * w.experience.itemCou
      educationChecklist:  jdChecklists?.educationChecklist,
      languageChecklist:   jdChecklists?.languageChecklist,
      technicalChecklist:  jdChecklists?.technicalChecklist,
-     experiencePoints:  calculatePoints(expPass,  w.experience.itemCount, w.experience.maxPoints),
-     educationPoints:   calculatePoints(eduPass,  w.education.itemCount,  w.education.maxPoints),
-     languagePoints:    calculatePoints(langPass, w.language.itemCount,   w.language.maxPoints),
-     technicalPoints:   calculatePoints(techPass, w.technical.itemCount,  w.technical.maxPoints),
+     experiencePoints:  scores.experiencePoints,
+     educationPoints:   scores.educationPoints,
+     languagePoints:    scores.languagePoints,
+     technicalPoints:   scores.technicalPoints,
+     expPass, expItems,
+     eduPass, eduItems,
+     langPass, langItems,
+     techPass, techItems,
    };
  }
